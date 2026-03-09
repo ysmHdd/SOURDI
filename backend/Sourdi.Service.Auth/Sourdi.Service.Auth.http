@@ -1,6 +1,0 @@
-@Sourdi.Service.Auth_HostAddress = http://localhost:5295
-
-GET {{Sourdi.Service.Auth_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
