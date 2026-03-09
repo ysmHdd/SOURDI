@@ -1,4 +1,4 @@
-SOURDI est une plateforme web de motivation pédagogique basée sur la **gamification**.
+SOURDI est une plateforme web de motivation pédagogique basée sur la gamification.
 
 Elle permet aux élèves de :
 
