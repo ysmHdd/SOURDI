@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import AdminSidebar from "../../components/AdminSidebar";
 import axios from "../../api/axios";
 
 const Produits = () => {
-  const navigate = useNavigate();
   const [produits, setProduits] = useState([]);
-  const [form, setForm] = useState({ nom: "", description: "", prixEnCoins: "", stock: "", categorie: "cours" });
+  const [form, setForm] = useState({
+    nom: "",
+    description: "",
+    prixEnCoins: "",
+    stock: "",
+    categorie: "cours",
+  });
   const [erreur, setErreur] = useState("");
 
   const charger = async () => {
     try {
       const res = await axios.get("http://localhost:5002/api/admin/produits");
       setProduits(res.data);
+      setErreur("");
     } catch {
       setErreur("Erreur chargement produits");
     }
@@ -21,7 +27,14 @@ const Produits = () => {
     e.preventDefault();
     try {
       await axios.post("http://localhost:5002/api/admin/produits", form);
-      setForm({ nom: "", description: "", prixEnCoins: "", stock: "", categorie: "cours" });
+      setForm({
+        nom: "",
+        description: "",
+        prixEnCoins: "",
+        stock: "",
+        categorie: "cours",
+      });
+      setErreur("");
       charger();
     } catch {
       setErreur("Erreur création produit");
@@ -32,70 +45,329 @@ const Produits = () => {
     if (!window.confirm("Supprimer ce produit ?")) return;
     try {
       await axios.delete(`http://localhost:5002/api/admin/produits/${id}`);
+      setErreur("");
       charger();
     } catch {
       setErreur("Erreur suppression");
     }
   };
 
-  useEffect(() => { charger(); }, []);
+  useEffect(() => {
+    charger();
+  }, []);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <button style={styles.retour} onClick={() => navigate("/admin")}>← Retour</button>
-        <h2 style={styles.titre}>Gestion des Produits</h2>
-      </div>
-      {erreur && <p style={styles.erreur}>{erreur}</p>}
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap');
 
-      <div style={styles.formCard}>
-        <h3>Ajouter un produit</h3>
-        <form onSubmit={creer} style={styles.form}>
-          <input style={styles.input} placeholder="Nom" value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} required />
-          <input style={styles.input} placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
-          <input style={styles.input} type="number" placeholder="Prix en Coins" value={form.prixEnCoins} onChange={(e) => setForm({ ...form, prixEnCoins: e.target.value })} required />
-          <input style={styles.input} type="number" placeholder="Stock" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
-          <select style={styles.input} value={form.categorie} onChange={(e) => setForm({ ...form, categorie: e.target.value })}>
-            <option value="cours">Cours</option>
-            <option value="livre">Livre</option>
-            <option value="autre">Autre</option>
-          </select>
-          <button style={styles.bouton} type="submit">Ajouter</button>
-        </form>
-      </div>
+        * {
+          box-sizing: border-box;
+        }
 
-      <div style={styles.grid}>
-        {produits.map((p) => (
-          <div key={p._id} style={styles.card}>
-            <h3 style={styles.cardTitre}>{p.nom}</h3>
-            <p style={styles.cardDesc}>{p.description}</p>
-            <p>💰 <strong>{p.prixEnCoins}</strong> coins</p>
-            <p>📦 Stock: {p.stock}</p>
-            <span style={styles.badge}>{p.categorie}</span>
-            <button style={styles.boutonSupp} onClick={() => supprimer(p._id)}>Supprimer</button>
+        .admin-layout {
+          min-height: 100vh;
+          display: flex;
+          font-family: 'Nunito', sans-serif;
+          background: linear-gradient(145deg, #FFF8E1 0%, #FCE4EC 45%, #E8EAF6 100%);
+        }
+
+        .admin-main {
+          flex: 1;
+          padding: 28px;
+        }
+
+        .admin-top-card {
+          background: rgba(255, 255, 255, 0.88);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(171, 71, 188, 0.10);
+          border-radius: 28px;
+          padding: 28px;
+          box-shadow: 0 18px 40px rgba(90, 70, 120, 0.08);
+          margin-bottom: 24px;
+        }
+
+        .admin-top-label {
+          display: inline-block;
+          padding: 6px 12px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #F3E5F5, #EDE7F6);
+          color: #7B4BAA;
+          font-size: 0.75rem;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 0.7px;
+          margin-bottom: 14px;
+        }
+
+        .admin-main-title {
+          margin: 0;
+          font-size: 2rem;
+          color: #322B45;
+          font-weight: 900;
+        }
+
+        .admin-main-subtitle {
+          margin: 10px 0 0;
+          color: #7E7A8A;
+          font-size: 1rem;
+          line-height: 1.6;
+          max-width: 700px;
+          font-weight: 700;
+        }
+
+        .error-box {
+          background: rgba(255,255,255,0.92);
+          border: 1px solid rgba(239, 68, 68, 0.18);
+          color: #c62828;
+          border-radius: 18px;
+          padding: 14px 16px;
+          margin-bottom: 20px;
+          box-shadow: 0 10px 24px rgba(90, 70, 120, 0.05);
+          font-weight: 800;
+        }
+
+        .form-card {
+          background: rgba(255, 255, 255, 0.90);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(171, 71, 188, 0.10);
+          border-radius: 24px;
+          padding: 24px;
+          box-shadow: 0 16px 34px rgba(90, 70, 120, 0.07);
+          margin-bottom: 24px;
+        }
+
+        .section-title {
+          margin: 0 0 8px;
+          color: #3F3654;
+          font-size: 1.15rem;
+          font-weight: 900;
+        }
+
+        .section-subtitle {
+          margin: 0 0 18px;
+          color: #8A8298;
+          font-size: 0.94rem;
+          font-weight: 700;
+        }
+
+        .product-form {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 14px;
+        }
+
+        .input {
+          padding: 12px 14px;
+          border-radius: 14px;
+          border: 1px solid #E6DDF2;
+          background: #FFFFFF;
+          color: #4A4458;
+          font-size: 0.94rem;
+          font-weight: 700;
+          outline: none;
+        }
+
+        .input:focus {
+          border-color: #AB47BC;
+          box-shadow: 0 0 0 4px rgba(171, 71, 188, 0.08);
+        }
+
+        .primary-btn {
+          border: none;
+          border-radius: 16px;
+          padding: 13px 16px;
+          cursor: pointer;
+          font-family: 'Nunito', sans-serif;
+          font-size: 0.95rem;
+          font-weight: 900;
+          color: white;
+          background: linear-gradient(135deg, #AB47BC, #7C4DFF);
+          box-shadow: 0 10px 22px rgba(124, 77, 255, 0.18);
+        }
+
+        .products-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 18px;
+        }
+
+        .product-card {
+          background: rgba(255, 255, 255, 0.90);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(171, 71, 188, 0.10);
+          border-radius: 24px;
+          padding: 22px;
+          box-shadow: 0 16px 34px rgba(90, 70, 120, 0.07);
+        }
+
+        .product-title {
+          margin: 0 0 8px;
+          color: #3F3654;
+          font-size: 1.1rem;
+          font-weight: 900;
+        }
+
+        .product-desc {
+          margin: 0 0 14px;
+          color: #8A8298;
+          font-size: 0.93rem;
+          line-height: 1.55;
+          font-weight: 700;
+        }
+
+        .product-meta {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-bottom: 14px;
+          color: #4A4458;
+          font-weight: 800;
+          font-size: 0.94rem;
+        }
+
+        .badge {
+          display: inline-block;
+          padding: 6px 12px;
+          background: linear-gradient(135deg, #F3E5F5, #EDE7F6);
+          color: #7B4BAA;
+          border-radius: 999px;
+          font-size: 0.76rem;
+          font-weight: 900;
+          margin-bottom: 16px;
+        }
+
+        .danger-btn {
+          width: 100%;
+          border: none;
+          border-radius: 14px;
+          padding: 11px 14px;
+          cursor: pointer;
+          font-family: 'Nunito', sans-serif;
+          font-size: 0.92rem;
+          font-weight: 900;
+          color: white;
+          background: linear-gradient(135deg, #EF5350, #E53935);
+          box-shadow: 0 10px 22px rgba(239, 83, 80, 0.16);
+        }
+
+        @media (max-width: 900px) {
+          .admin-layout {
+            flex-direction: column;
+          }
+
+          .admin-main {
+            padding: 18px;
+          }
+
+          .admin-top-card {
+            padding: 22px;
+          }
+
+          .admin-main-title {
+            font-size: 1.6rem;
+          }
+        }
+      `}</style>
+
+      <div className="admin-layout">
+        <AdminSidebar />
+
+        <main className="admin-main">
+          <div className="admin-top-card">
+            <span className="admin-top-label">Administration</span>
+            <h2 className="admin-main-title">Gestion des Produits</h2>
+           
           </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
-const styles = {
-  container: { padding: "24px", minHeight: "100vh", backgroundColor: "#f0f2f5" },
-  header: { display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" },
-  titre: { color: "#333", margin: 0 },
-  retour: { padding: "8px 16px", backgroundColor: "#4f46e5", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" },
-  erreur: { color: "red" },
-  formCard: { backgroundColor: "white", padding: "24px", borderRadius: "12px", marginBottom: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" },
-  form: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" },
-  input: { padding: "10px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "14px" },
-  bouton: { padding: "10px", backgroundColor: "#4f46e5", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", gridColumn: "span 2" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "16px" },
-  card: { backgroundColor: "white", padding: "20px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" },
-  cardTitre: { color: "#4f46e5", margin: "0 0 8px" },
-  cardDesc: { color: "#666", fontSize: "14px" },
-  badge: { display: "inline-block", padding: "4px 10px", backgroundColor: "#e0e7ff", color: "#4f46e5", borderRadius: "20px", fontSize: "12px", marginRight: "8px" },
-  boutonSupp: { padding: "6px 12px", backgroundColor: "#ef4444", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", marginTop: "12px" },
+          {erreur && <div className="error-box">{erreur}</div>}
+
+          <section className="form-card">
+            <h3 className="section-title">Ajouter un produit</h3>
+            <p className="section-subtitle">
+              Remplissez les informations du produit avant de l’ajouter à la marketplace.
+            </p>
+
+            <form onSubmit={creer} className="product-form">
+              <input
+                className="input"
+                placeholder="Nom"
+                value={form.nom}
+                onChange={(e) => setForm({ ...form, nom: e.target.value })}
+                required
+              />
+
+              <input
+                className="input"
+                placeholder="Description"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                required
+              />
+
+              <input
+                className="input"
+                type="number"
+                placeholder="Prix en Coins"
+                value={form.prixEnCoins}
+                onChange={(e) => setForm({ ...form, prixEnCoins: e.target.value })}
+                required
+              />
+
+              <input
+                className="input"
+                type="number"
+                placeholder="Stock"
+                value={form.stock}
+                onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                required
+              />
+
+              <select
+                className="input"
+                value={form.categorie}
+                onChange={(e) => setForm({ ...form, categorie: e.target.value })}
+              >
+                <option value="cours">Cours</option>
+                <option value="livre">Livre</option>
+                <option value="autre">Autre</option>
+              </select>
+
+              <button type="submit" className="primary-btn">
+                Ajouter
+              </button>
+            </form>
+          </section>
+
+          <div className="products-grid">
+            {produits.map((p) => (
+              <div key={p._id} className="product-card">
+                <h3 className="product-title">{p.nom}</h3>
+
+                <p className="product-desc">{p.description}</p>
+
+                <div className="product-meta">
+                  <span>
+                    Prix: <strong>{p.prixEnCoins}</strong> coins
+                  </span>
+                  <span>Stock: {p.stock}</span>
+                </div>
+
+                <span className="badge">{p.categorie}</span>
+
+                <button
+                  onClick={() => supprimer(p._id)}
+                  className="danger-btn"
+                >
+                  Supprimer
+                </button>
+              </div>
+            ))}
+          </div>
+        </main>
+      </div>
+    </>
+  );
 };
 
 export default Produits;
