@@ -9,7 +9,13 @@ const {
 } = require("../middlewares/authentification");
 
 routeur.post("/inscription", authController.inscription);
+
 routeur.post("/connexion", authController.connexion);
+
+routeur.get("/confirmer-email/:token", authController.confirmerEmail);
+
+routeur.post("/create-admin", authController.creationAdmin);
+
 routeur.get("/profil", verifierToken, authController.profil);
 
 routeur.get(

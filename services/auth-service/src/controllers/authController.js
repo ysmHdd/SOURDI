@@ -5,11 +5,23 @@ const inscription = async (req, res) => {
     const resultat = await authService.inscrireUtilisateur(req.body);
 
     res.status(201).json({
-      message: "Utilisateur créé avec succès",
+      message:
+        "Compte étudiant créé avec succès. Veuillez confirmer votre email.",
       utilisateur: resultat.utilisateur,
-      token: resultat.token
     });
+  } catch (erreur) {
+    res.status(400).json({ message: erreur.message });
+  }
+};
 
+const creationAdmin = async (req, res) => {
+  try {
+    const admin = await authService.creerAdmin(req.body);
+
+    res.status(201).json({
+      message: "Compte admin créé avec succès",
+      utilisateur: admin,
+    });
   } catch (erreur) {
     res.status(400).json({ message: erreur.message });
   }
@@ -24,11 +36,20 @@ const connexion = async (req, res) => {
     res.json({
       message: "Connexion réussie",
       utilisateur: resultat.utilisateur,
-      token: resultat.token
+      token: resultat.token,
     });
-
   } catch (erreur) {
     res.status(401).json({ message: erreur.message });
+  }
+};
+
+const confirmerEmail = async (req, res) => {
+  try {
+    await authService.confirmerEmail(req.params.token);
+
+    res.send("Email confirmé avec succès. Vous pouvez maintenant vous connecter.");
+  } catch (erreur) {
+    res.status(400).json({ message: erreur.message });
   }
 };
 
@@ -39,7 +60,6 @@ const profil = async (req, res) => {
     );
 
     res.json(utilisateur);
-
   } catch (erreur) {
     res.status(404).json({ message: erreur.message });
   }
@@ -48,13 +68,15 @@ const profil = async (req, res) => {
 const tableauDeBordAdmin = (req, res) => {
   res.json({
     message: "Bienvenue Admin",
-    utilisateur: req.utilisateur
+    utilisateur: req.utilisateur,
   });
 };
 
 module.exports = {
   inscription,
+  creationAdmin,
   connexion,
+  confirmerEmail,
   profil,
-  tableauDeBordAdmin
+  tableauDeBordAdmin,
 };
