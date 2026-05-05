@@ -1,5 +1,42 @@
 const mongoose = require("mongoose");
 
+const avatarSchema = new mongoose.Schema(
+  {
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+      default: "female",
+    },
+
+    style: {
+      type: String,
+      enum: [
+        "adventurer",
+        "avataaars",
+        "lorelei",
+        "notionists",
+        "open-peeps",
+        "micah",
+        "personas",
+      ],
+      default: "adventurer",
+    },
+
+    seed: {
+      type: String,
+      default: "default-student",
+      trim: true,
+    },
+
+    url: {
+      type: String,
+      default:
+        "https://api.dicebear.com/9.x/adventurer/svg?seed=default-student",
+    },
+  },
+  { _id: false }
+);
+
 const utilisateurSchema = new mongoose.Schema(
   {
     user_first_name: {
@@ -45,6 +82,11 @@ const utilisateurSchema = new mongoose.Schema(
       delegation: String,
       region: String,
       school_name: String,
+    },
+
+    avatar: {
+      type: avatarSchema,
+      default: () => ({}),
     },
 
     role: {

@@ -10,6 +10,38 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.com$/;
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[.+&@!#$%^*_-]).{8,}$/;
 
+const stylesAutorises = [
+  "adventurer",
+  "avataaars",
+  "lorelei",
+  "notionists",
+  "open-peeps",
+  "micah",
+  "personas",
+];
+
+const genererAvatarDiceBear = (avatar, user_email) => {
+  const gender = avatar?.gender === "male" ? "male" : "female";
+
+  const style = stylesAutorises.includes(avatar?.style)
+    ? avatar.style
+    : "adventurer";
+
+  const seed =
+    avatar?.seed?.trim() ||
+    user_email?.split("@")[0] ||
+    `student-${Date.now()}`;
+
+  return {
+    gender,
+    style,
+    seed,
+    url: `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(
+      seed
+    )}`,
+  };
+};
+
 const genererToken = (utilisateur) => {
   return jwt.sign(
     {
@@ -43,6 +75,7 @@ const inscrireUtilisateur = async (donnees) => {
     user_dob,
     user_phone,
     params,
+    avatar,
   } = donnees;
 
   validerEmailEtMotDePasse(user_email, password);
@@ -59,6 +92,8 @@ const inscrireUtilisateur = async (donnees) => {
 
   const emailToken = crypto.randomBytes(32).toString("hex");
 
+  const avatarFinal = genererAvatarDiceBear(avatar, user_email);
+
   const utilisateur = await Utilisateur.create({
     user_first_name,
     user_last_name,
@@ -67,6 +102,7 @@ const inscrireUtilisateur = async (donnees) => {
     user_dob,
     user_phone,
     params,
+    avatar: avatarFinal,
     role: "etudiant",
     emailConfirme: false,
     emailToken,
@@ -83,6 +119,7 @@ const inscrireUtilisateur = async (donnees) => {
       user_email: utilisateur.user_email,
       role: utilisateur.role,
       emailConfirme: utilisateur.emailConfirme,
+      avatar: utilisateur.avatar,
     },
   };
 };
@@ -95,6 +132,7 @@ const creerAdmin = async (donnees) => {
     password,
     user_dob,
     user_phone,
+    avatar,
   } = donnees;
 
   validerEmailEtMotDePasse(user_email, password);
@@ -109,6 +147,8 @@ const creerAdmin = async (donnees) => {
 
   const motDePasseHache = await bcrypt.hash(password, 10);
 
+  const avatarFinal = genererAvatarDiceBear(avatar, user_email);
+
   const admin = await Utilisateur.create({
     user_first_name,
     user_last_name,
@@ -116,6 +156,7 @@ const creerAdmin = async (donnees) => {
     password: motDePasseHache,
     user_dob,
     user_phone,
+    avatar: avatarFinal,
     role: "admin",
     emailConfirme: true,
   });
@@ -126,6 +167,7 @@ const creerAdmin = async (donnees) => {
     user_last_name: admin.user_last_name,
     user_email: admin.user_email,
     role: admin.role,
+    avatar: admin.avatar,
   };
 };
 
@@ -164,6 +206,7 @@ const connecterUtilisateur = async (email, motDePasse) => {
       user_last_name: utilisateur.user_last_name,
       user_email: utilisateur.user_email,
       role: utilisateur.role,
+      avatar: utilisateur.avatar,
     },
     token,
   };
