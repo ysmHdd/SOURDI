@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "../api/axios";
 
@@ -7,6 +7,13 @@ const Inscription = () => {
 
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [lang, setLang] = useState(localStorage.getItem("lang") || "fr");
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+
+  const [avatar, setAvatar] = useState({
+    gender: "female",
+    style: "avataaars",
+    seed: `female-${Math.floor(Math.random() * 999999)}`,
+  });
 
   const [form, setForm] = useState({
     user_first_name: "",
@@ -26,6 +33,48 @@ const Inscription = () => {
   const [erreur, setErreur] = useState("");
   const [succes, setSucces] = useState("");
 
+  const avatarUrl = useMemo(() => {
+    const cleanSeed = avatar.seed?.trim() || `${avatar.gender}-student`;
+
+    const femaleParams = [
+      "top=bigHair,bob,bun,curvy,longButNotTooLong,straight01,straight02,straightAndStrand",
+      "topProbability=100",
+      "facialHairProbability=0",
+      "accessories=round,prescription01,prescription02",
+      "accessoriesProbability=35",
+      "hairColor=2c1b18,724133,a55728,d6b370,f59797",
+      "clothing=shirtScoopNeck,shirtVNeck,overall,hoodie",
+      "clothesColor=ff488e,ffafb9,ffffff,65c9ff,c0aede",
+      "mouth=smile,twinkle,default",
+      "eyes=happy,default,wink",
+      "eyebrows=raisedExcited,defaultNatural,upDownNatural",
+      "backgroundColor=fbcfe8,f9a8d4,fce7f3,ffd5dc",
+      "backgroundType=gradientLinear,solid",
+      "radius=50",
+    ].join("&");
+
+    const maleParams = [
+      "top=shortFlat,shortRound,shortWaved,theCaesar,theCaesarAndSidePart",
+      "topProbability=100",
+      "facialHairProbability=0",
+      "eyes=happy,default,wink",
+      "mouth=smile,twinkle,default",
+      "eyebrows=raisedExcited,defaultNatural,upDownNatural",
+      "hairColor=2c1b18,724133,a55728",
+      "clothing=hoodie,shirtCrewNeck,overall",
+      "clothesColor=65c9ff,5199e4,25557c,b6e3f4",
+      "backgroundColor=b6e3f4,93c5fd,e0f2fe,dbeafe",
+      "backgroundType=gradientLinear,solid",
+      "radius=50",
+    ].join("&");
+
+    const genderParams = avatar.gender === "male" ? maleParams : femaleParams;
+
+    return `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(
+      cleanSeed
+    )}&${genderParams}`;
+  }, [avatar.seed, avatar.gender]);
+
   const t = {
     fr: {
       title: "Créer un compte étudiant",
@@ -40,7 +89,22 @@ const Inscription = () => {
       gouvernorat: "Gouvernorat",
       delegation: "Délégation",
       region: "Région",
-      school: "Nom de l’école",
+      school: "Nom de l'école",
+      gradeOptions: [
+        { value: "1ere annee primaire", label: "1ère année primaire" },
+        { value: "2eme annee primaire", label: "2ème année primaire" },
+        { value: "3eme annee primaire", label: "3ème année primaire" },
+        { value: "4eme annee primaire", label: "4ème année primaire" },
+        { value: "5eme annee primaire", label: "5ème année primaire" },
+        { value: "6eme annee primaire", label: "6ème année primaire" },
+      ],
+      chooseAvatar: "Choisir mon avatar",
+      customizeAvatar: "Personnaliser l'avatar",
+      gender: "Genre",
+      avatarStyle: "Style d'avatar",
+      avatarSeed: "Nom / code avatar",
+      randomAvatar: "Avatar aléatoire",
+      saveAvatar: "Valider l'avatar",
       button: "Créer mon compte",
       divider: "OU",
       haveAccount: "Déjà un compte ?",
@@ -67,6 +131,21 @@ const Inscription = () => {
       delegation: "Delegation",
       region: "Region",
       school: "School name",
+      gradeOptions: [
+        { value: "1ere annee primaire", label: "1st year primary school" },
+        { value: "2eme annee primaire", label: "2nd year primary school" },
+        { value: "3eme annee primaire", label: "3rd year primary school" },
+        { value: "4eme annee primaire", label: "4th year primary school" },
+        { value: "5eme annee primaire", label: "5th year primary school" },
+        { value: "6eme annee primaire", label: "6th year primary school" },
+      ],
+      chooseAvatar: "Choose my avatar",
+      customizeAvatar: "Customize avatar",
+      gender: "Gender",
+      avatarStyle: "Avatar style",
+      avatarSeed: "Avatar name / code",
+      randomAvatar: "Random avatar",
+      saveAvatar: "Save avatar",
       button: "Create my account",
       divider: "OR",
       haveAccount: "Already have an account?",
@@ -93,6 +172,32 @@ const Inscription = () => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleAvatarChange = (key, value) => {
+    if (key === "gender") {
+      setAvatar({
+        ...avatar,
+        gender: value,
+        style: "avataaars",
+        seed: `${value}-${Math.random().toString(36).substring(2, 10)}`,
+      });
+      return;
+    }
+
+    setAvatar({ ...avatar, [key]: value });
+  };
+
+  const generateRandomAvatar = () => {
+    const randomSeed = `${avatar.gender}-${Math.random()
+      .toString(36)
+      .substring(2, 10)}`;
+
+    setAvatar({
+      ...avatar,
+      style: "avataaars",
+      seed: randomSeed,
+    });
   };
 
   const validerFormulaire = () => {
@@ -133,6 +238,11 @@ const Inscription = () => {
         region: form.region,
         school_name: form.school_name,
       },
+      avatar: {
+        gender: avatar.gender,
+        style: avatar.style,
+        seed: avatar.seed,
+      },
     };
 
     try {
@@ -147,6 +257,16 @@ const Inscription = () => {
       setErreur(err.response?.data?.message || t[lang].error);
     }
   };
+
+  const AvatarPreview = ({ small = false }) => (
+    <div className={small ? "avatar-preview small" : "avatar-preview"}>
+      <img
+        className="dicebear-avatar-img"
+        src={avatarUrl}
+        alt="Avatar DiceBear"
+      />
+    </div>
+  );
 
   return (
     <>
@@ -594,6 +714,39 @@ const Inscription = () => {
           font-weight: 700;
         }
 
+        .register-select {
+          cursor: pointer;
+          appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          background-image:
+            linear-gradient(45deg, transparent 50%, #AB47BC 50%),
+            linear-gradient(135deg, #AB47BC 50%, transparent 50%),
+            linear-gradient(135deg, rgba(171, 71, 188, 0.12), rgba(239, 83, 80, 0.08));
+          background-position:
+            calc(100% - 22px) calc(50% + 1px),
+            calc(100% - 14px) calc(50% + 1px),
+            100% 0;
+          background-size:
+            8px 8px,
+            8px 8px,
+            48px 100%;
+          background-repeat: no-repeat;
+          padding-right: 58px;
+        }
+
+        .register-select:hover {
+          border-color: rgba(171, 71, 188, 0.65);
+          box-shadow: 0 0 0 4px rgba(171, 71, 188, 0.08);
+        }
+
+        .register-select option {
+          font-family: 'Nunito', sans-serif;
+          font-weight: 700;
+          color: #37474F;
+          background: #FFFFFF;
+        }
+
         .register-error,
         .register-success {
           display: flex;
@@ -641,6 +794,248 @@ const Inscription = () => {
           transform: translateY(-3px) scale(1.02);
           box-shadow: 0 14px 32px rgba(171, 71, 188, 0.5);
           filter: brightness(1.06);
+        }
+
+        .avatar-choice-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          padding: 14px 16px;
+          border: 2.5px solid rgba(171, 71, 188, 0.25);
+          border-radius: 26px;
+          background:
+            radial-gradient(circle at top left, rgba(255,255,255,0.85), transparent 34%),
+            linear-gradient(135deg, rgba(171, 71, 188, 0.16), rgba(239, 83, 80, 0.12));
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.65), 0 14px 32px rgba(171, 71, 188, 0.16);
+        }
+
+        .avatar-choice-info {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          color: var(--text);
+          font-weight: 900;
+        }
+
+        .avatar-choice-btn,
+        .avatar-save-btn,
+        .avatar-option-btn {
+          border: none;
+          cursor: pointer;
+          font-family: 'Nunito', sans-serif;
+          font-weight: 900;
+        }
+
+        .avatar-choice-btn {
+          padding: 12px 17px;
+          border-radius: 18px;
+          background: linear-gradient(135deg, #7C3AED, #EC4899, #F97316);
+          color: white;
+          box-shadow: 0 12px 26px rgba(236, 72, 153, 0.32);
+          transition: 0.2s;
+        }
+
+        .avatar-choice-btn:hover {
+          transform: translateY(-2px) scale(1.03);
+        }
+
+        .avatar-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(17, 12, 28, 0.58);
+          backdrop-filter: blur(12px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 50;
+          padding: 18px;
+        }
+
+        .avatar-modal {
+          width: 720px;
+          max-height: 90vh;
+          overflow-y: auto;
+          background:
+            radial-gradient(circle at top left, rgba(255,255,255,0.9), transparent 34%),
+            var(--card);
+          border: 3px solid var(--card-border);
+          border-radius: 34px;
+          padding: 26px;
+          box-shadow: 0 30px 90px rgba(0, 0, 0, 0.32);
+          animation: cardPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        .avatar-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 18px;
+        }
+
+        .avatar-modal-title {
+          margin: 0;
+          font-family: 'Fredoka One', cursive;
+          font-size: 1.55rem;
+          background: linear-gradient(90deg, #7C3AED, #EC4899, #F97316);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .avatar-close-btn {
+          border: none;
+          background: rgba(171, 71, 188, 0.14);
+          color: var(--text);
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          cursor: pointer;
+          font-size: 20px;
+          font-weight: 900;
+        }
+
+        .avatar-builder {
+          display: grid;
+          grid-template-columns: 270px 1fr;
+          gap: 24px;
+          align-items: start;
+        }
+
+        .avatar-preview-box {
+          background:
+            radial-gradient(circle at 25% 20%, rgba(255,255,255,0.96), transparent 24%),
+            radial-gradient(circle at 80% 12%, rgba(255,255,255,0.8), transparent 20%),
+            linear-gradient(145deg, rgba(255, 216, 240, 0.88), rgba(226, 232, 255, 0.95));
+          border-radius: 32px;
+          padding: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 305px;
+          border: 2px solid rgba(171, 71, 188, 0.16);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 18px 38px rgba(124, 58, 237, 0.12);
+          overflow: hidden;
+        }
+
+        .avatar-controls {
+          display: grid;
+          gap: 13px;
+        }
+
+        .avatar-row {
+          display: grid;
+          gap: 8px;
+        }
+
+        .avatar-options {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .avatar-option-btn {
+          padding: 8px 12px;
+          border-radius: 15px;
+          background: rgba(171, 71, 188, 0.12);
+          color: var(--text);
+          transition: 0.18s;
+        }
+
+        .avatar-option-btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          background: rgba(171, 71, 188, 0.18);
+        }
+
+        .avatar-option-btn.active {
+          background: linear-gradient(135deg, #7C3AED, #EC4899);
+          color: white;
+          box-shadow: 0 8px 18px rgba(236, 72, 153, 0.24);
+        }
+
+        .avatar-seed-input {
+          width: 100%;
+          padding: 11px 13px;
+          border: 2.5px solid var(--border);
+          border-radius: 15px;
+          font-size: 0.9rem;
+          font-family: 'Nunito', sans-serif;
+          font-weight: 800;
+          color: var(--text);
+          background: var(--input-bg);
+          outline: none;
+          box-sizing: border-box;
+        }
+
+        .avatar-preview {
+          width: 200px;
+          height: 240px;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .avatar-preview.small {
+          width: 64px;
+          height: 64px;
+          background:
+            radial-gradient(circle at 30% 15%, rgba(255,255,255,0.9), transparent 35%),
+            linear-gradient(135deg, rgba(236,72,153,0.25), rgba(124,58,237,0.18));
+          border-radius: 50%;
+          overflow: hidden;
+          border: 3px solid rgba(171, 71, 188, 0.26);
+          box-shadow: 0 8px 18px rgba(124, 58, 237, 0.16);
+        }
+
+        .dicebear-avatar-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          display: block;
+          filter: drop-shadow(0 16px 22px rgba(124, 58, 237, 0.20));
+          animation: avatarFloat 3.2s ease-in-out infinite;
+        }
+
+        .avatar-preview.small .dicebear-avatar-img {
+          padding: 4px;
+          box-sizing: border-box;
+          filter: none;
+          animation: none;
+        }
+
+        @keyframes avatarFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+
+        .avatar-save-btn {
+          width: 100%;
+          padding: 18px;
+          margin-top: 24px;
+          border-radius: 24px;
+          border: none;
+          font-weight: 900;
+          font-size: 1.1rem;
+          letter-spacing: 1px;
+          cursor: pointer;
+          background: linear-gradient(135deg, #7C3AED, #EC4899, #F97316);
+          color: white;
+          box-shadow:
+            0 18px 40px rgba(236, 72, 153, 0.4),
+            inset 0 2px 0 rgba(255,255,255,0.3);
+          transition: all 0.25s ease;
+        }
+
+        .avatar-save-btn:hover {
+          transform: translateY(-4px) scale(1.03);
+          box-shadow:
+            0 28px 55px rgba(236, 72, 153, 0.55),
+            inset 0 2px 0 rgba(255,255,255,0.4);
+        }
+
+        .avatar-save-btn:active {
+          transform: scale(0.97);
         }
 
         .register-footer {
@@ -700,6 +1095,19 @@ const Inscription = () => {
           .form-grid {
             grid-template-columns: 1fr;
           }
+
+          .avatar-builder {
+            grid-template-columns: 1fr;
+          }
+
+          .avatar-modal {
+            width: 100%;
+          }
+
+          .avatar-choice-card {
+            flex-direction: column;
+            align-items: stretch;
+          }
         }
       `}</style>
 
@@ -715,21 +1123,8 @@ const Inscription = () => {
 
         <div className="register-card">
           <div className="lang-switch">
-            <button
-              className={`lang-btn ${lang === "fr" ? "active" : ""}`}
-              onClick={() => changeLang("fr")}
-              type="button"
-            >
-              FR
-            </button>
-
-            <button
-              className={`lang-btn ${lang === "en" ? "active" : ""}`}
-              onClick={() => changeLang("en")}
-              type="button"
-            >
-              EN
-            </button>
+            <button className={`lang-btn ${lang === "fr" ? "active" : ""}`} onClick={() => changeLang("fr")} type="button">FR</button>
+            <button className={`lang-btn ${lang === "en" ? "active" : ""}`} onClick={() => changeLang("en")} type="button">EN</button>
           </div>
 
           <button className="theme-toggle" onClick={toggleTheme} type="button">
@@ -750,12 +1145,8 @@ const Inscription = () => {
                 <div className="owl-tuft left" />
                 <div className="owl-tuft right" />
                 <div className="owl-eyes">
-                  <div className="owl-eye-ring">
-                    <div className="owl-eye-pupil" />
-                  </div>
-                  <div className="owl-eye-ring">
-                    <div className="owl-eye-pupil" />
-                  </div>
+                  <div className="owl-eye-ring"><div className="owl-eye-pupil" /></div>
+                  <div className="owl-eye-ring"><div className="owl-eye-pupil" /></div>
                 </div>
                 <div className="owl-beak" />
               </div>
@@ -765,176 +1156,131 @@ const Inscription = () => {
           <h2 className="register-title">SOURDI</h2>
           <p className="register-subtitle">{t[lang].title}</p>
 
-          {erreur && (
-            <div className="register-error">
-              <span>😬</span> {erreur}
-            </div>
-          )}
-
-          {succes && (
-            <div className="register-success">
-              <span>📧</span> {succes}
-            </div>
-          )}
+          {erreur && <div className="register-error"><span>😬</span> {erreur}</div>}
+          {succes && <div className="register-success"><span>📧</span> {succes}</div>}
 
           <div className="register-form-scroll">
             <form onSubmit={handleSubmit}>
               <div className="form-grid">
+                <div className="full">
+                  <div className="avatar-choice-card">
+                    <div className="avatar-choice-info">
+                      <AvatarPreview small />
+                      <span>{t[lang].chooseAvatar}</span>
+                    </div>
+                    <button
+                      className="avatar-choice-btn"
+                      type="button"
+                      onClick={() => setAvatarModalOpen(true)}
+                    >
+                      ✨ {t[lang].customizeAvatar}
+                    </button>
+                  </div>
+                </div>
+
                 <div>
                   <label className="field-label">{t[lang].firstName}</label>
-                  <input
-                    className="register-input"
-                    type="text"
-                    name="user_first_name"
-                    placeholder={t[lang].firstName}
-                    value={form.user_first_name}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input className="register-input" type="text" name="user_first_name" placeholder={t[lang].firstName} value={form.user_first_name} onChange={handleChange} required />
                 </div>
 
                 <div>
                   <label className="field-label">{t[lang].lastName}</label>
-                  <input
-                    className="register-input"
-                    type="text"
-                    name="user_last_name"
-                    placeholder={t[lang].lastName}
-                    value={form.user_last_name}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input className="register-input" type="text" name="user_last_name" placeholder={t[lang].lastName} value={form.user_last_name} onChange={handleChange} required />
                 </div>
 
                 <div className="full">
                   <label className="field-label">{t[lang].email}</label>
-                  <input
-                    className="register-input"
-                    type="email"
-                    name="user_email"
-                    placeholder="email@exemple.com"
-                    value={form.user_email}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input className="register-input" type="email" name="user_email" placeholder="email@exemple.com" value={form.user_email} onChange={handleChange} required />
                 </div>
 
                 <div>
                   <label className="field-label">{t[lang].password}</label>
-                  <input
-                    className="register-input"
-                    type="password"
-                    name="password"
-                    placeholder={t[lang].password}
-                    value={form.password}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input className="register-input" type="password" name="password" placeholder={t[lang].password} value={form.password} onChange={handleChange} required />
                 </div>
 
                 <div>
-                  <label className="field-label">
-                    {t[lang].confirmPassword}
-                  </label>
-                  <input
-                    className="register-input"
-                    type="password"
-                    name="confirmPassword"
-                    placeholder={t[lang].confirmPassword}
-                    value={form.confirmPassword}
-                    onChange={handleChange}
-                    required
-                  />
+                  <label className="field-label">{t[lang].confirmPassword}</label>
+                  <input className="register-input" type="password" name="confirmPassword" placeholder={t[lang].confirmPassword} value={form.confirmPassword} onChange={handleChange} required />
                 </div>
 
                 <div>
                   <label className="field-label">{t[lang].dob}</label>
-                  <input
-                    className="register-input"
-                    type="date"
-                    name="user_dob"
-                    value={form.user_dob}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input className="register-input" type="date" name="user_dob" value={form.user_dob} onChange={handleChange} required />
                 </div>
 
                 <div>
                   <label className="field-label">{t[lang].phone}</label>
-                  <input
-                    className="register-input"
-                    type="tel"
-                    name="user_phone"
-                    placeholder={t[lang].phone}
-                    value={form.user_phone}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input className="register-input" type="tel" name="user_phone" placeholder={t[lang].phone} value={form.user_phone} onChange={handleChange} required />
                 </div>
 
                 <div>
                   <label className="field-label">{t[lang].grade}</label>
-                  <input
-                    className="register-input"
-                    type="text"
+                  <select
+                    className="register-input register-select"
                     name="grade"
-                    placeholder={t[lang].grade}
                     value={form.grade}
                     onChange={handleChange}
                     required
-                  />
+                  >
+                    <option value="">-- {t[lang].grade} --</option>
+                    {t[lang].gradeOptions.map((gradeOption) => (
+                      <option key={gradeOption.value} value={gradeOption.value}>
+                        {gradeOption.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <div>
-                  <label className="field-label">{t[lang].gouvernorat}</label>
-                  <input
-                    className="register-input"
-                    type="text"
-                    name="gouvernorat"
-                    placeholder={t[lang].gouvernorat}
-                    value={form.gouvernorat}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+               <div>
+  <label className="field-label">{t[lang].gouvernorat}</label>
+  <select
+    className="register-input register-select"
+    name="gouvernorat"
+    value={form.gouvernorat}
+    onChange={handleChange}
+    required
+  >
+    <option value="">-- {t[lang].gouvernorat} --</option>
+    <option value="Ariana">Ariana</option>
+    <option value="Beja">Béja</option>
+    <option value="Ben Arous">Ben Arous</option>
+    <option value="Bizerte">Bizerte</option>
+    <option value="Gabes">Gabès</option>
+    <option value="Gafsa">Gafsa</option>
+    <option value="Jendouba">Jendouba</option>
+    <option value="Kairouan">Kairouan</option>
+    <option value="Kasserine">Kasserine</option>
+    <option value="Kebili">Kébili</option>
+    <option value="Kef">Le Kef</option>
+    <option value="Mahdia">Mahdia</option>
+    <option value="Manouba">Manouba</option>
+    <option value="Medenine">Médenine</option>
+    <option value="Monastir">Monastir</option>
+    <option value="Nabeul">Nabeul</option>
+    <option value="Sfax">Sfax</option>
+    <option value="Sidi Bouzid">Sidi Bouzid</option>
+    <option value="Siliana">Siliana</option>
+    <option value="Sousse">Sousse</option>
+    <option value="Tataouine">Tataouine</option>
+    <option value="Tozeur">Tozeur</option>
+    <option value="Tunis">Tunis</option>
+    <option value="Zaghouan">Zaghouan</option>
+  </select>
+</div>
 
                 <div>
                   <label className="field-label">{t[lang].delegation}</label>
-                  <input
-                    className="register-input"
-                    type="text"
-                    name="delegation"
-                    placeholder={t[lang].delegation}
-                    value={form.delegation}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input className="register-input" type="text" name="delegation" placeholder={t[lang].delegation} value={form.delegation} onChange={handleChange} required />
                 </div>
 
                 <div>
                   <label className="field-label">{t[lang].region}</label>
-                  <input
-                    className="register-input"
-                    type="text"
-                    name="region"
-                    placeholder={t[lang].region}
-                    value={form.region}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input className="register-input" type="text" name="region" placeholder={t[lang].region} value={form.region} onChange={handleChange} required />
                 </div>
 
                 <div className="full">
                   <label className="field-label">{t[lang].school}</label>
-                  <input
-                    className="register-input"
-                    type="text"
-                    name="school_name"
-                    placeholder={t[lang].school}
-                    value={form.school_name}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input className="register-input" type="text" name="school_name" placeholder={t[lang].school} value={form.school_name} onChange={handleChange} required />
                 </div>
 
                 <button className="register-btn" type="submit">
@@ -952,11 +1298,73 @@ const Inscription = () => {
             </div>
 
             <p className="register-link-area">
-              {t[lang].haveAccount}{" "}
-              <Link to="/login">{t[lang].login}</Link>
+              {t[lang].haveAccount} <Link to="/login">{t[lang].login}</Link>
             </p>
           </div>
         </div>
+
+        {avatarModalOpen && (
+          <div className="avatar-modal-overlay">
+            <div className="avatar-modal">
+              <div className="avatar-modal-header">
+                <h3 className="avatar-modal-title">✨ {t[lang].customizeAvatar}</h3>
+                <button className="avatar-close-btn" type="button" onClick={() => setAvatarModalOpen(false)}>×</button>
+              </div>
+
+              <div className="avatar-builder">
+                <div className="avatar-preview-box">
+                  <AvatarPreview />
+                </div>
+
+                <div className="avatar-controls">
+                  <div className="avatar-row">
+                    <label className="field-label">{t[lang].gender}</label>
+                    <div className="avatar-options">
+                      {[
+                        { value: "female", label: "👧 Girl" },
+                        { value: "male", label: "👦 Boy" },
+                      ].map((option) => (
+                        <button key={option.value} type="button" className={`avatar-option-btn ${avatar.gender === option.value ? "active" : ""}`} onClick={() => handleAvatarChange("gender", option.value)}>
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="avatar-row">
+                    <label className="field-label">{t[lang].avatarStyle}</label>
+                    <div className="avatar-options">
+                      <button type="button" className="avatar-option-btn active">
+                        Cute student mode
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="avatar-row">
+                    <label className="field-label">{t[lang].avatarSeed}</label>
+                    <input
+                      className="avatar-seed-input"
+                      type="text"
+                      value={avatar.seed}
+                      onChange={(e) => handleAvatarChange("seed", e.target.value)}
+                      placeholder="avatar-name"
+                    />
+                  </div>
+
+                  <div className="avatar-row">
+                    <button className="avatar-choice-btn" type="button" onClick={generateRandomAvatar}>
+                      🎲 {t[lang].randomAvatar}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button className="avatar-save-btn" type="button" onClick={() => setAvatarModalOpen(false)}>
+                ✨ 💜 {t[lang].saveAvatar} 💜 ✨
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
