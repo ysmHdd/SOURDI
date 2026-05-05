@@ -2,20 +2,26 @@ import { useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import axios from "../../api/axios";
 
+const API = "http://localhost:5002";
+
 const Produits = () => {
   const [produits, setProduits] = useState([]);
+  const [modeEdition, setModeEdition] = useState(null);
+  const [photo, setPhoto] = useState(null);
+  const [preview, setPreview] = useState("");
   const [form, setForm] = useState({
     nom: "",
     description: "",
     prixEnCoins: "",
     stock: "",
     categorie: "cours",
+    disponible: true,
   });
   const [erreur, setErreur] = useState("");
 
   const charger = async () => {
     try {
-      const res = await axios.get("http://localhost:5002/api/admin/produits");
+      const res = await axios.get(`${API}/api/admin/produits`);
       setProduits(res.data);
       setErreur("");
     } catch {
@@ -23,28 +29,79 @@ const Produits = () => {
     }
   };
 
-  const creer = async (e) => {
+  const resetForm = () => {
+    setForm({
+      nom: "",
+      description: "",
+      prixEnCoins: "",
+      stock: "",
+      categorie: "cours",
+      disponible: true,
+    });
+    setPhoto(null);
+    setPreview("");
+    setModeEdition(null);
+  };
+
+  const handlePhoto = (e) => {
+    const file = e.target.files[0];
+    setPhoto(file);
+
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const envoyerForm = async (e) => {
     e.preventDefault();
+
     try {
-      await axios.post("http://localhost:5002/api/admin/produits", form);
-      setForm({
-        nom: "",
-        description: "",
-        prixEnCoins: "",
-        stock: "",
-        categorie: "cours",
-      });
+      const data = new FormData();
+      data.append("nom", form.nom);
+      data.append("description", form.description);
+      data.append("prixEnCoins", form.prixEnCoins);
+      data.append("stock", form.stock);
+      data.append("categorie", form.categorie);
+      data.append("disponible", form.disponible);
+
+      if (photo) {
+        data.append("photo", photo);
+      }
+
+      if (modeEdition) {
+        await axios.patch(`${API}/api/admin/produits/${modeEdition}`, data);
+      } else {
+        await axios.post(`${API}/api/admin/produits`, data);
+      }
+
+      resetForm();
       setErreur("");
       charger();
     } catch {
-      setErreur("Erreur création produit");
+      setErreur(modeEdition ? "Erreur modification produit" : "Erreur création produit");
     }
+  };
+
+  const modifier = (produit) => {
+    setModeEdition(produit._id);
+    setForm({
+      nom: produit.nom || "",
+      description: produit.description || "",
+      prixEnCoins: produit.prixEnCoins || "",
+      stock: produit.stock || "",
+      categorie: produit.categorie || "cours",
+      disponible: produit.disponible ?? true,
+    });
+    setPhoto(null);
+    setPreview(produit.photo ? `${API}${produit.photo}` : "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const supprimer = async (id) => {
     if (!window.confirm("Supprimer ce produit ?")) return;
+
     try {
-      await axios.delete(`http://localhost:5002/api/admin/produits/${id}`);
+      await axios.delete(`${API}/api/admin/produits/${id}`);
       setErreur("");
       charger();
     } catch {
@@ -61,9 +118,7 @@ const Produits = () => {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap');
 
-        * {
-          box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         .admin-layout {
           min-height: 100vh;
@@ -72,18 +127,19 @@ const Produits = () => {
           background: linear-gradient(145deg, #FFF8E1 0%, #FCE4EC 45%, #E8EAF6 100%);
         }
 
-        .admin-main {
-          flex: 1;
-          padding: 28px;
+        .admin-main { flex: 1; padding: 28px; }
+
+        .admin-top-card, .form-card, .product-card {
+          background: rgba(255, 255, 255, 0.90);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(171, 71, 188, 0.10);
+          border-radius: 24px;
+          box-shadow: 0 16px 34px rgba(90, 70, 120, 0.07);
         }
 
         .admin-top-card {
-          background: rgba(255, 255, 255, 0.88);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(171, 71, 188, 0.10);
           border-radius: 28px;
           padding: 28px;
-          box-shadow: 0 18px 40px rgba(90, 70, 120, 0.08);
           margin-bottom: 24px;
         }
 
@@ -107,15 +163,6 @@ const Produits = () => {
           font-weight: 900;
         }
 
-        .admin-main-subtitle {
-          margin: 10px 0 0;
-          color: #7E7A8A;
-          font-size: 1rem;
-          line-height: 1.6;
-          max-width: 700px;
-          font-weight: 700;
-        }
-
         .error-box {
           background: rgba(255,255,255,0.92);
           border: 1px solid rgba(239, 68, 68, 0.18);
@@ -123,17 +170,11 @@ const Produits = () => {
           border-radius: 18px;
           padding: 14px 16px;
           margin-bottom: 20px;
-          box-shadow: 0 10px 24px rgba(90, 70, 120, 0.05);
           font-weight: 800;
         }
 
         .form-card {
-          background: rgba(255, 255, 255, 0.90);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(171, 71, 188, 0.10);
-          border-radius: 24px;
           padding: 24px;
-          box-shadow: 0 16px 34px rgba(90, 70, 120, 0.07);
           margin-bottom: 24px;
         }
 
@@ -173,7 +214,16 @@ const Produits = () => {
           box-shadow: 0 0 0 4px rgba(171, 71, 188, 0.08);
         }
 
-        .primary-btn {
+        .photo-preview {
+          width: 100%;
+          height: 140px;
+          object-fit: cover;
+          border-radius: 18px;
+          border: 1px solid #E6DDF2;
+          margin-top: 10px;
+        }
+
+        .primary-btn, .secondary-btn, .danger-btn {
           border: none;
           border-radius: 16px;
           padding: 13px 16px;
@@ -182,8 +232,21 @@ const Produits = () => {
           font-size: 0.95rem;
           font-weight: 900;
           color: white;
+        }
+
+        .primary-btn {
           background: linear-gradient(135deg, #AB47BC, #7C4DFF);
           box-shadow: 0 10px 22px rgba(124, 77, 255, 0.18);
+        }
+
+        .secondary-btn {
+          background: linear-gradient(135deg, #26A69A, #43A047);
+        }
+
+        .danger-btn {
+          width: 100%;
+          background: linear-gradient(135deg, #EF5350, #E53935);
+          box-shadow: 0 10px 22px rgba(239, 83, 80, 0.16);
         }
 
         .products-grid {
@@ -193,12 +256,16 @@ const Produits = () => {
         }
 
         .product-card {
-          background: rgba(255, 255, 255, 0.90);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(171, 71, 188, 0.10);
-          border-radius: 24px;
           padding: 22px;
-          box-shadow: 0 16px 34px rgba(90, 70, 120, 0.07);
+        }
+
+        .product-image {
+          width: 100%;
+          height: 160px;
+          object-fit: cover;
+          border-radius: 18px;
+          margin-bottom: 16px;
+          background: #F3E5F5;
         }
 
         .product-title {
@@ -237,36 +304,17 @@ const Produits = () => {
           margin-bottom: 16px;
         }
 
-        .danger-btn {
-          width: 100%;
-          border: none;
-          border-radius: 14px;
-          padding: 11px 14px;
-          cursor: pointer;
-          font-family: 'Nunito', sans-serif;
-          font-size: 0.92rem;
-          font-weight: 900;
-          color: white;
-          background: linear-gradient(135deg, #EF5350, #E53935);
-          box-shadow: 0 10px 22px rgba(239, 83, 80, 0.16);
+        .actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
         }
 
         @media (max-width: 900px) {
-          .admin-layout {
-            flex-direction: column;
-          }
-
-          .admin-main {
-            padding: 18px;
-          }
-
-          .admin-top-card {
-            padding: 22px;
-          }
-
-          .admin-main-title {
-            font-size: 1.6rem;
-          }
+          .admin-layout { flex-direction: column; }
+          .admin-main { padding: 18px; }
+          .admin-top-card { padding: 22px; }
+          .admin-main-title { font-size: 1.6rem; }
         }
       `}</style>
 
@@ -277,90 +325,81 @@ const Produits = () => {
           <div className="admin-top-card">
             <span className="admin-top-label">Administration</span>
             <h2 className="admin-main-title">Gestion des Produits</h2>
-           
           </div>
 
           {erreur && <div className="error-box">{erreur}</div>}
 
           <section className="form-card">
-            <h3 className="section-title">Ajouter un produit</h3>
+            <h3 className="section-title">
+              {modeEdition ? "Modifier le produit" : "Ajouter un produit"}
+            </h3>
             <p className="section-subtitle">
               Remplissez les informations du produit avant de l’ajouter à la marketplace.
             </p>
 
-            <form onSubmit={creer} className="product-form">
-              <input
-                className="input"
-                placeholder="Nom"
-                value={form.nom}
-                onChange={(e) => setForm({ ...form, nom: e.target.value })}
-                required
-              />
+            <form onSubmit={envoyerForm} className="product-form">
+              <input className="input" placeholder="Nom" value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} required />
+              <input className="input" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
+              <input className="input" type="number" placeholder="Prix en Coins" value={form.prixEnCoins} onChange={(e) => setForm({ ...form, prixEnCoins: e.target.value })} required />
+              <input className="input" type="number" placeholder="Stock" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
 
-              <input
-                className="input"
-                placeholder="Description"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                required
-              />
-
-              <input
-                className="input"
-                type="number"
-                placeholder="Prix en Coins"
-                value={form.prixEnCoins}
-                onChange={(e) => setForm({ ...form, prixEnCoins: e.target.value })}
-                required
-              />
-
-              <input
-                className="input"
-                type="number"
-                placeholder="Stock"
-                value={form.stock}
-                onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                required
-              />
-
-              <select
-                className="input"
-                value={form.categorie}
-                onChange={(e) => setForm({ ...form, categorie: e.target.value })}
-              >
+              <select className="input" value={form.categorie} onChange={(e) => setForm({ ...form, categorie: e.target.value })}>
                 <option value="cours">Cours</option>
                 <option value="livre">Livre</option>
                 <option value="autre">Autre</option>
               </select>
 
+              <select className="input" value={form.disponible} onChange={(e) => setForm({ ...form, disponible: e.target.value === "true" })}>
+                <option value="true">Disponible</option>
+                <option value="false">Non disponible</option>
+              </select>
+
+              <input className="input" type="file" accept="image/*" onChange={handlePhoto} />
+
+              {preview && <img src={preview} alt="Aperçu produit" className="photo-preview" />}
+
               <button type="submit" className="primary-btn">
-                Ajouter
+                {modeEdition ? "Modifier" : "Ajouter"}
               </button>
+
+              {modeEdition && (
+                <button type="button" className="secondary-btn" onClick={resetForm}>
+                  Annuler
+                </button>
+              )}
             </form>
           </section>
 
           <div className="products-grid">
             {produits.map((p) => (
               <div key={p._id} className="product-card">
-                <h3 className="product-title">{p.nom}</h3>
+                {p.photo && (
+                  <img
+                    src={`${API}${p.photo}`}
+                    alt={p.nom}
+                    className="product-image"
+                  />
+                )}
 
+                <h3 className="product-title">{p.nom}</h3>
                 <p className="product-desc">{p.description}</p>
 
                 <div className="product-meta">
-                  <span>
-                    Prix: <strong>{p.prixEnCoins}</strong> coins
-                  </span>
+                  <span>Prix: <strong>{p.prixEnCoins}</strong> coins</span>
                   <span>Stock: {p.stock}</span>
+                  <span>{p.disponible ? "Disponible" : "Non disponible"}</span>
                 </div>
 
                 <span className="badge">{p.categorie}</span>
 
-                <button
-                  onClick={() => supprimer(p._id)}
-                  className="danger-btn"
-                >
-                  Supprimer
-                </button>
+                <div className="actions">
+                  <button className="secondary-btn" onClick={() => modifier(p)}>
+                    Modifier
+                  </button>
+                  <button className="danger-btn" onClick={() => supprimer(p._id)}>
+                    Supprimer
+                  </button>
+                </div>
               </div>
             ))}
           </div>

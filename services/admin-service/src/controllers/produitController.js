@@ -2,8 +2,17 @@ const produitService = require("../services/produitService");
 
 const creerProduit = async (req, res) => {
   try {
-    const produit = await produitService.creerProduit(req.body);
-    res.status(201).json({ message: "Produit créé avec succès", produit });
+    const donnees = {
+      ...req.body,
+      photo: req.file ? `/uploads/produits/${req.file.filename}` : "",
+    };
+
+    const produit = await produitService.creerProduit(donnees);
+
+    res.status(201).json({
+      message: "Produit créé avec succès",
+      produit,
+    });
   } catch (erreur) {
     res.status(400).json({ message: erreur.message });
   }
@@ -29,8 +38,18 @@ const obtenirProduit = async (req, res) => {
 
 const modifierProduit = async (req, res) => {
   try {
-    const produit = await produitService.modifierProduit(req.params.id, req.body);
-    res.json({ message: "Produit modifié avec succès", produit });
+    const donnees = { ...req.body };
+
+    if (req.file) {
+      donnees.photo = `/uploads/produits/${req.file.filename}`;
+    }
+
+    const produit = await produitService.modifierProduit(req.params.id, donnees);
+
+    res.json({
+      message: "Produit modifié avec succès",
+      produit,
+    });
   } catch (erreur) {
     res.status(400).json({ message: erreur.message });
   }

@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../api/axios";
 
+const API_ELEVE = "http://localhost:5003";
+const API_ADMIN = "http://localhost:5002";
+
 const Marketplace = () => {
   const navigate = useNavigate();
   const [produits, setProduits] = useState([]);
@@ -11,9 +14,10 @@ const Marketplace = () => {
   const charger = async () => {
     try {
       const [produitsRes, coinsRes] = await Promise.all([
-        axios.get("http://localhost:5003/api/eleve/marketplace"),
-        axios.get("http://localhost:5003/api/eleve/coins/solde"),
+        axios.get(`${API_ELEVE}/api/eleve/marketplace`),
+        axios.get(`${API_ELEVE}/api/eleve/coins/solde`),
       ]);
+
       setProduits(produitsRes.data);
       setSolde(coinsRes.data.solde);
     } catch (err) {
@@ -23,11 +27,19 @@ const Marketplace = () => {
 
   const acheter = async (idProduit) => {
     try {
-      const res = await axios.post(`http://localhost:5003/api/eleve/marketplace/acheter/${idProduit}`);
-      setMessage(`${res.data.message} — Solde restant: ${res.data.soldeRestant} coins`);
+      const res = await axios.post(
+        `${API_ELEVE}/api/eleve/marketplace/acheter/${idProduit}`
+      );
+
+      setMessage(
+        `${res.data.message} — Solde restant: ${res.data.soldeRestant} coins`
+      );
+
       charger();
     } catch (err) {
-      setMessage(`❌ ${err.response?.data?.message || "Erreur lors de l'achat"}`);
+      setMessage(
+        `❌ ${err.response?.data?.message || "Erreur lors de l'achat"}`
+      );
     }
   };
 
@@ -172,13 +184,6 @@ const Marketplace = () => {
           background-clip: text;
         }
 
-        .market-subtitle {
-          margin: 6px 0 0;
-          color: #A188B5;
-          font-size: 0.95rem;
-          font-weight: 800;
-        }
-
         .coins-badge {
           background: linear-gradient(135deg, #FFF8C4, #FFE082);
           color: #8D5200;
@@ -245,6 +250,18 @@ const Marketplace = () => {
           pointer-events: none;
         }
 
+        .product-image {
+          width: 100%;
+          height: 170px;
+          object-fit: cover;
+          border-radius: 22px;
+          margin-bottom: 16px;
+          background: linear-gradient(135deg, #F3E5F5, #E8EAF6, #FFF8E1);
+          box-shadow: 0 8px 18px rgba(171, 71, 188, 0.12);
+          position: relative;
+          z-index: 1;
+        }
+
         .product-icon {
           width: 70px;
           height: 70px;
@@ -256,6 +273,8 @@ const Marketplace = () => {
           margin-bottom: 14px;
           background: linear-gradient(135deg, #F3E5F5, #E8EAF6, #FFF8E1);
           box-shadow: 0 8px 18px rgba(171, 71, 188, 0.12);
+          position: relative;
+          z-index: 1;
         }
 
         .product-title {
@@ -263,6 +282,8 @@ const Marketplace = () => {
           color: #6A1B9A;
           font-size: 1.2rem;
           font-weight: 900;
+          position: relative;
+          z-index: 1;
         }
 
         .product-desc {
@@ -272,6 +293,8 @@ const Marketplace = () => {
           line-height: 1.5;
           min-height: 64px;
           font-weight: 700;
+          position: relative;
+          z-index: 1;
         }
 
         .product-meta {
@@ -281,6 +304,8 @@ const Marketplace = () => {
           gap: 10px;
           margin-bottom: 10px;
           flex-wrap: wrap;
+          position: relative;
+          z-index: 1;
         }
 
         .product-price {
@@ -305,6 +330,8 @@ const Marketplace = () => {
           font-weight: 900;
           margin-bottom: 14px;
           border: 2px solid #E9D8F4;
+          position: relative;
+          z-index: 1;
         }
 
         .buy-btn {
@@ -319,6 +346,8 @@ const Marketplace = () => {
           font-family: 'Nunito', sans-serif;
           font-weight: 900;
           transition: 0.2s ease;
+          position: relative;
+          z-index: 1;
         }
 
         .buy-btn.active {
@@ -399,6 +428,15 @@ const Marketplace = () => {
             <div className="products-grid">
               {produits.map((p) => (
                 <div key={p._id} className="product-card">
+                  {p.photo ? (
+                    <img
+                      src={`${API_ADMIN}${p.photo}`}
+                      alt={p.nom}
+                      className="product-image"
+                    />
+                  ) : (
+                    <div className="product-icon">🎁</div>
+                  )}
 
                   <h3 className="product-title">{p.nom}</h3>
                   <p className="product-desc">{p.description}</p>
@@ -413,18 +451,24 @@ const Marketplace = () => {
                   <span className="category-badge">{p.categorie}</span>
 
                   <button
-                    className={`buy-btn ${solde >= p.prixEnCoins ? "active" : "disabled"}`}
+                    className={`buy-btn ${
+                      solde >= p.prixEnCoins && p.stock > 0
+                        ? "active"
+                        : "disabled"
+                    }`}
                     onClick={() => acheter(p._id)}
-                    disabled={solde < p.prixEnCoins}
+                    disabled={solde < p.prixEnCoins || p.stock <= 0}
                   >
-                    {solde >= p.prixEnCoins ? " Acheter" : " Coins insuffisants"}
+                    {solde >= p.prixEnCoins && p.stock > 0
+                      ? "Acheter"
+                      : "Coins insuffisants"}
                   </button>
                 </div>
               ))}
             </div>
           ) : (
             <div className="empty-box">
-               Aucun produit disponible pour le moment.
+              Aucun produit disponible pour le moment.
             </div>
           )}
         </div>
