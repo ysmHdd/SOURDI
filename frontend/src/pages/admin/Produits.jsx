@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import AdminSidebar from "../../components/AdminSidebar";
+import AdminSidebar from "../../components/layout/AdminSidebar";
 import axios from "../../api/axios";
+import "../../styles/adminLayout.css";
 
 const API = "http://localhost:5002";
 

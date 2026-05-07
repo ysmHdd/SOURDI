@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import AdminSidebar from "../../components/AdminSidebar";
-import "./adminLayout.css";
+import AdminSidebar from "../../components/layout/AdminSidebar";
+import "../../styles/adminLayout.css";
 
 const DashboardAdmin = () => {
   return (
