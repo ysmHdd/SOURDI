@@ -48,6 +48,7 @@ const genererToken = (utilisateur) => {
       id: utilisateur._id,
       email: utilisateur.user_email,
       role: utilisateur.role,
+      grade: utilisateur.params?.grade || "1",
     },
     process.env.JWT_SECRET,
     { expiresIn: "1d" }

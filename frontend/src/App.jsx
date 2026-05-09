@@ -9,12 +9,15 @@ import Utilisateurs from "./pages/admin/Utilisateurs";
 import Produits from "./pages/admin/Produits";
 import DashboardEleve from "./pages/eleve/DashboardEleve";
 import Marketplace from "./pages/eleve/Marketplace";
+import Accueil from "./pages/Accueil";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
+        <Routes>  
+        
+          <Route path="/" element={<Accueil />} />
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/inscription" element={<Inscription />} />
