@@ -24,6 +24,16 @@ const utilisateurSchema = new mongoose.Schema(
       enum: ["admin", "etudiant"],
       default: "etudiant",
     },
+    solde: {
+      type: Number,
+      default: 0,
+    },
+    kpi: {
+      lessonsCompletes:     { type: Number, default: 0 },
+      tempsPasseEnMinutes:  { type: Number, default: 0 },
+      nombreConnexions:     { type: Number, default: 0 },
+      autoEvaluation:       { type: Number, default: 0 },
+    },
   },
   {
     timestamps: true,

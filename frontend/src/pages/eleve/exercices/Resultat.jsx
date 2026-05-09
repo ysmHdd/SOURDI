@@ -38,18 +38,27 @@ export default function Resultat() {
   const { reponses, matiere, sousCat, niveau, tempsEnSecondes } = state || {};
 
   useEffect(() => {
-    if (!reponses) { navigate("/eleve/exercices"); return; }
-    const soumettre = async () => {
-      try {
-        const res = await axios.post("http://localhost:5004/api/exercices/soumettre", {
-          matiere, niveau, sousCat, reponses, tempsEnSecondes,
-        });
-        setResultat(res.data);
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    };
-    soumettre();
-  }, []);
+  if (!reponses) { navigate("/eleve/exercices"); return; }
+  const soumettre = async () => {
+    try {
+ 
+      const res = await axios.post("http://localhost:5004/api/exercices/soumettre", {
+        matiere, niveau, sousCat, reponses, tempsEnSecondes,
+      });
+      setResultat(res.data);
+
+
+      await axios.post("http://localhost:5005/api/coins/quiz", {
+        score: res.data.score,
+        total: res.data.total,
+        matiere,
+      });
+
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  };
+  soumettre();
+}, []);
 
   if (loading) return (
     <div className={`ex-root ${dark ? "dark" : "light"}`}>

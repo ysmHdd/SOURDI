@@ -9,4 +9,13 @@ const obtenirProfil = async (req, res) => {
   }
 };
 
-module.exports = { obtenirProfil };
+const syncProfil = async (req, res) => {
+  try {
+    const profil = await profilService.syncProfil(req.utilisateur.id, req.body);
+    res.json(profil);
+  } catch (erreur) {
+    res.status(500).json({ message: erreur.message });
+  }
+};
+
+module.exports = { obtenirProfil, syncProfil };

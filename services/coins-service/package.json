@@ -1,0 +1,19 @@
+{
+  "name": "coins-service",
+  "version": "1.0.0",
+  "description": "Service de gestion des Sourdi Coins",
+  "main": "src/serveur.js",
+  "scripts": {
+    "start": "node src/serveur.js",
+    "dev": "nodemon src/serveur.js"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.4.1"
+  }
+}

@@ -23,4 +23,23 @@ const obtenirProfil = async (idUtilisateur) => {
   };
 };
 
-module.exports = { obtenirProfil };
+const syncProfil = async (idUtilisateur, donnees) => {
+  try {
+    let utilisateur = await Utilisateur.findById(idUtilisateur);
+    if (!utilisateur) {
+      utilisateur = await Utilisateur.create({
+        _id: idUtilisateur,
+        nom: donnees.nom,
+        email: donnees.email,
+        motDePasse: "sync__ok",
+        role: donnees.role || "etudiant",
+      });
+    }
+    return utilisateur;
+  } catch (err) {
+    console.error("ERREUR SYNC:", err.message);
+    throw err;
+  }
+};
+
+module.exports = { obtenirProfil, syncProfil };

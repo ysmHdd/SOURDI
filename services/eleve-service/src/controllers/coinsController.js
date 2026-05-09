@@ -1,4 +1,5 @@
 const coinsService = require("../services/coinsService");
+const SourdiCoins = require("../models/SourdiCoins");
 
 const obtenirSolde = async (req, res) => {
   try {
@@ -18,4 +19,30 @@ const mettreAJourKPI = async (req, res) => {
   }
 };
 
-module.exports = { obtenirSolde, mettreAJourKPI };
+const crediter = async (req, res) => {
+  try {
+    const { montant } = req.body;
+    const eleveId = req.utilisateur.id;
+
+    const coins = await SourdiCoins.findOneAndUpdate(
+      { utilisateur: eleveId },
+      {
+        $inc: { solde: montant },
+        $push: {
+          historiqueGains: {
+            montant,
+            raison: "Quiz complété",
+          },
+        },
+      },
+      { new: true, upsert: true }
+    );
+
+    res.json({ solde: coins.solde });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { obtenirSolde, mettreAJourKPI, crediter };
+

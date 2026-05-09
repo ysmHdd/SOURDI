@@ -12,6 +12,8 @@ const DashboardEleve = () => {
     tempsPasseEnMinutes: 0,
     nombreConnexions: 0,
     autoEvaluation: 0,
+
+    
   });
 
   const charger = async () => {
@@ -22,6 +24,8 @@ const DashboardEleve = () => {
       console.error(err);
     }
   };
+
+  
 
   const mettreAJourKPI = async (e) => {
     e.preventDefault();

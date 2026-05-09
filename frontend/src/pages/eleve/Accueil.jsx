@@ -4,6 +4,8 @@ import { useAuth } from "../../context/AuthContext";
 import axios from "../../api/axios";
 import "./accueil.css";
 
+
+
 const T = {
   fr: {
     tagline: "Plateforme d'apprentissage",
@@ -91,8 +93,10 @@ export default function Accueil() {
     load();
   }, []);
 
-  const kpi = profil?.kpi || {};
-  const solde = profil?.solde ?? 0;
+const kpi = profil?.kpi || {};
+const solde = profil?.solde ?? 0;
+
+console.log("PROFIL RECU:", profil); 
 
   const stats = [
     { label: t.lessons,     value: kpi.lessonsCompletes ?? 0,    max: 20,  color: "#AB47BC" },
@@ -142,8 +146,8 @@ export default function Accueil() {
             <span className="acc-coins-lbl">{t.coins}</span>
           </div>
           <div className="acc-user-chip">
-            <span className="acc-avatar-mini">{(utilisateur?.nom || "?")[0].toUpperCase()}</span>
-            <span className="acc-user-name">{utilisateur?.nom}</span>
+            <span className="acc-avatar-mini">{(utilisateur?.user_first_name || "?")[0].toUpperCase()}</span>
+<span className="acc-user-name">{utilisateur?.user_first_name} {utilisateur?.user_last_name}</span>
           </div>
           <button className="acc-logout-btn" onClick={() => { deconnexion(); navigate("/login"); }}>
             {t.logout}
