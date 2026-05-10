@@ -11,11 +11,11 @@ const T = {
     coins: "Sourdi Coins",
     marketTitle: "Marketplace",
     marketSub: "Dépense tes coins pour des récompenses",
-    seeAll: "Voir tout →",
+    seeAll: "Voir tout",
     coursesTitle: "Cours disponibles",
-    coursesSub: "Continue ton apprentissage",
+    coursesSub: "Continue ton apprentissage en langue des signes",
     start: "Commencer",
-    statsTitle: "Mes statistiques",
+    statsTitle: "Ma progression",
     lessons: "Leçons complétées",
     time: "Temps passé",
     timeUnit: "min",
@@ -24,7 +24,13 @@ const T = {
     footerText: "Plateforme éducative pour la langue des signes",
     noProducts: "Aucun produit disponible",
     coins_unit: "coins",
-    streakMsg: (s) => s > 1 ? `🔥 ${s} jours de suite !` : "Connecte-toi chaque jour pour des bonus !",
+    session: "Session en cours",
+    streak: "jours de suite",
+    nextGoal: "Prochain objectif",
+    niveau: "Niveau",
+    niveaux: ["Débutant", "Apprenti", "Intermédiaire", "Avancé", "Expert"],
+    bonjour: (h) => h < 12 ? "Bonjour" : h < 18 ? "Bon après-midi" : "Bonsoir",
+    objectif: (v, max, label) => `${max - v} ${label} pour atteindre l'objectif`,
   },
   en: {
     tagline: "Learning Platform",
@@ -32,11 +38,11 @@ const T = {
     coins: "Sourdi Coins",
     marketTitle: "Marketplace",
     marketSub: "Spend your coins to get rewards",
-    seeAll: "See all →",
+    seeAll: "See all",
     coursesTitle: "Available Courses",
-    coursesSub: "Continue your learning",
+    coursesSub: "Continue your sign language learning",
     start: "Start",
-    statsTitle: "My Statistics",
+    statsTitle: "My Progress",
     lessons: "Completed Lessons",
     time: "Time Spent",
     timeUnit: "min",
@@ -45,16 +51,59 @@ const T = {
     footerText: "Educational platform for sign language",
     noProducts: "No products available",
     coins_unit: "coins",
-    streakMsg: (s) => s > 1 ? `🔥 ${s} days in a row!` : "Log in every day for bonuses!",
+    session: "Current session",
+    streak: "days in a row",
+    nextGoal: "Next goal",
+    niveau: "Level",
+    niveaux: ["Beginner", "Apprentice", "Intermediate", "Advanced", "Expert"],
+    bonjour: (h) => h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening",
+    objectif: (v, max, label) => `${max - v} ${label} to reach the goal`,
   },
 };
 
 const COURSES = [
-  { id: 1, title: { fr: "L'alphabet LSF", en: "LSF Alphabet" }, desc: { fr: "Bases de la langue des signes", en: "Basics of sign language" }, level: { fr: "Débutant", en: "Beginner" }, duration: "15 min", color: "#AB47BC" },
-  { id: 2, title: { fr: "Salutations", en: "Greetings" }, desc: { fr: "Bonjour, merci, au revoir...", en: "Hello, thank you, goodbye..." }, level: { fr: "Débutant", en: "Beginner" }, duration: "20 min", color: "#EF5350" },
-  { id: 3, title: { fr: "Les chiffres", en: "Numbers" }, desc: { fr: "Compter de 1 à 20 en LSF", en: "Count from 1 to 20 in LSF" }, level: { fr: "Intermédiaire", en: "Intermediate" }, duration: "25 min", color: "#FF7043" },
-  { id: 4, title: { fr: "Les couleurs", en: "Colors" }, desc: { fr: "Rouge, bleu, vert et plus", en: "Red, blue, green and more" }, level: { fr: "Débutant", en: "Beginner" }, duration: "18 min", color: "#26C6DA" },
+  { id: 1, title: { fr: "L'alphabet LSF", en: "LSF Alphabet" }, desc: { fr: "Les bases de la langue des signes française", en: "Basics of French sign language" }, level: { fr: "Débutant", en: "Beginner" }, duration: "15 min", color: "#7C4DFF" },
+  { id: 2, title: { fr: "Salutations courantes", en: "Common Greetings" }, desc: { fr: "Bonjour, merci, au revoir et plus encore", en: "Hello, thank you, goodbye and more" }, level: { fr: "Débutant", en: "Beginner" }, duration: "20 min", color: "#E040FB" },
+  { id: 3, title: { fr: "Les chiffres 1 à 20", en: "Numbers 1 to 20" }, desc: { fr: "Compter et utiliser les chiffres en LSF", en: "Count and use numbers in LSF" }, level: { fr: "Intermédiaire", en: "Intermediate" }, duration: "25 min", color: "#00BCD4" },
+  { id: 4, title: { fr: "Les couleurs", en: "Colors" }, desc: { fr: "Rouge, bleu, vert et bien d'autres", en: "Red, blue, green and many more" }, level: { fr: "Débutant", en: "Beginner" }, duration: "18 min", color: "#FF6D00" },
 ];
+
+const getNiveau = (solde) => {
+  if (solde >= 500) return 4;
+  if (solde >= 200) return 3;
+  if (solde >= 100) return 2;
+  if (solde >= 50) return 1;
+  return 0;
+};
+
+const getNextGoalCoins = (solde) => {
+  if (solde < 50) return 50;
+  if (solde < 100) return 100;
+  if (solde < 200) return 200;
+  if (solde < 500) return 500;
+  return null;
+};
+
+// Composant cercle de progression SVG
+const ProgressCircle = ({ value, max, color, size = 64 }) => {
+  const r = (size - 8) / 2;
+  const circ = 2 * Math.PI * r;
+  const pct = max ? Math.min(1, value / max) : 0;
+  const dash = pct * circ;
+
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
+      <circle
+        cx={size/2} cy={size/2} r={r} fill="none"
+        stroke={color} strokeWidth="6"
+        strokeDasharray={`${dash} ${circ}`}
+        strokeLinecap="round"
+        style={{ transition: "stroke-dasharray 0.8s cubic-bezier(0.34,1.2,0.64,1)" }}
+      />
+    </svg>
+  );
+};
 
 export default function Accueil() {
   const { utilisateur, deconnexion } = useAuth();
@@ -64,16 +113,16 @@ export default function Accueil() {
   const [profil, setProfil] = useState(null);
   const [produits, setProduits] = useState([]);
   const [streak, setStreak] = useState(0);
-  const [tempsSession, setTempsSession] = useState(0); // en minutes
+  const [tempsSession, setTempsSession] = useState(0);
   const timerRef = useRef(null);
   const minutesEnvoyeesRef = useRef(0);
 
   const t = T[lang];
+  const heure = new Date().getHours();
 
   useEffect(() => { localStorage.setItem("sourdi_lang", lang); }, [lang]);
   useEffect(() => { localStorage.setItem("sourdi_dark", dark); }, [dark]);
 
-  // Charger profil et marketplace
   useEffect(() => {
     const load = async () => {
       try {
@@ -88,7 +137,6 @@ export default function Accueil() {
     load();
   }, []);
 
-  // Récupérer le streak depuis coins-service
   useEffect(() => {
     const loadStreak = async () => {
       try {
@@ -99,60 +147,43 @@ export default function Accueil() {
     loadStreak();
   }, []);
 
-  // Timer automatique — compte le temps et envoie coins toutes les 30 min
+  // Timer automatique
   useEffect(() => {
     timerRef.current = setInterval(async () => {
       setTempsSession((prev) => {
         const nouvelles = prev + 1;
-
-        // Envoyer les coins toutes les 30 minutes
-        if (nouvelles > 0 && nouvelles % 30 === 0 && nouvelles > minutesEnvoyeesRef.current) {
+        if (nouvelles % 30 === 0 && nouvelles > minutesEnvoyeesRef.current) {
           minutesEnvoyeesRef.current = nouvelles;
           axios.post("http://localhost:5005/api/coins/temps", { minutes: 30 })
-            .then(() => {
-              // Recharger le solde après gain
-              axios.get("http://localhost:5003/api/eleve/profil")
-                .then((res) => setProfil(res.data))
-                .catch(() => {});
-            })
+            .then(() => axios.get("http://localhost:5003/api/eleve/profil").then(r => setProfil(r.data)))
             .catch(() => {});
-
-          // Mettre à jour le temps dans eleve-service
-          axios.patch("http://localhost:5003/api/eleve/coins/kpi", {
-            tempsPasseEnMinutes: nouvelles,
-          }).catch(() => {});
+          axios.patch("http://localhost:5003/api/eleve/coins/kpi", { tempsPasseEnMinutes: nouvelles }).catch(() => {});
         }
-
         return nouvelles;
       });
-    }, 60 * 1000); // toutes les minutes
-
+    }, 60 * 1000);
     return () => clearInterval(timerRef.current);
   }, []);
 
   const kpi = profil?.kpi || {};
   const solde = profil?.solde ?? 0;
+  const niveauIdx = getNiveau(solde);
+  const nextGoal = getNextGoalCoins(solde);
+  const niveauPct = nextGoal ? Math.round((solde / nextGoal) * 100) : 100;
 
   const stats = [
-    { label: t.lessons,     value: kpi.lessonsCompletes ?? 0,    max: 20,  color: "#AB47BC" },
-    { label: t.time,        value: kpi.tempsPasseEnMinutes ?? 0, max: 300, color: "#EF5350", suffix: t.timeUnit },
-    { label: t.connections, value: streak,                        max: 30,  color: "#FF7043" },
-    { label: t.selfEval,    value: kpi.autoEvaluation ?? 0,      max: 10,  color: "#26C6DA" },
+    { key: "lessons",     label: t.lessons,     value: kpi.lessonsCompletes ?? 0,    max: 20,  color: "#7C4DFF", unit: "" },
+    { key: "time",        label: t.time,         value: kpi.tempsPasseEnMinutes ?? 0, max: 300, color: "#E040FB", unit: t.timeUnit },
+    { key: "connections", label: t.connections,  value: streak,                        max: 30,  color: "#FF6D00", unit: "" },
+    { key: "selfEval",    label: t.selfEval,     value: kpi.autoEvaluation ?? 0,      max: 10,  color: "#00BCD4", unit: "/10" },
   ];
 
   return (
-    <div className={`accueil-root ${dark ? "dark" : "light"}`}>
-      <div className="blob blob-1" />
-      <div className="blob blob-2" />
-      <div className="blob blob-3" />
+    <div className={`acc-root ${dark ? "dark" : "light"}`}>
+      <div className="acc-blob acc-blob-1" />
+      <div className="acc-blob acc-blob-2" />
 
-      <div className="stars" aria-hidden>
-        {[["8%","7%","0s"],["14%","88%","1.2s"],["55%","3%","2.1s"],["78%","92%","0.7s"],["35%","96%","1.8s"]].map(([top,left,delay],i) => (
-          <span key={i} className="star" style={{ top, left, animationDelay: delay }}>✦</span>
-        ))}
-      </div>
-
-      {/* HEADER */}
+      {/* ── HEADER ── */}
       <header className="acc-header">
         <div className="acc-header-left">
           <span className="acc-logo">SOURDI</span>
@@ -160,28 +191,26 @@ export default function Accueil() {
         </div>
 
         <div className="acc-header-center">
-          <button className={`acc-lang ${lang === "fr" ? "active" : ""}`} onClick={() => setLang("fr")}>FR</button>
-          <button className={`acc-lang ${lang === "en" ? "active" : ""}`} onClick={() => setLang("en")}>EN</button>
-          <div className="acc-hdivider" />
+          <button className={`acc-lang-btn ${lang === "fr" ? "active" : ""}`} onClick={() => setLang("fr")}>FR</button>
+          <button className={`acc-lang-btn ${lang === "en" ? "active" : ""}`} onClick={() => setLang("en")}>EN</button>
+          <div className="acc-h-sep" />
           <button className="acc-theme-btn" onClick={() => setDark(!dark)}>
-            {dark ? "☀️" : "🌙"}
+            {dark ? "Clair" : "Sombre"}
           </button>
         </div>
 
         <div className="acc-header-right">
-          {streak > 0 && (
-            <div className="acc-streak-chip">
-              🔥 {streak}j
+          {streak > 1 && (
+            <div className="acc-streak-badge">
+              {streak} {t.streak}
             </div>
           )}
-          <div className="acc-coins-chip">
-            <span className="acc-coins-dot" />
+          <div className="acc-coins-badge">
             <span className="acc-coins-val">{solde}</span>
-            <span className="acc-coins-sep" />
-            <span className="acc-coins-lbl">{t.coins}</span>
+            <span className="acc-coins-label">{t.coins}</span>
           </div>
-          <div className="acc-user-chip">
-            <span className="acc-avatar-mini">{(utilisateur?.user_first_name || "?")[0].toUpperCase()}</span>
+          <div className="acc-user-badge">
+            <span className="acc-user-avatar">{(utilisateur?.user_first_name || "?")[0].toUpperCase()}</span>
             <span className="acc-user-name">{utilisateur?.user_first_name} {utilisateur?.user_last_name}</span>
           </div>
           <button className="acc-logout-btn" onClick={() => { deconnexion(); navigate("/login"); }}>
@@ -190,63 +219,73 @@ export default function Accueil() {
         </div>
       </header>
 
-      {/* MAIN */}
-      <main className="acc-main">
-
-        {/* Streak banner */}
-        {streak > 0 && (
-          <div className="acc-streak-banner">
-            {t.streakMsg(streak)}
+      {/* ── WELCOME BAR ── */}
+      <div className="acc-welcome-bar">
+        <div className="acc-welcome-left">
+          <span className="acc-welcome-greet">{t.bonjour(heure)}, {utilisateur?.user_first_name} —</span>
+          <span className="acc-welcome-niveau">{t.niveau} : <strong>{t.niveaux[niveauIdx]}</strong></span>
+        </div>
+        {nextGoal && (
+          <div className="acc-level-bar">
+            <div className="acc-level-bar-track">
+              <div className="acc-level-bar-fill" style={{ width: `${niveauPct}%` }} />
+            </div>
+            <span className="acc-level-bar-label">{solde} / {nextGoal} coins</span>
           </div>
         )}
-
-        {/* COLONNE GAUCHE : Marketplace */}
-        <section className="acc-card acc-market">
-          <div className="acc-card-head">
-            <h2 className="acc-card-title">{t.marketTitle}</h2>
-            <p className="acc-card-sub">{t.marketSub}</p>
+        {tempsSession > 0 && (
+          <div className="acc-session-badge">
+            {t.session} : {tempsSession} {t.timeUnit}
           </div>
-          <div className="acc-card-body">
+        )}
+      </div>
+
+      {/* ── MAIN 3 COLS ── */}
+      <main className="acc-main">
+
+        {/* GAUCHE — Marketplace */}
+        <section className="acc-panel">
+          <div className="acc-panel-head">
+            <h2 className="acc-panel-title">{t.marketTitle}</h2>
+            <p className="acc-panel-sub">{t.marketSub}</p>
+          </div>
+          <div className="acc-panel-body">
             {produits.length > 0 ? produits.map((p) => (
-              <div key={p._id} className="mp-row">
-                <div className="mp-thumb">
-                  {p.photo
-                    ? <img src={`http://localhost:5002${p.photo}`} alt={p.nom} />
-                    : <div className="mp-thumb-placeholder" />}
+              <div key={p._id} className="acc-mp-item">
+                <div className="acc-mp-thumb">
+                  {p.photo ? <img src={`http://localhost:5002${p.photo}`} alt={p.nom} /> : <div className="acc-mp-placeholder" />}
                 </div>
-                <div className="mp-info">
-                  <span className="mp-name">{p.nom}</span>
-                  <span className="mp-price"><strong>{p.prixEnCoins}</strong> {t.coins_unit}</span>
+                <div className="acc-mp-info">
+                  <span className="acc-mp-name">{p.nom}</span>
+                  <span className="acc-mp-price"><strong>{p.prixEnCoins}</strong> {t.coins_unit}</span>
                 </div>
               </div>
-            )) : (
-              <p className="acc-empty">{t.noProducts}</p>
-            )}
+            )) : <p className="acc-empty">{t.noProducts}</p>}
           </div>
-          <div className="acc-card-footer">
-            <Link to="/eleve/marketplace" className="acc-see-all-btn">{t.seeAll}</Link>
+          <div className="acc-panel-footer">
+            <Link to="/eleve/marketplace" className="acc-see-all">{t.seeAll}</Link>
           </div>
         </section>
 
-        {/* COLONNE CENTRE : Cours */}
-        <section className="acc-card acc-courses">
-          <div className="acc-card-head">
-            <h2 className="acc-card-title">{t.coursesTitle}</h2>
-            <p className="acc-card-sub">{t.coursesSub}</p>
+        {/* CENTRE — Cours */}
+        <section className="acc-panel">
+          <div className="acc-panel-head">
+            <h2 className="acc-panel-title">{t.coursesTitle}</h2>
+            <p className="acc-panel-sub">{t.coursesSub}</p>
           </div>
-          <div className="acc-card-body acc-courses-body">
+          <div className="acc-courses-list">
             {COURSES.map((c) => (
-              <div key={c.id} className="course-row">
-                <div className="course-stripe" style={{ background: c.color }} />
-                <div className="course-info">
-                  <span className="course-title">{c.title[lang]}</span>
-                  <span className="course-desc">{c.desc[lang]}</span>
-                  <div className="course-meta">
-                    <span className="course-badge" style={{ color: c.color, background: `${c.color}18`, border: `1px solid ${c.color}33` }}>{c.level[lang]}</span>
-                    <span className="course-dur">{c.duration}</span>
+              <div key={c.id} className="acc-course-item">
+                <div className="acc-course-stripe" style={{ background: c.color }} />
+                <div className="acc-course-info">
+                  <span className="acc-course-title">{c.title[lang]}</span>
+                  <span className="acc-course-desc">{c.desc[lang]}</span>
+                  <div className="acc-course-meta">
+                    <span className="acc-course-tag" style={{ color: c.color, background: `${c.color}18`, border: `1px solid ${c.color}30` }}>{c.level[lang]}</span>
+                    <span className="acc-course-dur">{c.duration}</span>
                   </div>
                 </div>
-                <button className="course-start-btn" style={{ background: `linear-gradient(135deg, ${c.color}, ${c.color}aa)` }} onClick={() => navigate("/eleve/exercices")}>
+                <button className="acc-course-btn" style={{ background: c.color }} onClick={() => navigate("/eleve/exercices")}>
                   {t.start}
                 </button>
               </div>
@@ -254,39 +293,49 @@ export default function Accueil() {
           </div>
         </section>
 
-        {/* COLONNE DROITE : Stats */}
-        <aside className="acc-stats">
-          <div className="acc-stats-head">
-            <h2 className="acc-card-title">{t.statsTitle}</h2>
+        {/* DROITE — Dashboard vertical */}
+        <aside className="acc-dashboard">
+          <div className="acc-dashboard-head">
+            <h2 className="acc-panel-title">{t.statsTitle}</h2>
           </div>
-          {stats.map((s, i) => {
+
+          {stats.map((s) => {
             const pct = s.max ? Math.min(100, Math.round((s.value / s.max) * 100)) : 0;
             return (
-              <div key={i} className="stat-block">
-                <div className="stat-top">
-                  <span className="stat-label">{s.label}</span>
-                  <span className="stat-value">
-                    {s.value}
-                    {s.max === 10 && <span className="stat-max">/10</span>}
-                    {s.suffix && <span className="stat-max"> {s.suffix}</span>}
+              <div key={s.key} className="acc-stat-row">
+                <div className="acc-stat-circle">
+                  <ProgressCircle value={s.value} max={s.max} color={s.color} size={56} />
+                  <span className="acc-stat-circle-val" style={{ color: s.color }}>
+                    {pct}%
                   </span>
                 </div>
-                <div className="stat-track">
-                  <div className="stat-fill" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${s.color}, ${s.color}99)` }} />
+                <div className="acc-stat-info">
+                  <span className="acc-stat-label">{s.label}</span>
+                  <span className="acc-stat-value">{s.value}<span className="acc-stat-unit">{s.unit}</span></span>
+                  <div className="acc-stat-bar">
+                    <div className="acc-stat-bar-fill" style={{ width: `${pct}%`, background: s.color }} />
+                  </div>
                 </div>
               </div>
             );
           })}
-          {tempsSession > 0 && (
-            <div className="acc-session-timer">
-              Session : {tempsSession} min
+
+          {/* Prochain objectif */}
+          {nextGoal && (
+            <div className="acc-next-goal">
+              <span className="acc-next-goal-label">{t.nextGoal}</span>
+              <span className="acc-next-goal-val">{nextGoal - solde} coins restants</span>
+              <div className="acc-next-goal-bar">
+                <div className="acc-next-goal-fill" style={{ width: `${niveauPct}%` }} />
+              </div>
+              <span className="acc-next-goal-niveau">{t.niveaux[niveauIdx + 1] || t.niveaux[4]}</span>
             </div>
           )}
         </aside>
 
       </main>
 
-      {/* FOOTER */}
+      {/* ── FOOTER ── */}
       <footer className="acc-footer">
         <span className="acc-footer-logo">SOURDI</span>
         <span className="acc-footer-text">{t.footerText} · © 2025</span>
