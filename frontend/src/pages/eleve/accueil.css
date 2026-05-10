@@ -507,3 +507,36 @@
   .acc-main { grid-template-columns: 1fr; padding: 16px 14px 0; gap: 16px; }
   .acc-stats { grid-column: auto; }
 }
+
+/* STREAK */
+.acc-streak-chip {
+  background: linear-gradient(135deg, #FF7043, #FFB300);
+  color: white;
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin-right: 4px;
+}
+
+.acc-streak-banner {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(255,112,67,0.1), rgba(255,179,0,0.1));
+  border: 2px solid rgba(255,112,67,0.25);
+  border-radius: 16px;
+  padding: 12px 20px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #E64A19;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.acc-session-timer {
+  padding: 12px 22px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-faint);
+  text-align: center;
+  border-top: 1px solid var(--card-border);
+}

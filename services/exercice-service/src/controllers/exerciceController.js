@@ -48,4 +48,29 @@ const getHistorique = async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
-module.exports = { getMatieres, getSousCats, getExercices, soumettre, getHistorique };
+
+const creer = async (req, res) => {
+  try {
+    const Exercice = require("../models/Exercice");
+    const ex = await Exercice.create(req.body);
+    res.status(201).json(ex);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+const modifier = async (req, res) => {
+  try {
+    const Exercice = require("../models/Exercice");
+    const ex = await Exercice.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(ex);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+const supprimer = async (req, res) => {
+  try {
+    const Exercice = require("../models/Exercice");
+    await Exercice.findByIdAndDelete(req.params.id);
+    res.json({ message: "Exercice supprimé" });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+module.exports = { getMatieres, getSousCats, getExercices, soumettre, getHistorique, creer, modifier, supprimer };

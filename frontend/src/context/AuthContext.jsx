@@ -8,25 +8,37 @@ export const AuthProvider = ({ children }) => {
     JSON.parse(localStorage.getItem("utilisateur")) || null
   );
 
- const connexion = async (data) => {
-  localStorage.setItem("token", data.token);
-  localStorage.setItem("utilisateur", JSON.stringify(data.utilisateur));
-  setUtilisateur(data.utilisateur);
+  const connexion = async (data) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("utilisateur", JSON.stringify(data.utilisateur));
+    setUtilisateur(data.utilisateur);
 
-  try {
-    await axios.post(
-      "http://localhost:5003/api/eleve/profil/sync",
-      {
-        nom: data.utilisateur.user_first_name + " " + data.utilisateur.user_last_name,
-        email: data.utilisateur.user_email,
-        role: data.utilisateur.role,
-      },
-      { headers: { Authorization: `Bearer ${data.token}` } }
-    );
-  } catch (e) {
-    console.error("Sync eleve-service échoué:", e);
-  }
-};
+    // Sync profil dans eleve-service
+    try {
+      await axios.post(
+        "http://localhost:5003/api/eleve/profil/sync",
+        {
+          nom: data.utilisateur.user_first_name + " " + data.utilisateur.user_last_name,
+          email: data.utilisateur.user_email,
+          role: data.utilisateur.role,
+        },
+        { headers: { Authorization: `Bearer ${data.token}` } }
+      );
+    } catch (e) {
+      console.error("Sync eleve-service échoué:", e);
+    }
+
+    // Récompense connexion quotidienne
+    try {
+      await axios.post(
+        "http://localhost:5005/api/coins/connexion",
+        {},
+        { headers: { Authorization: `Bearer ${data.token}` } }
+      );
+    } catch (e) {
+      console.error("Récompense connexion échouée:", e);
+    }
+  };
 
   const deconnexion = () => {
     localStorage.removeItem("token");

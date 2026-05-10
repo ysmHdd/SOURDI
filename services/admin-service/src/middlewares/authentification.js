@@ -3,22 +3,16 @@ const jwt = require("jsonwebtoken");
 const verifierToken = (req, res, next) => {
   try {
     const enTeteAutorisation = req.headers.authorization;
-
     if (!enTeteAutorisation || !enTeteAutorisation.startsWith("Bearer ")) {
-      return res.status(401).json({
-        message: "Accès refusé, token manquant",
-      });
+      return res.status(401).json({ message: "Accès refusé, token manquant" });
     }
-
     const token = enTeteAutorisation.split(" ")[1];
     const donneesDecodees = jwt.verify(token, process.env.JWT_SECRET);
-
+    console.log("TOKEN DECODE:", donneesDecodees); // ← ajoute ça
     req.utilisateur = donneesDecodees;
     next();
   } catch (erreur) {
-    return res.status(401).json({
-      message: "Token invalide ou expiré",
-    });
+    return res.status(401).json({ message: "Token invalide ou expiré" });
   }
 };
 

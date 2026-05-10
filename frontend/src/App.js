@@ -13,6 +13,7 @@ import Marketplace from "./pages/eleve/Marketplace";
 import Selection from "./pages/eleve/exercices/Selection";
 import Quiz from "./pages/eleve/exercices/Quiz";
 import Resultat from "./pages/eleve/exercices/Resultat";
+import Exercices from "./pages/admin/Exercices";
 
 
 
@@ -36,6 +37,7 @@ function App() {
           <Route path="/eleve/exercices" element={<ProtectedRoute role="etudiant"><Selection /></ProtectedRoute>} />
           <Route path="/eleve/exercices/resultat" element={<ProtectedRoute role="etudiant"><Resultat /></ProtectedRoute>} />
           <Route path="/eleve/exercices/quiz" element={<ProtectedRoute role="etudiant"><Quiz /></ProtectedRoute>} />
+          <Route path="/admin/exercices" element={<ProtectedRoute role="admin"><Exercices /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

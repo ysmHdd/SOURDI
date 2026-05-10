@@ -17,10 +17,10 @@ const AdminSidebar = () => {
       path: "/admin",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="3" width="7" height="7" rx="2" />
-          <rect x="14" y="3" width="7" height="7" rx="2" />
-          <rect x="14" y="14" width="7" height="7" rx="2" />
-          <rect x="3" y="14" width="7" height="7" rx="2" />
+          <rect x="3" y="3" width="7" height="7" rx="2"/>
+          <rect x="14" y="3" width="7" height="7" rx="2"/>
+          <rect x="14" y="14" width="7" height="7" rx="2"/>
+          <rect x="3" y="14" width="7" height="7" rx="2"/>
         </svg>
       ),
     },
@@ -29,10 +29,10 @@ const AdminSidebar = () => {
       path: "/admin/utilisateurs",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
       ),
     },
@@ -41,8 +41,18 @@ const AdminSidebar = () => {
       path: "/admin/produits",
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M6 2l1.5 4h9L18 2" />
-          <path d="M3 6h18l-1.5 14H4.5L3 6z" />
+          <path d="M6 2l1.5 4h9L18 2"/>
+          <path d="M3 6h18l-1.5 14H4.5L3 6z"/>
+        </svg>
+      ),
+    },
+    {
+      label: "Exercices",
+      path: "/admin/exercices",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 20h9"/>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
         </svg>
       ),
     },
@@ -57,11 +67,15 @@ const AdminSidebar = () => {
 
         <div className="profile-box">
           <div className="avatar">
-            {utilisateur?.nom?.charAt(0)?.toUpperCase() || "A"}
+            {(utilisateur?.user_first_name || utilisateur?.nom || "A").charAt(0).toUpperCase()}
           </div>
           <div className="profile-text">
             <p className="profile-role">Administrator</p>
-            <p className="profile-name">{utilisateur?.nom}</p>
+            <p className="profile-name">
+              {utilisateur?.user_first_name
+                ? `${utilisateur.user_first_name} ${utilisateur.user_last_name}`
+                : utilisateur?.nom || "Admin"}
+            </p>
           </div>
         </div>
 
@@ -69,11 +83,7 @@ const AdminSidebar = () => {
           {menu.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`nav-link ${isActive ? "active" : ""}`}
-              >
+              <Link key={item.path} to={item.path} className={`nav-link ${isActive ? "active" : ""}`}>
                 <span className="nav-icon">{item.icon}</span>
                 <span>{item.label}</span>
               </Link>
