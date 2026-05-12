@@ -18,4 +18,36 @@ const syncProfil = async (req, res) => {
   }
 };
 
-module.exports = { obtenirProfil, syncProfil };
+const modifierMotDePasse = async (req, res) => {
+  try {
+    const resultat = await profilService.modifierMotDePasse(
+      req.utilisateur.id,
+      req.body.ancienMotDePasse,
+      req.body.nouveauMotDePasse
+    );
+
+    res.json(resultat);
+  } catch (erreur) {
+    res.status(400).json({ message: erreur.message });
+  }
+};
+
+const modifierAvatar = async (req, res) => {
+  try {
+    const profil = await profilService.modifierAvatar(
+      req.utilisateur.id,
+      req.body.avatar
+    );
+
+    res.json(profil);
+  } catch (erreur) {
+    res.status(400).json({ message: erreur.message });
+  }
+};
+
+module.exports = {
+  obtenirProfil,
+  syncProfil,
+  modifierMotDePasse,
+  modifierAvatar,
+};

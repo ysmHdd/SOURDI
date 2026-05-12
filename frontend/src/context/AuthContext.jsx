@@ -8,6 +8,11 @@ export const AuthProvider = ({ children }) => {
     JSON.parse(localStorage.getItem("utilisateur")) || null
   );
 
+  const updateUtilisateur = (nouveauUtilisateur) => {
+    localStorage.setItem("utilisateur", JSON.stringify(nouveauUtilisateur));
+    setUtilisateur(nouveauUtilisateur);
+  };
+
   const connexion = async (data) => {
     localStorage.setItem("token", data.token);
     localStorage.setItem("utilisateur", JSON.stringify(data.utilisateur));
@@ -18,7 +23,10 @@ export const AuthProvider = ({ children }) => {
       await axios.post(
         "http://localhost:5003/api/eleve/profil/sync",
         {
-          nom: data.utilisateur.user_first_name + " " + data.utilisateur.user_last_name,
+          nom:
+            data.utilisateur.user_first_name +
+            " " +
+            data.utilisateur.user_last_name,
           email: data.utilisateur.user_email,
           role: data.utilisateur.role,
         },
@@ -47,7 +55,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ utilisateur, connexion, deconnexion }}>
+    <AuthContext.Provider
+      value={{ utilisateur, connexion, deconnexion, updateUtilisateur }}
+    >
       {children}
     </AuthContext.Provider>
   );

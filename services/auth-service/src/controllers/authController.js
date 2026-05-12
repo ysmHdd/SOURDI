@@ -1,5 +1,7 @@
 const authService = require("../services/authService");
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+
 const inscription = async (req, res) => {
   try {
     const resultat = await authService.inscrireUtilisateur(req.body);
@@ -47,9 +49,13 @@ const confirmerEmail = async (req, res) => {
   try {
     await authService.confirmerEmail(req.params.token);
 
-    res.send("Email confirmé avec succès. Vous pouvez maintenant vous connecter.");
+    return res.redirect(`${FRONTEND_URL}/email-confirmed`);
   } catch (erreur) {
-    res.status(400).json({ message: erreur.message });
+    return res.redirect(
+      `${FRONTEND_URL}/email-confirmed?status=error&message=${encodeURIComponent(
+        erreur.message
+      )}`
+    );
   }
 };
 

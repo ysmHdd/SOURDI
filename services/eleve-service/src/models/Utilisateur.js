@@ -1,38 +1,120 @@
 const mongoose = require("mongoose");
 
+const avatarSchema = new mongoose.Schema(
+  {
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+      default: "female",
+    },
+
+    style: {
+      type: String,
+      enum: [
+        "adventurer",
+        "avataaars",
+        "lorelei",
+        "notionists",
+        "open-peeps",
+        "micah",
+        "personas",
+
+        "girl-long",
+        "girl-bun",
+        "girl-bob",
+        "girl-curly",
+        "boy-short",
+        "boy-flat",
+        "boy-round",
+        "boy-caesar",
+      ],
+      default: "girl-long",
+    },
+
+    seed: {
+      type: String,
+      default: "default-student",
+      trim: true,
+    },
+
+    url: {
+      type: String,
+      default:
+        "https://api.dicebear.com/9.x/avataaars/svg?seed=default-student",
+    },
+  },
+  { _id: false }
+);
+
 const utilisateurSchema = new mongoose.Schema(
   {
-    nom: {
+    user_first_name: {
       type: String,
       required: true,
       trim: true,
     },
-    email: {
+
+    user_last_name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    user_email: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
       trim: true,
     },
-    motDePasse: {
+
+    password: {
       type: String,
       required: true,
-      minlength: 6,
+      minlength: 8,
     },
+
+    user_dob: {
+      type: Date,
+      required: true,
+    },
+
+    user_phone: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    params: {
+      grade: String,
+      gouvernorat: String,
+      delegation: String,
+      region: String,
+      school_name: String,
+    },
+
+    avatar: {
+      type: avatarSchema,
+      default: () => ({}),
+    },
+
     role: {
       type: String,
       enum: ["admin", "etudiant"],
       default: "etudiant",
     },
-    solde: {
-      type: Number,
-      default: 0,
+
+    emailConfirme: {
+      type: Boolean,
+      default: false,
     },
-    kpi: {
-      lessonsCompletes:     { type: Number, default: 0 },
-      tempsPasseEnMinutes:  { type: Number, default: 0 },
-      nombreConnexions:     { type: Number, default: 0 },
-      autoEvaluation:       { type: Number, default: 0 },
+
+    emailToken: {
+      type: String,
+    },
+
+    emailTokenExpire: {
+      type: Date,
     },
   },
   {

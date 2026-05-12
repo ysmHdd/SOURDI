@@ -247,8 +247,8 @@ const InscriptionView = ({
                     <label className="field-label">{t[lang].gender}</label>
                     <div className="avatar-options">
                       {[
-                        { value: "female", label: "👧 Girl" },
-                        { value: "male", label: "👦 Boy" },
+                        { value: "female", label: "Girl" },
+                        { value: "male", label: "Boy" },
                       ].map((option) => (
                         <button
                           key={option.value}
@@ -292,14 +292,14 @@ const InscriptionView = ({
 
                   <div className="avatar-row">
                     <button className="avatar-choice-btn" type="button" onClick={generateRandomAvatar}>
-                      🎲 {t[lang].randomAvatar}
+                      {t[lang].randomAvatar}
                     </button>
                   </div>
                 </div>
               </div>
 
               <button className="avatar-save-btn" type="button" onClick={() => setAvatarModalOpen(false)}>
-                ✨ 💜 {t[lang].saveAvatar} 💜 ✨
+                 {t[lang].saveAvatar} 
               </button>
             </div>
           </div>
