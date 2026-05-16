@@ -20,6 +20,8 @@ import Quiz from "./pages/eleve/exercices/Quiz";
 import Resultat from "./pages/eleve/exercices/Resultat";
 import Panier from "./pages/eleve/Panier";
 import EmailConfirmed from "./pages/auth/EmailConfirmed";
+import MessagesAdmin from "./pages/admin/MessagesAdmin";
+import SignalementsAdmin from "./pages/admin/SignalementsAdmin";
 
 function App() {
   return (
@@ -140,6 +142,22 @@ function App() {
 <Route
   path="/email-confirmed"
   element={<EmailConfirmed />}
+/>
+<Route
+  path="/admin/messages"
+  element={
+    <ProtectedRoute role="admin">
+      <MessagesAdmin />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/signalements"
+  element={
+    <ProtectedRoute role="admin">
+      <SignalementsAdmin />
+    </ProtectedRoute>
+  }
 />
         </Routes>
       </BrowserRouter>

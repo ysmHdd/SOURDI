@@ -1,0 +1,25 @@
+{
+  "name": "ai-service",
+  "version": "1.0.0",
+  "description": "Microservice IA éducatif pour SOURDI",
+  "main": "src/serveur.js",
+  "scripts": {
+    "dev": "nodemon src/serveur.js",
+    "start": "node src/serveur.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "groq-sdk": "^1.2.0",
+    "mammoth": "^1.12.0",
+    "multer": "^2.1.1",
+    "pdf-parse": "^2.4.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

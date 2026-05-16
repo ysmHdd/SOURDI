@@ -238,3 +238,18 @@
   .ex-form-row { grid-template-columns: 1fr; }
   .ex-filtres { flex-direction: column; }
 }
+.nav-link {
+  position: relative;
+}
+
+.nav-red-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef5350;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 0 0 4px rgba(239, 83, 80, 0.14);
+}

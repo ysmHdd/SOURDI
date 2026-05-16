@@ -3,6 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import axios from "../../api/axios";
 import "./accueil.css";
+import EleveMessageBox from "../../components/messages/EleveMessageBox";
+import SourdiHelperChat from "../../components/ai/SourdiHelperChat";
 
 const T = {
   fr: {
@@ -557,6 +559,8 @@ export default function Accueil() {
         <span className="acc-footer-logo">SOURDI</span>
         <span className="acc-footer-text">{t.footerText} · © 2025</span>
       </footer>
+      <EleveMessageBox />
+      <SourdiHelperChat student={utilisateur} />
     </div>
   );
 }
