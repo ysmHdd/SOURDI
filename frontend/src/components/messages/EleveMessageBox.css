@@ -1,0 +1,657 @@
+.eleve-chat-wrapper {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  font-family: "Nunito", sans-serif;
+}
+
+.eleve-chat-floating-btn {
+  width: 62px;
+  height: 62px;
+  border-radius: 22px;
+  border: none;
+  cursor: pointer;
+  font-size: 1.6rem;
+  color: white;
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+  box-shadow: 0 16px 35px rgba(124, 77, 255, 0.35);
+  position: relative;
+  transition: 0.2s;
+}
+
+.eleve-chat-floating-btn:hover {
+  transform: translateY(-3px) scale(1.04);
+}
+
+.eleve-chat-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ef5350;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 900;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eleve-chat-box {
+  width: 350px;
+  height: 500px;
+  margin-bottom: 16px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(124, 77, 255, 0.18);
+  box-shadow: 0 22px 55px rgba(90, 60, 160, 0.25);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.eleve-chat-header {
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.eleve-chat-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.eleve-chat-header p {
+  margin: 3px 0 0;
+  font-size: 0.75rem;
+  opacity: 0.85;
+  font-weight: 700;
+}
+
+.eleve-chat-header button {
+  border: none;
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.eleve-chat-messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: linear-gradient(145deg, #f8f5ff, #fff3fb);
+}
+
+.eleve-chat-empty {
+  text-align: center;
+  color: #8b7ec0;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 40px 18px;
+}
+
+.eleve-chat-message {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.eleve-chat-message.mine {
+  justify-content: flex-end;
+}
+
+.eleve-chat-message.admin {
+  justify-content: flex-start;
+}
+
+.eleve-chat-bubble {
+  max-width: 78%;
+  padding: 10px 12px;
+  border-radius: 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.eleve-chat-message.mine .eleve-chat-bubble {
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+  color: white;
+  border-bottom-right-radius: 5px;
+}
+
+.eleve-chat-message.admin .eleve-chat-bubble {
+  background: white;
+  color: #322b45;
+  border: 1px solid rgba(124, 77, 255, 0.14);
+  border-bottom-left-radius: 5px;
+}
+
+.eleve-chat-bubble p {
+  margin: 0;
+}
+
+.eleve-chat-files {
+  margin-top: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eleve-chat-files a {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: inherit;
+  text-decoration: underline;
+}
+
+.eleve-chat-form {
+  padding: 12px;
+  border-top: 1px solid rgba(124, 77, 255, 0.14);
+  background: white;
+}
+
+.eleve-chat-form textarea {
+  width: 100%;
+  resize: none;
+  border: 1px solid rgba(124, 77, 255, 0.18);
+  border-radius: 14px;
+  padding: 10px;
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
+  outline: none;
+}
+
+.eleve-chat-actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eleve-chat-file-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(124, 77, 255, 0.08);
+  color: #7c4dff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.eleve-chat-file-btn input {
+  display: none;
+}
+
+.eleve-chat-file-count {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #8b7ec0;
+  flex: 1;
+}
+
+.eleve-chat-actions button {
+  margin-left: auto;
+  border: none;
+  border-radius: 12px;
+  padding: 9px 14px;
+  cursor: pointer;
+  color: white;
+  font-weight: 900;
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+}
+
+.eleve-chat-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.chat-file-preview {
+  margin-top: 8px;
+  width: 230px;
+  max-width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(124, 77, 255, 0.18);
+}
+
+.chat-file-preview img {
+  width: 100%;
+  max-height: 170px;
+  object-fit: cover;
+  display: block;
+}
+
+.chat-file-icon {
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  background: linear-gradient(135deg, #f6f1ff, #fff3fb);
+}
+
+.chat-file-info {
+  padding: 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chat-file-info span {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #322b45;
+  word-break: break-word;
+}
+
+.chat-file-info a {
+  width: fit-content;
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: white !important;
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+.chat-file-preview {
+  margin-top: 8px;
+  width: 230px;
+  max-width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(124, 77, 255, 0.18);
+}
+
+.chat-file-preview img {
+  width: 100%;
+  max-height: 170px;
+  object-fit: cover;
+  display: block;
+}
+
+.chat-file-icon {
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  background: linear-gradient(135deg, #f6f1ff, #fff3fb);
+}
+
+.chat-file-info {
+  padding: 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chat-file-info span {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #322b45;
+  word-break: break-word;
+}
+
+.chat-file-info button {
+  width: fit-content;
+  border: none;
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: white !important;
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.chat-file-info button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+.eleve-chat-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  border-radius: 50%;
+  background: #ef5350;
+  border: 2px solid white;
+  box-shadow: 0 0 0 4px rgba(239, 83, 80, 0.18);
+}
+.eleve-chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.eleve-chat-delete-btn {
+  border: none;
+  background: rgba(239, 83, 80, 0.22);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eleve-chat-delete-btn:hover {
+  background: #ef5350;
+}
+.delete-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(26, 21, 53, 0.38);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-modal {
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  background: white;
+  border-radius: 26px;
+  padding: 24px;
+  text-align: center;
+  border: 1px solid rgba(124, 77, 255, 0.18);
+  box-shadow: 0 25px 70px rgba(90, 60, 160, 0.28);
+  animation: deletePop 0.18s ease-out;
+}
+
+.delete-modal-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 12px;
+  border-radius: 20px;
+  background: rgba(239, 83, 80, 0.12);
+  color: #ef5350;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+}
+
+.delete-modal h3 {
+  margin: 0 0 8px;
+  color: #322b45;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.delete-modal p {
+  margin: 0;
+  color: #8b7ec0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.delete-modal-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.delete-modal-actions button {
+  flex: 1;
+  border: none;
+  border-radius: 15px;
+  padding: 11px 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.delete-modal-cancel {
+  background: #f4efff;
+  color: #7c4dff;
+}
+
+.delete-modal-confirm {
+  background: linear-gradient(135deg, #ef5350, #ff2d75);
+  color: white;
+  box-shadow: 0 10px 22px rgba(239, 83, 80, 0.25);
+}
+
+@keyframes deletePop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.eleve-report-btn {
+  margin-top: 8px;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 9px;
+  cursor: pointer;
+  background: rgba(239, 83, 80, 0.12);
+  color: #ef5350;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.eleve-report-btn:hover {
+  background: #ef5350;
+  color: white;
+}
+
+.report-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(26, 21, 53, 0.38);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.report-modal {
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  background: white;
+  border-radius: 26px;
+  padding: 24px;
+  text-align: center;
+  border: 1px solid rgba(124, 77, 255, 0.18);
+  box-shadow: 0 25px 70px rgba(90, 60, 160, 0.28);
+}
+
+.report-modal-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 12px;
+  border-radius: 20px;
+  background: rgba(239, 83, 80, 0.12);
+  color: #ef5350;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+}
+
+.report-modal h3 {
+  margin: 0 0 8px;
+  color: #322b45;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.report-modal p {
+  margin: 0 0 14px;
+  color: #8b7ec0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.report-modal select {
+  width: 100%;
+  border: 1px solid rgba(124, 77, 255, 0.18);
+  border-radius: 15px;
+  padding: 11px;
+  font-weight: 800;
+  color: #322b45;
+  outline: none;
+}
+
+.report-modal-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+}
+
+.report-modal-actions button {
+  flex: 1;
+  border: none;
+  border-radius: 15px;
+  padding: 11px 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.report-modal-cancel {
+  background: #f4efff;
+  color: #7c4dff;
+}
+
+.report-modal-confirm {
+  background: linear-gradient(135deg, #ef5350, #ff2d75);
+  color: white;
+}
+.report-modal-textarea {
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid rgba(124, 77, 255, 0.18);
+  border-radius: 15px;
+  padding: 11px;
+  resize: none;
+  font-family: "Nunito", sans-serif;
+  font-weight: 800;
+  color: #322b45;
+  outline: none;
+}
+
+.report-modal-confirm:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.report-success-modal {
+  width: 330px;
+  max-width: calc(100vw - 32px);
+  background: white;
+  border-radius: 26px;
+  padding: 26px;
+  text-align: center;
+  border: 1px solid rgba(38, 198, 218, 0.22);
+  box-shadow: 0 25px 70px rgba(90, 60, 160, 0.28);
+}
+
+.report-success-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 12px;
+  border-radius: 20px;
+  background: rgba(38, 198, 218, 0.14);
+  color: #26c6da;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+.report-success-modal h3 {
+  margin: 0 0 8px;
+  color: #322b45;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.report-success-modal p {
+  margin: 0 0 18px;
+  color: #8b7ec0;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.report-success-modal button {
+  border: none;
+  border-radius: 15px;
+  padding: 11px 24px;
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+  background: linear-gradient(135deg, #26c6da, #7c4dff);
+}
+.eleve-report-icon-btn {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+
+  width: 22px;
+  height: 22px;
+
+  border: 1px solid rgba(255, 77, 109, 0.22);
+  border-radius: 50%;
+
+  background: #fff;
+  color: #ff4d6d;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: 0.2s ease;
+  box-shadow: 0 6px 14px rgba(255, 77, 109, 0.18);
+}
+
+.eleve-chat-bubble:hover .eleve-report-icon-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.eleve-report-icon-btn:hover {
+  background: #ff4d6d;
+  color: white;
+}
+
+.eleve-report-icon-btn svg {
+  width: 11px;
+  height: 11px;
+}
+
+.eleve-chat-bubble {
+  position: relative;
+}
