@@ -1,5 +1,5 @@
-const fs = require("fs");
-const pdfParse = require("pdf-parse");
+const { PDFParse } = require("pdf-parse");
+const Tesseract = require("tesseract.js");
 
 const aiService = require("../services/aiService");
 
@@ -50,15 +50,28 @@ const analyzeHomework = async (req, res) => {
     let extractedText = "";
 
     if (req.file.mimetype === "application/pdf") {
-      const dataBuffer = fs.readFileSync(req.file.path);
-      const pdfData = await pdfParse(dataBuffer);
-      extractedText = pdfData.text;
+      const parser = new PDFParse({
+        url: req.file.path,
+      });
+
+      const pdfData = await parser.getText();
+
+      extractedText = pdfData.text || "PDF vide";
+
+      await parser.destroy();
     }
 
     if (req.file.mimetype.startsWith("image/")) {
+      const result = await Tesseract.recognize(req.file.path, "fra+eng", {
+        logger: () => {},
+      });
+
       extractedText =
-        "L'élève a envoyé une image d'exercice ou de devoir. L'analyse visuelle complète n'est pas encore activée.";
+        result.data?.text?.trim() || "Aucun texte lisible dans l'image.";
     }
+
+    console.log("OCR / PDF TEXT:");
+    console.log(extractedText);
 
     const reponse = await aiService.generateHomeworkAnswer({
       extractedText,
@@ -70,6 +83,7 @@ const analyzeHomework = async (req, res) => {
     res.status(200).json({
       success: true,
       reponse,
+      extractedText,
     });
   } catch (erreur) {
     console.error("Erreur analyse devoir :", erreur);

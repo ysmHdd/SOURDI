@@ -427,3 +427,36 @@
   .acc-main { grid-template-columns: 1fr; padding: 16px 14px 0; gap: 16px; }
   .acc-welcome-bar { padding: 12px 16px; }
 }
+/* ───────────────────────────── */
+/* AI CHAT POSITION FIX */
+/* ───────────────────────────── */
+
+.sourdi-floating-btn {
+  left: 25px !important;
+  right: auto !important;
+  bottom: 25px;
+  z-index: 9999;
+}
+
+.sourdi-chatbox {
+  left: 25px !important;
+  right: auto !important;
+  bottom: 100px;
+  z-index: 9999;
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+  .sourdi-floating-btn {
+    left: 18px !important;
+    right: auto !important;
+    bottom: 18px;
+  }
+
+  .sourdi-chatbox {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    bottom: 92px;
+  }
+}

@@ -7,3 +7,11 @@ const API = axios.create({
 export const envoyerMessageIA = async (data) => {
   return API.post("/chat", data);
 };
+
+export const envoyerDevoirIA = async (formData) => {
+  return API.post("/homework", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
