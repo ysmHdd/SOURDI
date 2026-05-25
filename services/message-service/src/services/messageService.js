@@ -1,6 +1,43 @@
+const http = require("http");
 const Conversation = require("../models/Conversation");
 const Utilisateur = require("../models/Utilisateur");
 const Signalement = require("../models/Signalement");
+
+const envoyerNotificationEtudiant = (data) => {
+  try {
+    const body = JSON.stringify(data);
+
+    const req = http.request(
+      {
+        hostname: "localhost",
+        port: 5009,
+        path: "/api/notifications/interne",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(body),
+        },
+        timeout: 2000,
+      },
+      (res) => {
+        res.on("data", () => {});
+      }
+    );
+
+    req.on("error", (erreur) => {
+      console.error("Notification non envoyée :", erreur.message);
+    });
+
+    req.on("timeout", () => {
+      req.destroy();
+    });
+
+    req.write(body);
+    req.end();
+  } catch (erreur) {
+    console.error("Erreur notification :", erreur.message);
+  }
+};
 
 const creerFichiersDepuisReq = (req) => {
   const fichiers = req.files || [];
@@ -120,6 +157,17 @@ const envoyerMessageAdmin = async (admin, conversationId, contenu, req) => {
   conversation.dernierMessageDate = new Date();
 
   await conversation.save();
+
+  envoyerNotificationEtudiant({
+    utilisateurId: conversation.etudiantId,
+    role: "etudiant",
+    titre: "Nouveau message",
+    message: "L'administrateur vous a envoyé un message.",
+    type: "message",
+    lien: "#message-box",
+    referenceId: `message-${conversation._id}-${Date.now()}`,
+  });
+
   return conversation;
 };
 

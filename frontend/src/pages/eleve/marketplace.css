@@ -147,3 +147,31 @@
   color: var(--text-muted);
   font-weight: 900;
 }
+.market-filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.market-filter-input {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(124, 77, 255, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  color: #4a4458;
+  font-size: 0.94rem;
+  font-weight: 800;
+  outline: none;
+}
+
+.market-filter-input:focus {
+  border-color: #7c4dff;
+  box-shadow: 0 0 0 4px rgba(124, 77, 255, 0.1);
+}
+
+@media (max-width: 800px) {
+  .market-filters {
+    grid-template-columns: 1fr;
+  }
+}

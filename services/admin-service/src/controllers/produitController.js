@@ -1,4 +1,35 @@
+const http = require("http");
+const Utilisateur = require("../models/Utilisateur");
 const produitService = require("../services/produitService");
+
+const envoyerNotification = (data) => {
+  try {
+    const body = JSON.stringify(data);
+
+    const req = http.request(
+      {
+        hostname: "localhost",
+        port: 5009,
+        path: "/api/notifications/interne",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(body),
+        },
+        timeout: 2000,
+      },
+      (res) => {
+        res.on("data", () => {});
+      }
+    );
+
+    req.on("error", () => {});
+    req.on("timeout", () => req.destroy());
+
+    req.write(body);
+    req.end();
+  } catch {}
+};
 
 const creerProduit = async (req, res) => {
   try {
@@ -8,6 +39,29 @@ const creerProduit = async (req, res) => {
     };
 
     const produit = await produitService.creerProduit(donnees);
+
+    try {
+      const etudiants = await Utilisateur.find({
+        role: "etudiant",
+      }).select("_id");
+
+      etudiants.forEach((etudiant) => {
+        envoyerNotification({
+          utilisateurId: etudiant._id,
+          role: "etudiant",
+          titre: "Nouveau produit",
+          message: `${produit.nom} est disponible dans le marketplace.`,
+          type: "marketplace",
+          lien: "/eleve/marketplace",
+          referenceId: `produit-${produit._id}-${etudiant._id}`,
+        });
+      });
+    } catch (erreur) {
+      console.error(
+        "Erreur notification marketplace :",
+        erreur.message
+      );
+    }
 
     res.status(201).json({
       message: "Produit créé avec succès",

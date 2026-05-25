@@ -16,7 +16,13 @@ const Marketplace = () => {
   const [profil, setProfil] = useState(null);
   const [solde, setSolde] = useState(0);
   const [message, setMessage] = useState("");
-  const [dark, setDark] = useState(localStorage.getItem("sourdi_dark") === "true");
+  const [dark, setDark] = useState(
+    localStorage.getItem("sourdi_dark") === "true"
+  );
+
+  const [recherche, setRecherche] = useState("");
+  const [filtreCategorie, setFiltreCategorie] = useState("tous");
+  const [filtreStock, setFiltreStock] = useState("tous");
 
   const charger = async () => {
     try {
@@ -44,7 +50,9 @@ const Marketplace = () => {
       setMessage("Produit ajouté au panier.");
       setTimeout(() => setMessage(""), 2500);
     } catch (err) {
-      setMessage(err.response?.data?.message || "Erreur lors de l'ajout au panier.");
+      setMessage(
+        err.response?.data?.message || "Erreur lors de l'ajout au panier."
+      );
     }
   };
 
@@ -55,6 +63,22 @@ const Marketplace = () => {
   useEffect(() => {
     localStorage.setItem("sourdi_dark", dark);
   }, [dark]);
+
+  const produitsFiltres = produits.filter((p) => {
+    const texte = `${p.nom || ""} ${p.description || ""}`.toLowerCase();
+
+    const matchRecherche = texte.includes(recherche.toLowerCase());
+
+    const matchCategorie =
+      filtreCategorie === "tous" || p.categorie === filtreCategorie;
+
+    const matchStock =
+      filtreStock === "tous" ||
+      (filtreStock === "disponible" && p.stock > 0) ||
+      (filtreStock === "rupture" && p.stock <= 0);
+
+    return matchRecherche && matchCategorie && matchStock;
+  });
 
   return (
     <div className={`acc-root ${dark ? "dark" : "light"}`}>
@@ -68,7 +92,11 @@ const Marketplace = () => {
         </div>
 
         <div className="acc-header-center">
-          <button className="acc-theme-btn" onClick={() => setDark(!dark)} type="button">
+          <button
+            className="acc-theme-btn"
+            onClick={() => setDark(!dark)}
+            type="button"
+          >
             {dark ? "Clair" : "Sombre"}
           </button>
         </div>
@@ -79,8 +107,13 @@ const Marketplace = () => {
             <span className="acc-coins-label">Sourdi Coins</span>
           </div>
 
-          <Link to="/eleve" className="acc-cart-link">Accueil</Link>
-          <Link to="/eleve/panier" className="acc-cart-link">Panier</Link>
+          <Link to="/eleve" className="acc-cart-link">
+            Accueil
+          </Link>
+
+          <Link to="/eleve/panier" className="acc-cart-link">
+            Panier
+          </Link>
 
           <Link to="/eleve/profile" className="acc-user-badge acc-user-link">
             <span className="acc-user-avatar">
@@ -90,6 +123,7 @@ const Marketplace = () => {
                 (utilisateur?.user_first_name || "?")[0].toUpperCase()
               )}
             </span>
+
             <span className="acc-user-name">
               {utilisateur?.user_first_name} {utilisateur?.user_last_name}
             </span>
@@ -114,14 +148,48 @@ const Marketplace = () => {
           <p>Ajoute des produits à ton panier puis valide ta commande.</p>
         </div>
 
+        <div className="market-filters">
+          <input
+            className="market-filter-input"
+            placeholder="Rechercher un produit..."
+            value={recherche}
+            onChange={(e) => setRecherche(e.target.value)}
+          />
+
+          <select
+            className="market-filter-input"
+            value={filtreCategorie}
+            onChange={(e) => setFiltreCategorie(e.target.value)}
+          >
+            <option value="tous">Toutes catégories</option>
+            <option value="cours">Cours</option>
+            <option value="livre">Livre</option>
+            <option value="autre">Autre</option>
+          </select>
+
+          <select
+            className="market-filter-input"
+            value={filtreStock}
+            onChange={(e) => setFiltreStock(e.target.value)}
+          >
+            <option value="tous">Tous les stocks</option>
+            <option value="disponible">Disponible</option>
+            <option value="rupture">Rupture de stock</option>
+          </select>
+        </div>
+
         {message && <div className="market-message">{message}</div>}
 
-        {produits.length > 0 ? (
+        {produitsFiltres.length > 0 ? (
           <div className="market-products-grid">
-            {produits.map((p) => (
+            {produitsFiltres.map((p) => (
               <div key={p._id} className="market-product-card">
                 {p.photo ? (
-                  <img src={`${API_ADMIN}${p.photo}`} alt={p.nom} className="market-product-image" />
+                  <img
+                    src={`${API_ADMIN}${p.photo}`}
+                    alt={p.nom}
+                    className="market-product-image"
+                  />
                 ) : (
                   <div className="market-product-placeholder" />
                 )}
@@ -148,7 +216,7 @@ const Marketplace = () => {
             ))}
           </div>
         ) : (
-          <div className="market-empty">Aucun produit disponible pour le moment.</div>
+          <div className="market-empty">Aucun produit trouvé.</div>
         )}
       </main>
     </div>

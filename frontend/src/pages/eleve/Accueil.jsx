@@ -164,17 +164,85 @@ export default function Accueil() {
   const navigate = useNavigate();
 
   const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
-  const [dark, setDark] = useState(localStorage.getItem("sourdi_dark") === "true");
+  const [dark, setDark] = useState(
+    localStorage.getItem("sourdi_dark") === "true"
+  );
+
   const [profil, setProfil] = useState(null);
   const [produits, setProduits] = useState([]);
   const [streak, setStreak] = useState(0);
   const [tempsSession, setTempsSession] = useState(0);
 
+  const [notifications, setNotifications] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifNonLues, setNotifNonLues] = useState(0);
+  const [notifFiltre, setNotifFiltre] = useState("tout");
+
   const timerRef = useRef(null);
   const minutesEnvoyeesRef = useRef(0);
+  const notifRef = useRef(null);
 
   const t = T[lang];
   const heure = new Date().getHours();
+
+  const accesBloque =
+    utilisateur?.statutAcces === "en_attente" ||
+    utilisateur?.statutAcces === "refuse";
+
+  const chargerNotifications = async () => {
+    try {
+      const [notifRes, countRes] = await Promise.all([
+        axios.get("http://localhost:5009/api/notifications"),
+        axios.get("http://localhost:5009/api/notifications/non-lues"),
+      ]);
+
+      setNotifications(notifRes.data || []);
+      setNotifNonLues(countRes.data.total || 0);
+    } catch (erreur) {
+      console.error(erreur);
+    }
+  };
+
+  const ouvrirNotification = async (notification) => {
+    try {
+      if (!notification.lu) {
+        await axios.patch(
+          `http://localhost:5009/api/notifications/${notification._id}/lue`
+        );
+      }
+
+      setNotifOpen(false);
+      await chargerNotifications();
+
+      if (notification.lien === "#message-box") {
+        window.dispatchEvent(new Event("ouvrir-message-box"));
+      } else if (notification.lien) {
+        navigate(notification.lien);
+      }
+    } catch (erreur) {
+      console.error(erreur);
+    }
+  };
+
+  const toutMarquerLu = async () => {
+    try {
+      await axios.patch("http://localhost:5009/api/notifications/tout-lu");
+      await chargerNotifications();
+    } catch (erreur) {
+      console.error(erreur);
+    }
+  };
+
+  const supprimerNotification = async (e, id) => {
+    e.stopPropagation();
+
+    try {
+      await axios.delete(`http://localhost:5009/api/notifications/${id}`);
+      await chargerNotifications();
+    } catch (erreur) {
+      console.error(erreur);
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem("sourdi_lang", lang);
@@ -216,6 +284,25 @@ export default function Accueil() {
   }, []);
 
   useEffect(() => {
+    chargerNotifications();
+
+    const interval = setInterval(chargerNotifications, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fermer = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", fermer);
+    return () => document.removeEventListener("mousedown", fermer);
+  }, []);
+
+  useEffect(() => {
     timerRef.current = setInterval(() => {
       setTempsSession((prev) => {
         const nouvelles = prev + 1;
@@ -245,12 +332,16 @@ export default function Accueil() {
 
     return () => clearInterval(timerRef.current);
   }, []);
-
-  const kpi = profil?.kpi || {};
+    const kpi = profil?.kpi || {};
   const solde = profil?.solde ?? 0;
   const niveauIdx = getNiveau(solde);
   const nextGoal = getNextGoalCoins(solde);
   const niveauPct = nextGoal ? Math.round((solde / nextGoal) * 100) : 100;
+
+  const notificationsAffichees =
+    notifFiltre === "non-lu"
+      ? notifications.filter((n) => !n.lu)
+      : notifications;
 
   const stats = [
     {
@@ -292,275 +383,430 @@ export default function Accueil() {
       <div className="acc-blob acc-blob-1" />
       <div className="acc-blob acc-blob-2" />
 
-      <header className="acc-header">
-        <div className="acc-header-left">
-          <span className="acc-logo">SOURDI</span>
-          <span className="acc-tagline">{t.tagline}</span>
-        </div>
-
-        <div className="acc-header-center">
-          <button
-            className={`acc-lang-btn ${lang === "fr" ? "active" : ""}`}
-            onClick={() => setLang("fr")}
-            type="button"
-          >
-            FR
-          </button>
-
-          <button
-            className={`acc-lang-btn ${lang === "en" ? "active" : ""}`}
-            onClick={() => setLang("en")}
-            type="button"
-          >
-            EN
-          </button>
-
-          <div className="acc-h-sep" />
-
-          <button
-            className="acc-theme-btn"
-            onClick={() => setDark(!dark)}
-            type="button"
-          >
-            {dark ? "Clair" : "Sombre"}
-          </button>
-        </div>
-
-        <div className="acc-header-right">
-          {streak > 1 && (
-            <div className="acc-streak-badge">
-              {streak} {t.streak}
-            </div>
-          )}
-
-          <div className="acc-coins-badge">
-            <span className="acc-coins-val">{solde}</span>
-            <span className="acc-coins-label">{t.coins}</span>
+      <div className={accesBloque ? "acc-blurred-content" : ""}>
+        <header className="acc-header">
+          <div className="acc-header-left">
+            <span className="acc-logo">SOURDI</span>
+            <span className="acc-tagline">{t.tagline}</span>
           </div>
-          <Link to="/eleve/panier" className="acc-cart-link">
-  Panier
-</Link>
-          <Link to="/eleve/profile" className="acc-user-badge acc-user-link">
-            <span className="acc-user-avatar">
-              {profil?.avatar?.url ? (
-                <img src={profil.avatar.url} alt="Avatar" />
-              ) : (
-                (utilisateur?.user_first_name || "?")[0].toUpperCase()
-              )}
-            </span>
 
-            <span className="acc-user-name">
-              {utilisateur?.user_first_name} {utilisateur?.user_last_name}
-            </span>
-          </Link>
+          <div className="acc-header-center">
+            <button
+              className={`acc-lang-btn ${lang === "fr" ? "active" : ""}`}
+              onClick={() => setLang("fr")}
+              type="button"
+            >
+              FR
+            </button>
 
-          <button
-            className="acc-logout-btn"
-            type="button"
-            onClick={() => {
-              deconnexion();
-              navigate("/login");
-            }}
-          >
-            {t.logout}
-          </button>
-        </div>
-      </header>
+            <button
+              className={`acc-lang-btn ${lang === "en" ? "active" : ""}`}
+              onClick={() => setLang("en")}
+              type="button"
+            >
+              EN
+            </button>
 
-      <div className="acc-welcome-bar">
-        <div className="acc-welcome-left">
-          <span className="acc-welcome-greet">
-            {t.bonjour(heure)}, {utilisateur?.user_first_name} —
-          </span>
+            <div className="acc-h-sep" />
 
-          <span className="acc-welcome-niveau">
-            {t.niveau} : <strong>{t.niveaux[niveauIdx]}</strong>
-          </span>
-        </div>
+            <button
+              className="acc-theme-btn"
+              onClick={() => setDark(!dark)}
+              type="button"
+            >
+              {dark ? "Clair" : "Sombre"}
+            </button>
+          </div>
 
-        {nextGoal && (
-          <div className="acc-level-bar">
-            <div className="acc-level-bar-track">
-              <div
-                className="acc-level-bar-fill"
-                style={{ width: `${niveauPct}%` }}
-              />
+          <div className="acc-header-right">
+            {streak > 1 && (
+              <div className="acc-streak-badge">
+                {streak} {t.streak}
+              </div>
+            )}
+
+            <div className="acc-coins-badge">
+              <span className="acc-coins-val">{solde}</span>
+              <span className="acc-coins-label">{t.coins}</span>
             </div>
 
-            <span className="acc-level-bar-label">
-              {solde} / {nextGoal} coins
-            </span>
-          </div>
-        )}
+            <div className="acc-header-actions">
+              <Link to="/eleve/panier" className="acc-cart-link">
+                Panier
+              </Link>
 
-        {tempsSession > 0 && (
-          <div className="acc-session-badge">
-            {t.session} : {tempsSession} {t.timeUnit}
-          </div>
-        )}
-      </div>
+              <Link to="/eleve/calendrier" className="acc-calendar-link">
+                📅 Calendrier
+              </Link>
+            </div>
 
-      <main className="acc-main">
-        <section className="acc-panel">
-          <div className="acc-panel-head">
-            <h2 className="acc-panel-title">{t.marketTitle}</h2>
-            <p className="acc-panel-sub">{t.marketSub}</p>
-          </div>
+            <div className="fb-notif-wrapper" ref={notifRef}>
+              <button
+                className={`fb-notif-btn ${notifOpen ? "active" : ""}`}
+                type="button"
+                onClick={() => setNotifOpen(!notifOpen)}
+              >
+                🔔
+                {notifNonLues > 0 && (
+                  <span className="fb-notif-count">
+                    {notifNonLues > 9 ? "9+" : notifNonLues}
+                  </span>
+                )}
+              </button>
 
-          <div className="acc-panel-body">
-            {produits.length > 0 ? (
-              produits.map((p) => (
-                <div key={p._id} className="acc-mp-item">
-                  <div className="acc-mp-thumb">
-                    {p.photo ? (
-                      <img src={`http://localhost:5002${p.photo}`} alt={p.nom} />
+              {notifOpen && (
+                <div className="fb-notif-panel">
+                  <div className="fb-notif-head">
+                    <h2>Notifications</h2>
+
+                    <button type="button" onClick={toutMarquerLu}>
+                      Tout lire
+                    </button>
+                  </div>
+
+                  <div className="fb-notif-tabs">
+                    <button
+                      type="button"
+                      className={notifFiltre === "tout" ? "active" : ""}
+                      onClick={() => setNotifFiltre("tout")}
+                    >
+                      Tout
+                    </button>
+
+                    <button
+                      type="button"
+                      className={notifFiltre === "non-lu" ? "active" : ""}
+                      onClick={() => setNotifFiltre("non-lu")}
+                    >
+                      Non lu
+                    </button>
+                  </div>
+
+                  <div className="fb-notif-list">
+                    {notificationsAffichees.length > 0 ? (
+                      notificationsAffichees.map((n) => (
+                        <div
+                          key={n._id}
+                          className={`fb-notif-item ${!n.lu ? "unread" : ""}`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => ouvrirNotification(n)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              ouvrirNotification(n);
+                            }
+                          }}
+                        >
+                          <div className={`fb-notif-icon ${n.type}`}>
+                            {n.type === "message"
+                              ? "💬"
+                              : n.type === "marketplace"
+                              ? "🛒"
+                              : n.type === "calendrier"
+                              ? "📅"
+                              : "🔔"}
+                          </div>
+
+                          <div className="fb-notif-content">
+                            <p>
+                              <strong>{n.titre}</strong> {n.message}
+                            </p>
+
+                            <span>
+                              {new Date(n.createdAt).toLocaleString("fr-FR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                day: "2-digit",
+                                month: "short",
+                              })}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="fb-notif-delete"
+                            onClick={(e) => supprimerNotification(e, n._id)}
+                          >
+                            ×
+                          </button>
+
+                          {!n.lu && <span className="fb-notif-dot" />}
+                        </div>
+                      ))
                     ) : (
-                      <div className="acc-mp-placeholder" />
+                      <div className="fb-notif-empty">
+                        {notifFiltre === "non-lu"
+                          ? "Aucune notification non lue"
+                          : "Aucune notification"}
+                      </div>
                     )}
                   </div>
-
-                  <div className="acc-mp-info">
-                    <span className="acc-mp-name">{p.nom}</span>
-                    <span className="acc-mp-price">
-                      <strong>{p.prixEnCoins}</strong> {t.coins_unit}
-                    </span>
-                  </div>
                 </div>
-              ))
-            ) : (
-              <p className="acc-empty">{t.noProducts}</p>
-            )}
-          </div>
+              )}
+            </div>
 
-          <div className="acc-panel-footer">
-            <Link to="/eleve/marketplace" className="acc-see-all">
-              {t.seeAll}
-            </Link>
-          </div>
-        </section>
-
-        <section className="acc-panel">
-          <div className="acc-panel-head">
-            <h2 className="acc-panel-title">{t.coursesTitle}</h2>
-            <p className="acc-panel-sub">{t.coursesSub}</p>
-          </div>
-
-          <div className="acc-courses-list">
-            {COURSES.map((c) => (
-              <div key={c.id} className="acc-course-item">
-                <div
-                  className="acc-course-stripe"
-                  style={{ background: c.color }}
-                />
-
-                <div className="acc-course-info">
-                  <span className="acc-course-title">{c.title[lang]}</span>
-                  <span className="acc-course-desc">{c.desc[lang]}</span>
-
-                  <div className="acc-course-meta">
-                    <span
-                      className="acc-course-tag"
-                      style={{
-                        color: c.color,
-                        background: `${c.color}18`,
-                        border: `1px solid ${c.color}30`,
-                      }}
-                    >
-                      {c.level[lang]}
-                    </span>
-
-                    <span className="acc-course-dur">{c.duration}</span>
-                  </div>
-                </div>
-
-                <button
-                  className="acc-course-btn"
-                  style={{ background: c.color }}
-                  onClick={() => navigate("/eleve/exercices")}
-                  type="button"
-                >
-                  {t.start}
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <aside className="acc-dashboard">
-          <div className="acc-dashboard-head">
-            <h2 className="acc-panel-title">{t.statsTitle}</h2>
-          </div>
-
-          {stats.map((s) => {
-            const pct = s.max
-              ? Math.min(100, Math.round((s.value / s.max) * 100))
-              : 0;
-
-            return (
-              <div key={s.key} className="acc-stat-row">
-                <div className="acc-stat-circle">
-                  <ProgressCircle
-                    value={s.value}
-                    max={s.max}
-                    color={s.color}
-                    size={56}
-                  />
-
-                  <span
-                    className="acc-stat-circle-val"
-                    style={{ color: s.color }}
-                  >
-                    {pct}%
-                  </span>
-                </div>
-
-                <div className="acc-stat-info">
-                  <span className="acc-stat-label">{s.label}</span>
-
-                  <span className="acc-stat-value">
-                    {s.value}
-                    <span className="acc-stat-unit">{s.unit}</span>
-                  </span>
-
-                  <div className="acc-stat-bar">
-                    <div
-                      className="acc-stat-bar-fill"
-                      style={{ width: `${pct}%`, background: s.color }}
-                    />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {nextGoal && (
-            <div className="acc-next-goal">
-              <span className="acc-next-goal-label">{t.nextGoal}</span>
-              <span className="acc-next-goal-val">
-                {nextGoal - solde} coins restants
+            <Link to="/eleve/profile" className="acc-user-badge acc-user-link">
+              <span className="acc-user-avatar">
+                {profil?.avatar?.url ? (
+                  <img src={profil.avatar.url} alt="Avatar" />
+                ) : (
+                  (utilisateur?.user_first_name || "?")[0].toUpperCase()
+                )}
               </span>
 
-              <div className="acc-next-goal-bar">
+              <span className="acc-user-name">
+                {utilisateur?.user_first_name} {utilisateur?.user_last_name}
+              </span>
+            </Link>
+
+            <button
+              className="acc-logout-btn"
+              type="button"
+              onClick={() => {
+                deconnexion();
+                navigate("/login");
+              }}
+            >
+              {t.logout}
+            </button>
+          </div>
+        </header>
+
+        <div className="acc-welcome-bar">
+          <div className="acc-welcome-left">
+            <span className="acc-welcome-greet">
+              {t.bonjour(heure)}, {utilisateur?.user_first_name} —
+            </span>
+
+            <span className="acc-welcome-niveau">
+              {t.niveau} : <strong>{t.niveaux[niveauIdx]}</strong>
+            </span>
+          </div>
+
+          {nextGoal && (
+            <div className="acc-level-bar">
+              <div className="acc-level-bar-track">
                 <div
-                  className="acc-next-goal-fill"
+                  className="acc-level-bar-fill"
                   style={{ width: `${niveauPct}%` }}
                 />
               </div>
 
-              <span className="acc-next-goal-niveau">
-                {t.niveaux[niveauIdx + 1] || t.niveaux[4]}
+              <span className="acc-level-bar-label">
+                {solde} / {nextGoal} coins
               </span>
             </div>
           )}
-        </aside>
-      </main>
 
-      <footer className="acc-footer">
-        <span className="acc-footer-logo">SOURDI</span>
-        <span className="acc-footer-text">{t.footerText} · © 2025</span>
-      </footer>
+          {tempsSession > 0 && (
+            <div className="acc-session-badge">
+              {t.session} : {tempsSession} {t.timeUnit}
+            </div>
+          )}
+        </div>
+
+        <main className="acc-main">
+          <section className="acc-panel">
+            <div className="acc-panel-head">
+              <h2 className="acc-panel-title">{t.marketTitle}</h2>
+              <p className="acc-panel-sub">{t.marketSub}</p>
+            </div>
+
+            <div className="acc-panel-body">
+              {produits.length > 0 ? (
+                produits.map((p) => (
+                  <div key={p._id} className="acc-mp-item">
+                    <div className="acc-mp-thumb">
+                      {p.photo ? (
+                        <img
+                          src={`http://localhost:5002${p.photo}`}
+                          alt={p.nom}
+                        />
+                      ) : (
+                        <div className="acc-mp-placeholder" />
+                      )}
+                    </div>
+
+                    <div className="acc-mp-info">
+                      <span className="acc-mp-name">{p.nom}</span>
+                      <span className="acc-mp-price">
+                        <strong>{p.prixEnCoins}</strong> {t.coins_unit}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="acc-empty">{t.noProducts}</p>
+              )}
+            </div>
+
+            <div className="acc-panel-footer">
+              <Link to="/eleve/marketplace" className="acc-see-all">
+                {t.seeAll}
+              </Link>
+            </div>
+          </section>
+
+          <section className="acc-panel">
+            <div className="acc-panel-head">
+              <h2 className="acc-panel-title">{t.coursesTitle}</h2>
+              <p className="acc-panel-sub">{t.coursesSub}</p>
+            </div>
+
+            <div className="acc-courses-list">
+              {COURSES.map((c) => (
+                <div key={c.id} className="acc-course-item">
+                  <div
+                    className="acc-course-stripe"
+                    style={{ background: c.color }}
+                  />
+
+                  <div className="acc-course-info">
+                    <span className="acc-course-title">{c.title[lang]}</span>
+                    <span className="acc-course-desc">{c.desc[lang]}</span>
+
+                    <div className="acc-course-meta">
+                      <span
+                        className="acc-course-tag"
+                        style={{
+                          color: c.color,
+                          background: `${c.color}18`,
+                          border: `1px solid ${c.color}30`,
+                        }}
+                      >
+                        {c.level[lang]}
+                      </span>
+
+                      <span className="acc-course-dur">{c.duration}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    className="acc-course-btn"
+                    style={{ background: c.color }}
+                    onClick={() => navigate("/eleve/exercices")}
+                    type="button"
+                  >
+                    {t.start}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <aside className="acc-dashboard">
+            <div className="acc-dashboard-head">
+              <h2 className="acc-panel-title">{t.statsTitle}</h2>
+            </div>
+
+            {stats.map((s) => {
+              const pct = s.max
+                ? Math.min(100, Math.round((s.value / s.max) * 100))
+                : 0;
+
+              return (
+                <div key={s.key} className="acc-stat-row">
+                  <div className="acc-stat-circle">
+                    <ProgressCircle
+                      value={s.value}
+                      max={s.max}
+                      color={s.color}
+                      size={56}
+                    />
+
+                    <span
+                      className="acc-stat-circle-val"
+                      style={{ color: s.color }}
+                    >
+                      {pct}%
+                    </span>
+                  </div>
+
+                  <div className="acc-stat-info">
+                    <span className="acc-stat-label">{s.label}</span>
+
+                    <span className="acc-stat-value">
+                      {s.value}
+                      <span className="acc-stat-unit">{s.unit}</span>
+                    </span>
+
+                    <div className="acc-stat-bar">
+                      <div
+                        className="acc-stat-bar-fill"
+                        style={{ width: `${pct}%`, background: s.color }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {nextGoal && (
+              <div className="acc-next-goal">
+                <span className="acc-next-goal-label">{t.nextGoal}</span>
+
+                <span className="acc-next-goal-val">
+                  {nextGoal - solde} coins restants
+                </span>
+
+                <div className="acc-next-goal-bar">
+                  <div
+                    className="acc-next-goal-fill"
+                    style={{ width: `${niveauPct}%` }}
+                  />
+                </div>
+
+                <span className="acc-next-goal-niveau">
+                  {t.niveaux[niveauIdx + 1] || t.niveaux[4]}
+                </span>
+              </div>
+            )}
+          </aside>
+        </main>
+
+        <footer className="acc-footer">
+          <span className="acc-footer-logo">SOURDI</span>
+          <span className="acc-footer-text">{t.footerText} · © 2025</span>
+        </footer>
+      </div>
+
+      {accesBloque && (
+        <div className="acc-access-overlay">
+          <div className="acc-access-card">
+            <div className="acc-access-icon">🔒</div>
+
+            <h2>
+              {utilisateur?.statutAcces === "refuse"
+                ? "Demande refusée"
+                : "Accès en attente"}
+            </h2>
+
+            <p>
+              {utilisateur?.statutAcces === "refuse"
+                ? "Votre demande d'accès a été refusée par l'administrateur."
+                : "Votre compte a été validé par email mais doit encore être accepté par un administrateur."}
+            </p>
+
+            <div className="acc-access-info">
+              Vous pouvez toujours utiliser la messagerie pour contacter
+              l'administration.
+            </div>
+            <button
+  className="acc-access-logout"
+  onClick={() => {
+    deconnexion();
+    navigate("/login");
+  }}
+>
+  Déconnexion
+</button>
+          </div>
+        </div>
+      )}
+
       <EleveMessageBox />
-      <SourdiHelperChat student={utilisateur} />
+
+      {!accesBloque && <SourdiHelperChat student={utilisateur} />}
     </div>
   );
 }

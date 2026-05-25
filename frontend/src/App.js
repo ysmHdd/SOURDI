@@ -22,6 +22,8 @@ import Panier from "./pages/eleve/Panier";
 import EmailConfirmed from "./pages/auth/EmailConfirmed";
 import MessagesAdmin from "./pages/admin/MessagesAdmin";
 import SignalementsAdmin from "./pages/admin/SignalementsAdmin";
+import Calendrier from "./pages/eleve/Calendrier";
+import DemandesAcces from "./pages/admin/DemandesAcces";
 
 function App() {
   return (
@@ -156,6 +158,15 @@ function App() {
   element={
     <ProtectedRoute role="admin">
       <SignalementsAdmin />
+    </ProtectedRoute>
+  }
+/>
+<Route path="/eleve/calendrier" element={<Calendrier />} />
+<Route
+  path="/admin/demandes"
+  element={
+    <ProtectedRoute role="admin">
+      <DemandesAcces />
     </ProtectedRoute>
   }
 />

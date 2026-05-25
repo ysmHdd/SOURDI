@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import axios from "../../api/axios";
 import {
   getConversationsAdmin,
   getSignalementsAdmin,
 } from "../../api/messageApi";
+
+const API = "http://localhost:5002";
 
 const AdminSidebar = () => {
   const location = useLocation();
@@ -13,14 +16,17 @@ const AdminSidebar = () => {
 
   const [nouveauxMessages, setNouveauxMessages] = useState(false);
   const [nouveauxSignalements, setNouveauxSignalements] = useState(false);
+  const [nouvellesDemandes, setNouvellesDemandes] = useState(false);
 
   useEffect(() => {
     const chargerNotifications = async () => {
       try {
-        const [messagesRes, signalementsRes] = await Promise.all([
-          getConversationsAdmin(),
-          getSignalementsAdmin(),
-        ]);
+        const [messagesRes, signalementsRes, utilisateursRes] =
+          await Promise.all([
+            getConversationsAdmin(),
+            getSignalementsAdmin(),
+            axios.get(`${API}/api/admin/utilisateurs`),
+          ]);
 
         const existeNouveauMessage = messagesRes.data?.some(
           (conversation) => conversation.statut === "nouveau"
@@ -30,14 +36,22 @@ const AdminSidebar = () => {
           (signalement) => signalement.statut === "nouveau"
         );
 
+        const existeNouvelleDemande = utilisateursRes.data?.some(
+          (utilisateur) =>
+            utilisateur.role === "etudiant" &&
+            utilisateur.statutAcces === "en_attente"
+        );
+
         setNouveauxMessages(existeNouveauMessage);
         setNouveauxSignalements(existeNouveauSignalement);
+        setNouvellesDemandes(existeNouvelleDemande);
       } catch (erreur) {
         console.error(erreur);
       }
     };
 
     chargerNotifications();
+
     const interval = setInterval(chargerNotifications, 8000);
 
     return () => clearInterval(interval);
@@ -59,6 +73,17 @@ const AdminSidebar = () => {
           <rect x="14" y="3" width="7" height="7" rx="2" />
           <rect x="14" y="14" width="7" height="7" rx="2" />
           <rect x="3" y="14" width="7" height="7" rx="2" />
+        </svg>
+      ),
+    },
+    {
+      label: "Demandes",
+      path: "/admin/demandes",
+      notification: nouvellesDemandes,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
         </svg>
       ),
     },
@@ -137,6 +162,7 @@ const AdminSidebar = () => {
 
           <div className="profile-text">
             <p className="profile-role">Administrator</p>
+
             <p className="profile-name">
               {utilisateur?.user_first_name
                 ? `${utilisateur.user_first_name} ${utilisateur.user_last_name}`
@@ -156,6 +182,7 @@ const AdminSidebar = () => {
                 className={`nav-link ${isActive ? "active" : ""}`}
               >
                 <span className="nav-icon">{item.icon}</span>
+
                 <span>{item.label}</span>
 
                 {item.notification && <span className="nav-red-dot" />}
@@ -173,5 +200,4 @@ const AdminSidebar = () => {
     </aside>
   );
 };
-
 export default AdminSidebar;

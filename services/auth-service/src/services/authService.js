@@ -49,6 +49,7 @@ const genererToken = (utilisateur) => {
       email: utilisateur.user_email,
       role: utilisateur.role,
       grade: utilisateur.params?.grade || "1",
+      statutAcces: utilisateur.statutAcces,
     },
     process.env.JWT_SECRET,
     { expiresIn: "1d" }
@@ -65,6 +66,43 @@ const validerEmailEtMotDePasse = (email, motDePasse) => {
       "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial comme . + & @ !"
     );
   }
+};
+
+const verifierBanissement = async (utilisateur) => {
+  if (!utilisateur.banni) {
+    return;
+  }
+
+  if (
+    utilisateur.banType === "temporaire" &&
+    utilisateur.banExpireLe &&
+    new Date(utilisateur.banExpireLe) <= new Date()
+  ) {
+    utilisateur.banni = false;
+    utilisateur.banType = null;
+    utilisateur.banRaison = "";
+    utilisateur.banExpireLe = null;
+
+    await utilisateur.save();
+
+    return;
+  }
+
+  if (utilisateur.banType === "definitif") {
+    throw new Error(
+      `Votre compte est banni définitivement.${
+        utilisateur.banRaison ? ` Raison : ${utilisateur.banRaison}` : ""
+      }`
+    );
+  }
+
+  throw new Error(
+    `Votre compte est banni jusqu'au ${new Date(
+      utilisateur.banExpireLe
+    ).toLocaleDateString("fr-FR")}.${
+      utilisateur.banRaison ? ` Raison : ${utilisateur.banRaison}` : ""
+    }`
+  );
 };
 
 const inscrireUtilisateur = async (donnees) => {
@@ -106,6 +144,7 @@ const inscrireUtilisateur = async (donnees) => {
     avatar: avatarFinal,
     role: "etudiant",
     emailConfirme: false,
+    statutAcces: "en_attente",
     emailToken,
     emailTokenExpire: Date.now() + 60 * 60 * 1000,
   });
@@ -120,6 +159,7 @@ const inscrireUtilisateur = async (donnees) => {
       user_email: utilisateur.user_email,
       role: utilisateur.role,
       emailConfirme: utilisateur.emailConfirme,
+      statutAcces: utilisateur.statutAcces,
       avatar: utilisateur.avatar,
     },
   };
@@ -160,6 +200,7 @@ const creerAdmin = async (donnees) => {
     avatar: avatarFinal,
     role: "admin",
     emailConfirme: true,
+    statutAcces: "accepte",
   });
 
   return {
@@ -168,6 +209,7 @@ const creerAdmin = async (donnees) => {
     user_last_name: admin.user_last_name,
     user_email: admin.user_email,
     role: admin.role,
+    statutAcces: admin.statutAcces,
     avatar: admin.avatar,
   };
 };
@@ -198,6 +240,8 @@ const connecterUtilisateur = async (email, motDePasse) => {
     throw new Error("Veuillez confirmer votre email avant de vous connecter");
   }
 
+  await verifierBanissement(utilisateur);
+
   const token = genererToken(utilisateur);
 
   return {
@@ -207,6 +251,11 @@ const connecterUtilisateur = async (email, motDePasse) => {
       user_last_name: utilisateur.user_last_name,
       user_email: utilisateur.user_email,
       role: utilisateur.role,
+      statutAcces: utilisateur.statutAcces,
+      banni: utilisateur.banni,
+      banType: utilisateur.banType,
+      banRaison: utilisateur.banRaison,
+      banExpireLe: utilisateur.banExpireLe,
       avatar: utilisateur.avatar,
     },
     token,

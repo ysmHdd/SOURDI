@@ -15,6 +15,34 @@ routeur.get(
   utilisateurController.listerUtilisateurs
 );
 
+routeur.patch(
+  "/:id/accepter-acces",
+  verifierToken,
+  autoriserRoles("admin"),
+  utilisateurController.accepterAccesEtudiant
+);
+
+routeur.patch(
+  "/:id/refuser-acces",
+  verifierToken,
+  autoriserRoles("admin"),
+  utilisateurController.refuserAccesEtudiant
+);
+
+routeur.patch(
+  "/:id/bannir",
+  verifierToken,
+  autoriserRoles("admin"),
+  utilisateurController.bannirUtilisateur
+);
+
+routeur.patch(
+  "/:id/annuler-banissement",
+  verifierToken,
+  autoriserRoles("admin"),
+  utilisateurController.annulerBanissement
+);
+
 routeur.get(
   "/:id",
   verifierToken,
