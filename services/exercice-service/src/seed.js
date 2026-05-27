@@ -1,11 +1,11 @@
 const path = require("path");
-// 🔥 On force dotenv à lire le fichier .env situé à la racine du microservice
+
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
 const mongoose = require("mongoose");
 const connecterDB = require("./configuration/baseDeDonnees");
 
-// Définition du Schéma de l'exercice
+
 const ExerciceSchema = new mongoose.Schema({
   titre: String,
   description: String,
@@ -21,7 +21,7 @@ const ExerciceSchema = new mongoose.Schema({
 const Exercice = mongoose.models.Exercice || mongoose.model("Exercice", ExerciceSchema);
 
 const baseExercices = [
-  // MATIÈRE : FRANÇAIS
+
   {
     titre: "Le Présent de l'Indicatif",
     description: "Quiz sur la conjugaison des verbes au présent.",
@@ -42,7 +42,7 @@ const baseExercices = [
     options: ["Triste", "Magnifique", "Difficile", "Ennuyeux"],
     reponseCorrecte: 1
   },
-  // MATIÈRE : ARABE
+  
   {
     titre: "الجملة الفعلية",
     description: "تمارين حول الفاعل والمفعول به في الجملة الفعلية.",
@@ -53,7 +53,7 @@ const baseExercices = [
     options: ["قَرَأَ", "التِّلْمِيذُ", "القِصَّةَ", "مستتر"],
     reponseCorrecte: 1
   },
-  // MATIÈRE : MATHEMATIQUES
+ 
   {
     titre: "Les Fractions",
     description: "Comprendre et simplifier les fractions simples.",
@@ -74,7 +74,7 @@ const baseExercices = [
     options: ["13 cm", "26 cm", "40 cm", "20 cm"],
     reponseCorrecte: 1
   },
-  // MATIÈRE : SCIENCES
+
   {
     titre: "Le Système Solaire",
     description: "Quiz de base sur l'ordre et la nature des planètes.",
@@ -95,7 +95,7 @@ const baseExercices = [
     options: ["La fusion", "La solidification", "L'évaporation", "La condensation"],
     reponseCorrecte: 2
   },
-  // MATIÈRE : HISTOIRE & GÉO
+
   {
     titre: "Les Reliefs de la Terre",
     description: "Identifier les grandes formes géographiques.",
@@ -108,7 +108,7 @@ const baseExercices = [
   }
 ];
 
-// On génère ces exercices pour TOUS les niveaux de 1 à 6 afin d'éviter les listes vides
+
 const exercicesDeTest = [];
 for (let n = 1; n <= 6; n++) {
   baseExercices.forEach(ex => {
@@ -118,22 +118,22 @@ for (let n = 1; n <= 6; n++) {
 
 const seedDB = async () => {
   try {
-    console.log("🔄 Connexion à ta base de données via ta configuration...");
+    console.log("Connexion à ta base de données via ta configuration...");
     await connecterDB(); 
     
-    // Nettoyer la collection 'exercices'
+
     await Exercice.deleteMany({});
     console.log("🧹 Collection 'exercices' vidée.");
 
-    // Insérer les exercices
+
     await Exercice.insertMany(exercicesDeTest);
-    console.log("🚀 Données injectées avec succès pour tous les niveaux (1 à 6) !");
+    console.log("Données injectées avec succès pour tous les niveaux (1 à 6) !");
     
   } catch (error) {
-    console.error("❌ Erreur lors du seeding :", error);
+    console.error("Erreur lors du seeding :", error);
   } finally {
     await mongoose.connection.close();
-    console.log("🔌 Connexion fermée.");
+    console.log("Connexion fermée.");
     process.exit(0);
   }
 };

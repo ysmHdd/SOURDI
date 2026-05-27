@@ -2,7 +2,8 @@ const profilService = require("../services/profilService");
 
 const obtenirProfil = async (req, res) => {
   try {
-    const profil = await profilService.obtenirProfil(req.utilisateur.id);
+    const token = req.headers.authorization?.split(" ")[1];
+    const profil = await profilService.obtenirProfil(req.utilisateur.id, token);
     res.json(profil);
   } catch (erreur) {
     res.status(404).json({ message: erreur.message });

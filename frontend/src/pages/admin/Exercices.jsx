@@ -3,34 +3,46 @@ import AdminSidebar from "../../components/layout/AdminSidebar";
 import "../../styles/adminLayout.css";
 import axios from "../../api/axios";
 
-const MATIERES = ["francais", "arabe", "maths", "sciences", "histoire"];
-const NIVEAUX = [1, 2, 3, 4, 5, 6];
+const MATIERES   = ["francais", "arabe", "maths", "sciences", "histoire"];
+const NIVEAUX    = [1, 2, 3, 4, 5, 6];
+const DIFFICULTES = ["facile", "moyen", "difficile"];
+const LANGUES    = ["fr", "ar"];
 
 const vide = {
-  matiere: "maths",
-  niveau: 1,
-  sousCat: "",
-  question: "",
-  options: ["", "", "", ""],
-  reponse: 0,
-  points: 10,
+  matiere:      "maths",
+  niveau:       1,
+  sousCat:      "",
+  titre:        "",
+  description:  "",
+  difficulte:   "facile",
+  dureeEstimee: 5,
+  langue:       "fr",
+  question:     "",
+  options:      ["", "", "", ""],
+  reponse:      0,
+  exp:          20,
 };
 
 const Exercices = () => {
-  const [exercices, setExercices] = useState([]);
-  const [form, setForm] = useState(vide);
-  const [editId, setEditId] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [exercices, setExercices]       = useState([]);
+  const [form, setForm]                 = useState(vide);
+  const [editId, setEditId]             = useState(null);
+  const [loading, setLoading]           = useState(false);
+  const [message, setMessage]           = useState("");
   const [filtreMatiere, setFiltreMatiere] = useState("maths");
-  const [filtreNiveau, setFiltreNiveau] = useState(1);
+  const [filtreNiveau, setFiltreNiveau]   = useState(1);
 
   const charger = async () => {
     try {
       const res = await axios.get(
         `http://localhost:5004/api/exercices?matiere=${filtreMatiere}&niveau=${filtreNiveau}`
       );
-      setExercices(res.data);
+      const data = res.data;
+      if (Array.isArray(data)) {
+        setExercices(data);
+      } else {
+        setExercices([...(data.aFaire || []), ...(data.done || [])]);
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -73,13 +85,18 @@ const Exercices = () => {
 
   const editer = (ex) => {
     setForm({
-      matiere: ex.matiere,
-      niveau: ex.niveau,
-      sousCat: ex.sousCat,
-      question: ex.question,
-      options: ex.options,
-      reponse: ex.reponse,
-      points: ex.points,
+      matiere:      ex.matiere,
+      niveau:       ex.niveau,
+      sousCat:      ex.sousCat,
+      titre:        ex.titre,
+      description:  ex.description || "",
+      difficulte:   ex.difficulte  || "facile",
+      dureeEstimee: ex.dureeEstimee || 5,
+      langue:       ex.langue      || "fr",
+      question:     ex.question,
+      options:      ex.options,
+      reponse:      ex.reponse,
+      exp:          ex.exp         || 20,
     });
     setEditId(ex._id);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -96,15 +113,19 @@ const Exercices = () => {
           <p className="admin-main-subtitle">Ajouter, modifier et supprimer les exercices de la plateforme</p>
         </div>
 
-        {/* Formulaire */}
+        {/* ── Formulaire ── */}
         <div className="admin-top-card" style={{ marginBottom: 24 }}>
           <h3 className="admin-form-title">{editId ? "Modifier l'exercice" : "Ajouter un exercice"}</h3>
+
           {message && (
             <div className={`admin-msg ${message.startsWith("Erreur") ? "error" : "success"}`}>
               {message}
             </div>
           )}
+
           <form onSubmit={soumettre} className="ex-form">
+
+            {/* Ligne 1 — matière / niveau / sousCat / difficulté */}
             <div className="ex-form-row">
               <div className="ex-field">
                 <label className="ex-label">Matière</label>
@@ -112,31 +133,71 @@ const Exercices = () => {
                   {MATIERES.map((m) => <option key={m} value={m}>{m}</option>)}
                 </select>
               </div>
+
               <div className="ex-field">
                 <label className="ex-label">Niveau (classe)</label>
                 <select className="ex-input ex-select" value={form.niveau} onChange={(e) => setForm({ ...form, niveau: parseInt(e.target.value) })}>
                   {NIVEAUX.map((n) => <option key={n} value={n}>{n}ère/ème année</option>)}
                 </select>
               </div>
+
               <div className="ex-field">
                 <label className="ex-label">Sous-catégorie</label>
                 <input className="ex-input" placeholder="Ex: addition, alphabet..." value={form.sousCat} onChange={(e) => setForm({ ...form, sousCat: e.target.value })} required />
               </div>
+
               <div className="ex-field">
-                <label className="ex-label">Points</label>
-                <input className="ex-input" type="number" min="5" max="50" value={form.points} onChange={(e) => setForm({ ...form, points: parseInt(e.target.value) })} />
+                <label className="ex-label">Difficulté</label>
+                <select className="ex-input ex-select" value={form.difficulte} onChange={(e) => setForm({ ...form, difficulte: e.target.value })}>
+                  {DIFFICULTES.map((d) => <option key={d} value={d}>{d}</option>)}
+                </select>
               </div>
             </div>
 
+            {/* Ligne 2 — titre / description */}
+            <div className="ex-form-row">
+              <div className="ex-field" style={{ flex: 2 }}>
+                <label className="ex-label">Titre <span style={{ color: "#f87171" }}>*</span></label>
+                <input className="ex-input" placeholder="Ex: Les additions simples" value={form.titre} onChange={(e) => setForm({ ...form, titre: e.target.value })} required />
+              </div>
+
+              <div className="ex-field" style={{ flex: 1 }}>
+                <label className="ex-label">Langue</label>
+                <select className="ex-input ex-select" value={form.langue} onChange={(e) => setForm({ ...form, langue: e.target.value })}>
+                  {LANGUES.map((l) => <option key={l} value={l}>{l === "fr" ? "Français" : "Arabe"}</option>)}
+                </select>
+              </div>
+
+              <div className="ex-field" style={{ flex: 1 }}>
+                <label className="ex-label">Durée estimée (min)</label>
+                <input className="ex-input" type="number" min="1" max="60" value={form.dureeEstimee} onChange={(e) => setForm({ ...form, dureeEstimee: parseInt(e.target.value) })} />
+              </div>
+
+              <div className="ex-field" style={{ flex: 1 }}>
+                <label className="ex-label">XP gagné</label>
+                <input className="ex-input" type="number" min="5" max="100" value={form.exp} onChange={(e) => setForm({ ...form, exp: parseInt(e.target.value) })} />
+              </div>
+            </div>
+
+            {/* Description */}
             <div className="ex-field" style={{ marginBottom: 16 }}>
-              <label className="ex-label">Question</label>
+              <label className="ex-label">Description</label>
+              <input className="ex-input" placeholder="Courte description de l'exercice..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </div>
+
+            {/* Question */}
+            <div className="ex-field" style={{ marginBottom: 16 }}>
+              <label className="ex-label">Question <span style={{ color: "#f87171" }}>*</span></label>
               <input className="ex-input" placeholder="Écris la question ici..." value={form.question} onChange={(e) => setForm({ ...form, question: e.target.value })} required />
             </div>
 
+            {/* Options */}
             <div className="ex-options-grid">
               {form.options.map((opt, idx) => (
                 <div key={idx} className="ex-option-field">
-                  <div className={`ex-option-badge ${form.reponse === idx ? "correct" : ""}`}>{["A", "B", "C", "D"][idx]}</div>
+                  <div className={`ex-option-badge ${form.reponse === idx ? "correct" : ""}`}>
+                    {["A", "B", "C", "D"][idx]}
+                  </div>
                   <input
                     className="ex-input"
                     placeholder={`Option ${["A", "B", "C", "D"][idx]}`}
@@ -165,10 +226,11 @@ const Exercices = () => {
                 {loading ? "..." : editId ? "Modifier" : "Ajouter l'exercice"}
               </button>
             </div>
+
           </form>
         </div>
 
-        {/* Filtres */}
+        {/* ── Filtres ── */}
         <div className="admin-top-card" style={{ marginBottom: 16 }}>
           <div className="ex-filtres">
             <div className="ex-field" style={{ flex: 1 }}>
@@ -186,36 +248,44 @@ const Exercices = () => {
           </div>
         </div>
 
-        {/* Liste exercices */}
+        {/* ── Liste ── */}
         <div className="ex-list">
           {exercices.length === 0 ? (
             <div className="admin-top-card" style={{ textAlign: "center", color: "#9C8AA5" }}>
               Aucun exercice pour cette sélection.
             </div>
-          ) : exercices.map((ex) => (
-            <div key={ex._id} className="ex-card">
-              <div className="ex-card-head">
-                <div className="ex-card-badges">
-                  <span className="ex-badge matiere">{ex.matiere}</span>
-                  <span className="ex-badge niveau">Niveau {ex.niveau}</span>
-                  <span className="ex-badge sousCat">{ex.sousCat}</span>
+          ) : (
+            exercices.map((ex) => (
+              <div key={ex._id} className="ex-card">
+                <div className="ex-card-head">
+                  <div className="ex-card-badges">
+                    <span className="ex-badge matiere">{ex.matiere}</span>
+                    <span className="ex-badge niveau">Niveau {ex.niveau}</span>
+                    <span className="ex-badge sousCat">{ex.sousCat}</span>
+                    <span className="ex-badge" style={{ background: ex.difficulte === "facile" ? "rgba(74,222,128,0.15)" : ex.difficulte === "moyen" ? "rgba(251,191,36,0.15)" : "rgba(248,113,113,0.15)", color: ex.difficulte === "facile" ? "#4ade80" : ex.difficulte === "moyen" ? "#fbbf24" : "#f87171" }}>
+                      {ex.difficulte}
+                    </span>
+                  </div>
+                  <span className="ex-points">{ex.exp} XP — {ex.dureeEstimee} min</span>
                 </div>
-                <span className="ex-points">{ex.points} pts</span>
+
+                <p className="ex-question"><strong>{ex.titre}</strong> — {ex.question}</p>
+
+                <div className="ex-opts-preview">
+                  {ex.options.map((opt, idx) => (
+                    <span key={idx} className={`ex-opt-chip ${ex.reponse === idx ? "correct" : ""}`}>
+                      {["A", "B", "C", "D"][idx]}. {opt}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="ex-card-actions">
+                  <button className="ex-edit-btn" onClick={() => editer(ex)}>Modifier</button>
+                  <button className="ex-delete-btn" onClick={() => supprimer(ex._id)}>Supprimer</button>
+                </div>
               </div>
-              <p className="ex-question">{ex.question}</p>
-              <div className="ex-opts-preview">
-                {ex.options.map((opt, idx) => (
-                  <span key={idx} className={`ex-opt-chip ${ex.reponse === idx ? "correct" : ""}`}>
-                    {["A", "B", "C", "D"][idx]}. {opt}
-                  </span>
-                ))}
-              </div>
-              <div className="ex-card-actions">
-                <button className="ex-edit-btn" onClick={() => editer(ex)}>Modifier</button>
-                <button className="ex-delete-btn" onClick={() => supprimer(ex._id)}>Supprimer</button>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
       </main>

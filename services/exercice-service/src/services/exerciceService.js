@@ -15,23 +15,20 @@ const getExercices = async (matiere, niveau, sousCat, eleveId) => {
 
   const exercices = await Exercice.find(filtre).lean();
 
+
   const faits = await Resultat.find({
     eleveId,
     matiere,
     niveau,
+    sousCat: sousCat || "general",
   }).lean();
 
-  const idsFaits = new Set(faits.map((f) => String(f.exerciceId)));
 
-  const aFaire = exercices.filter(
-    (ex) => !idsFaits.has(String(ex._id))
-  );
+  if (faits.length > 0) {
+    return { aFaire: [], done: exercices };
+  }
 
-  const done = exercices.filter(
-    (ex) => idsFaits.has(String(ex._id))
-  );
-
-  return { aFaire, done };
+  return { aFaire: exercices, done: [] };
 };
 
 const getListeExercices = async (matiere, niveau, sousCat) => {
@@ -51,24 +48,15 @@ const getListeExercices = async (matiere, niveau, sousCat) => {
 };
 
 const sauvegarderResultat = async (eleveId, data) => {
-  const {
-    matiere,
-    niveau,
-    sousCat,
-    score,
-    total,
-    tempsEnSecondes,
-    reponses,
-  } = data;
+  const { matiere, niveau, sousCat, score, total, tempsEnSecondes, reponses, exerciceId } = data; // ✅
 
-  if (!reponses || reponses.length === 0) {
-    throw new Error("Aucune réponse reçue");
-  }
+  if (!reponses || reponses.length === 0) throw new Error("Aucune réponse reçue");
 
   const pointsGagnes = score * 10;
 
   const resultat = await Resultat.create({
     eleveId,
+    exerciceId,
     matiere,
     niveau,
     sousCat: sousCat || "general",
@@ -76,12 +64,13 @@ const sauvegarderResultat = async (eleveId, data) => {
     total,
     pointsGagnes,
     tempsEnSecondes,
-    reponses, // ✅ IMPORTANT
+    reponses,
   });
 
+  console.log("SAUVEGARDE:", { eleveId, exerciceId, matiere });
   return { resultat, pointsGagnes };
+  
 };
-
 const getHistorique = async (eleveId) => {
   return await Resultat.find({ eleveId })
     .sort({ createdAt: -1 })

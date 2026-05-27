@@ -15,12 +15,7 @@ const getMatieres = async (req, res) => {
 const getSousCats = async (req, res) => {
   try {
     const { matiere, niveau } = req.query;
-
-    const data = await exerciceService.getSousCats(
-      matiere,
-      parseInt(niveau)
-    );
-
+    const data = await exerciceService.getSousCats(matiere, parseInt(niveau));
     res.json(data);
   } catch (err) {
     console.error(err);
@@ -31,13 +26,7 @@ const getSousCats = async (req, res) => {
 const getListeExercices = async (req, res) => {
   try {
     const { matiere, niveau, sousCat } = req.query;
-
-    const data = await exerciceService.getListeExercices(
-      matiere,
-      parseInt(niveau),
-      sousCat
-    );
-
+    const data = await exerciceService.getListeExercices(matiere, parseInt(niveau), sousCat);
     res.json(data);
   } catch (err) {
     console.error(err);
@@ -49,62 +38,59 @@ const getExercices = async (req, res) => {
   try {
     const { matiere, niveau, sousCat } = req.query;
     const eleveId = req.utilisateur.id;
-
-    const data = await exerciceService.getExercices(
-      matiere,
-      parseInt(niveau),
-      sousCat,
-      eleveId
-    );
-
+    const data = await exerciceService.getExercices(matiere, parseInt(niveau), sousCat, eleveId);
     res.json(data);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
+    console.log("eleveId:", eleveId);
+console.log("req.utilisateur:", req.utilisateur);
+console.log("filtre:", filtre);
+console.log("exercices trouvés:", exercices.length);
+console.log("faits:", faits.length);
   }
 };
 
 const soumettre = async (req, res) => {
   try {
     const eleveId = req.utilisateur.id;
-    const { matiere, niveau, sousCat, reponses, tempsEnSecondes } = req.body;
+    const { matiere, niveau, sousCat, reponses, tempsEnSecondes, exerciceIds } = req.body;
+
+    console.log("exerciceIds reçus:", exerciceIds); // debug temporaire
 
     let score = 0;
-
     const detail = reponses.map((r) => {
-      const correct = true; // simplifié (tu peux recalculer si besoin)
-
+      const correct = true;
       if (correct) score++;
-
-      return {
-        exerciceId: r.exerciceId,
-        reponse: r.reponse,
-        correct,
-      };
+      return { exerciceId: r.exerciceId, reponse: r.reponse, correct };
     });
 
-    const { resultat, pointsGagnes } =
-      await exerciceService.sauvegarderResultat(eleveId, {
-        matiere,
-        niveau,
-        sousCat,
-        score,
-        total: reponses.length,
-        tempsEnSecondes,
-        reponses: detail,
-      });
+    const saves = await Promise.all(
+      (exerciceIds || []).map((exerciceId) =>
+        exerciceService.sauvegarderResultat(eleveId, {
+          matiere,
+          niveau,
+          sousCat,
+          score,
+          total: reponses.length,
+          tempsEnSecondes,
+          reponses: detail,
+          exerciceId,
+        })
+      )
+    );
 
-    res.json({
-      score,
-      total: reponses.length,
-      pointsGagnes,
-      detail,
-      resultatId: resultat._id,
-    });
+    const pointsGagnes = saves[0]?.pointsGagnes ?? 0;
+
+    res.json({ score, total: reponses.length, pointsGagnes, detail });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
   }
+
+  console.log("body reçu:", req.body);
+console.log("exerciceIds:", exerciceIds);
+console.log("saves:", saves);
 };
 
 const getHistorique = async (req, res) => {
@@ -129,12 +115,7 @@ const creer = async (req, res) => {
 
 const modifier = async (req, res) => {
   try {
-    const ex = await Exercice.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-
+    const ex = await Exercice.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(ex);
   } catch (err) {
     console.error(err);

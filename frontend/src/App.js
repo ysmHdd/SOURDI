@@ -24,6 +24,9 @@ import MessagesAdmin from "./pages/admin/MessagesAdmin";
 import SignalementsAdmin from "./pages/admin/SignalementsAdmin";
 
 import ListeExercices from "./pages/eleve/exercices/ListeExercices";
+import ExercicesFaits from "./pages/eleve/exercices/ExercicesFaits";
+
+
 
 function App() {
   return (
@@ -49,6 +52,15 @@ function App() {
             element={
               <ProtectedRoute role="admin">
                 <Utilisateurs />
+              </ProtectedRoute>
+            }
+          />
+
+         <Route
+            path="/eleve/exercices/faits"
+            element={
+              <ProtectedRoute role="etudiant">
+                <ExercicesFaits />
               </ProtectedRoute>
             }
           />

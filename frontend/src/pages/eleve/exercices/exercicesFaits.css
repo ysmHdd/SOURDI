@@ -1,0 +1,254 @@
+/* ─── ExercicesFaits ─── */
+
+.ef-root {
+  min-height: 100vh;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.ef-root {
+  background: #0f0f1a; /* ← ajoute cette ligne */
+  min-height: 100vh;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+/* blobs réutilisés depuis exercices.css */
+.ef-root .blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+.ef-root .blob-1 {
+  width: 400px;
+  height: 400px;
+  background: #a78bfa;
+  top: -100px;
+  left: -100px;
+}
+.ef-root .blob-2 {
+  width: 350px;
+  height: 350px;
+  background: #38bdf8;
+  bottom: -80px;
+  right: -80px;
+}
+
+/* ─── Header ─── */
+.ef-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ef-back-btn {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+.ef-back-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.ef-logo {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #fff;
+}
+
+.ef-niveau {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ─── Main ─── */
+.ef-main {
+  position: relative;
+  z-index: 1;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+}
+
+.ef-page-title {
+  margin-bottom: 32px;
+}
+.ef-page-title h1 {
+  margin: 0 0 4px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+  text-transform: capitalize;
+}
+.ef-page-title p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+}
+
+/* ─── Stats banner ─── */
+.ef-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.ef-stat-card {
+  flex: 1;
+  min-width: 130px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 16px 20px;
+  text-align: center;
+}
+.ef-stat-card .ef-stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+.ef-stat-card .ef-stat-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 6px;
+}
+
+/* ─── Liste ─── */
+.ef-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ef-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.2s;
+}
+.ef-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* icône check */
+.ef-check-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #4ade80;
+}
+
+.ef-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.ef-card-body h3 {
+  margin: 0 0 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ef-card-body p {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* badge difficulté */
+.ef-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+.ef-badge.facile  { background: rgba(74, 222, 128, 0.15); color: #4ade80; }
+.ef-badge.moyen   { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+.ef-badge.difficile { background: rgba(248, 113, 113, 0.15); color: #f87171; }
+
+/* score pill */
+.ef-score-pill {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  text-align: center;
+  min-width: 72px;
+}
+.ef-score-pill strong {
+  display: block;
+  font-size: 1.05rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ─── Empty state ─── */
+.ef-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(255, 255, 255, 0.4);
+}
+.ef-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+.ef-empty p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* ─── Loading ─── */
+.ef-loading-full {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 600px) {
+  .ef-score-pill strong { font-size: 0.95rem; }
+  .ef-card { padding: 14px 16px; }
+  .ef-stats { gap: 10px; }
+}

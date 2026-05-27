@@ -82,7 +82,7 @@ export default function Selection() {
     setLoading(false);
   };
 
-  // 🔥 Correction ici : Le bouton "Commencer" mène désormais vers la liste d'exercices
+  
   const commencer = () => {
     if (!selected || !sousCatSelected) return;
     
@@ -111,7 +111,6 @@ export default function Selection() {
           <p>{t.sousTitre}</p>
         </div>
 
-        {/* Grille des matières */}
         <div className="ex-matieres-grid">
           {matieres.map((m) => {
             const cfg = MATIERE_CONFIG[m] || { color: "#AB47BC", icon: "📚" };
@@ -129,7 +128,7 @@ export default function Selection() {
           })}
         </div>
 
-        {/* Sous-catégories / Thèmes */}
+    
         {selected && (
           <div className="ex-souscats-section">
             <p className="ex-souscats-label">{t.choisirSousCat} :</p>
@@ -150,7 +149,7 @@ export default function Selection() {
           </div>
         )}
 
-        {/* Bouton Commencer (S'affiche uniquement si une matière ET un thème sont choisis) */}
+       
         {selected && sousCatSelected && (
           <button
             className="ex-start-btn"
