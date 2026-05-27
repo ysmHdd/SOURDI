@@ -22,11 +22,16 @@ import Panier from "./pages/eleve/Panier";
 import EmailConfirmed from "./pages/auth/EmailConfirmed";
 import MessagesAdmin from "./pages/admin/MessagesAdmin";
 import SignalementsAdmin from "./pages/admin/SignalementsAdmin";
+<<<<<<< HEAD
 
 import ListeExercices from "./pages/eleve/exercices/ListeExercices";
 import ExercicesFaits from "./pages/eleve/exercices/ExercicesFaits";
 
 
+=======
+import Calendrier from "./pages/eleve/Calendrier";
+import DemandesAcces from "./pages/admin/DemandesAcces";
+>>>>>>> origin/notifcalendrier
 
 function App() {
   return (
@@ -56,6 +61,7 @@ function App() {
             }
           />
 
+<<<<<<< HEAD
          <Route
             path="/eleve/exercices/faits"
             element={
@@ -65,6 +71,8 @@ function App() {
             }
           />
 
+=======
+>>>>>>> origin/notifcalendrier
           <Route
             path="/admin/produits"
             element={
@@ -84,6 +92,7 @@ function App() {
           />
 
           <Route
+<<<<<<< HEAD
   path="/eleve/exercices/liste"
   element={
     <ProtectedRoute role="etudiant">
@@ -93,6 +102,8 @@ function App() {
 />
 
           <Route
+=======
+>>>>>>> origin/notifcalendrier
             path="/eleve"
             element={
               <ProtectedRoute role="etudiant">
@@ -182,6 +193,18 @@ function App() {
     </ProtectedRoute>
   }
 />
+<<<<<<< HEAD
+=======
+<Route path="/eleve/calendrier" element={<Calendrier />} />
+<Route
+  path="/admin/demandes"
+  element={
+    <ProtectedRoute role="admin">
+      <DemandesAcces />
+    </ProtectedRoute>
+  }
+/>
+>>>>>>> origin/notifcalendrier
         </Routes>
       </BrowserRouter>
     </AuthProvider>

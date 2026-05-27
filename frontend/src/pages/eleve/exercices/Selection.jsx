@@ -10,7 +10,11 @@ const T = {
     sousTitre: "Choisis ta matière et commence à apprendre",
     niveau: "Ton niveau",
     choisirSousCat: "Choisir un thème",
+<<<<<<< HEAD
     commencer: "Commencer",
+=======
+    commencer: "Commencer le quiz",
+>>>>>>> origin/notifcalendrier
     matieres: {
       francais: "Français",
       arabe: "Arabe",
@@ -25,7 +29,11 @@ const T = {
     sousTitre: "Choose your subject and start learning",
     niveau: "Your level",
     choisirSousCat: "Choose a theme",
+<<<<<<< HEAD
     commencer: "Start",
+=======
+    commencer: "Start quiz",
+>>>>>>> origin/notifcalendrier
     matieres: {
       francais: "French",
       arabe: "Arabic",
@@ -38,11 +46,19 @@ const T = {
 };
 
 const MATIERE_CONFIG = {
+<<<<<<< HEAD
   francais: { color: "#AB47BC" },
   arabe:    { color: "#EF5350" },
   maths:    { color: "#FF7043" },
   sciences: { color: "#26C6DA" },
   histoire: { color: "#66BB6A" },
+=======
+  francais: { color: "#AB47BC", icon: "📖" },
+  arabe:    { color: "#EF5350", icon: "ع" },
+  maths:    { color: "#FF7043", icon: "∑" },
+  sciences: { color: "#26C6DA", icon: "🔬" },
+  histoire: { color: "#66BB6A", icon: "🗺" },
+>>>>>>> origin/notifcalendrier
 };
 
 export default function Selection() {
@@ -57,9 +73,15 @@ export default function Selection() {
   const [loading, setLoading] = useState(false);
 
   const t = T[lang];
+<<<<<<< HEAD
   const token = localStorage.getItem("token");
   const decoded = token ? JSON.parse(atob(token.split(".")[1])) : {};
   const niveau = decoded.grade ? parseInt(decoded.grade) : 1;
+=======
+const token = localStorage.getItem("token");
+const decoded = token ? JSON.parse(atob(token.split(".")[1])) : {};
+const niveau = decoded.grade ? parseInt(decoded.grade) : 1;
+>>>>>>> origin/notifcalendrier
 
   useEffect(() => {
     const load = async () => {
@@ -82,6 +104,7 @@ export default function Selection() {
     setLoading(false);
   };
 
+<<<<<<< HEAD
   
   const commencer = () => {
     if (!selected || !sousCatSelected) return;
@@ -92,6 +115,12 @@ export default function Selection() {
         sousCat: sousCatSelected,
         niveau,
       },
+=======
+  const commencer = () => {
+    if (!selected) return;
+    navigate("/eleve/exercices/quiz", {
+      state: { matiere: selected, sousCat: sousCatSelected, niveau },
+>>>>>>> origin/notifcalendrier
     });
   };
 
@@ -111,6 +140,10 @@ export default function Selection() {
           <p>{t.sousTitre}</p>
         </div>
 
+<<<<<<< HEAD
+=======
+        {/* Grille des matières */}
+>>>>>>> origin/notifcalendrier
         <div className="ex-matieres-grid">
           {matieres.map((m) => {
             const cfg = MATIERE_CONFIG[m] || { color: "#AB47BC", icon: "📚" };
@@ -128,7 +161,11 @@ export default function Selection() {
           })}
         </div>
 
+<<<<<<< HEAD
     
+=======
+        {/* Sous-catégories */}
+>>>>>>> origin/notifcalendrier
         {selected && (
           <div className="ex-souscats-section">
             <p className="ex-souscats-label">{t.choisirSousCat} :</p>
@@ -149,8 +186,13 @@ export default function Selection() {
           </div>
         )}
 
+<<<<<<< HEAD
        
         {selected && sousCatSelected && (
+=======
+        {/* Bouton commencer */}
+        {selected && (
+>>>>>>> origin/notifcalendrier
           <button
             className="ex-start-btn"
             style={{ background: `linear-gradient(135deg, ${MATIERE_CONFIG[selected]?.color}, ${MATIERE_CONFIG[selected]?.color}aa)` }}

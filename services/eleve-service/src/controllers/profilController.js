@@ -2,8 +2,12 @@ const profilService = require("../services/profilService");
 
 const obtenirProfil = async (req, res) => {
   try {
+<<<<<<< HEAD
     const token = req.headers.authorization?.split(" ")[1];
     const profil = await profilService.obtenirProfil(req.utilisateur.id, token);
+=======
+    const profil = await profilService.obtenirProfil(req.utilisateur.id);
+>>>>>>> origin/notifcalendrier
     res.json(profil);
   } catch (erreur) {
     res.status(404).json({ message: erreur.message });

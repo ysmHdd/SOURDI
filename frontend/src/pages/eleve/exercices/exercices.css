@@ -223,5 +223,9 @@
   .ex-matieres-grid { grid-template-columns: repeat(2, 1fr); }
   .ex-options-grid { grid-template-columns: 1fr; }
   .ex-header { padding: 0 16px; }
+<<<<<<< HEAD
 }
 
+=======
+}
+>>>>>>> origin/notifcalendrier

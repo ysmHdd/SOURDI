@@ -9,13 +9,17 @@ import Accueil from "./pages/Accueil";
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Utilisateurs from "./pages/admin/Utilisateurs";
 import Produits from "./pages/admin/Produits";
+<<<<<<< HEAD
 import MessagesAdmin from "./pages/admin/MessagesAdmin";
 import SignalementsAdmin from "./pages/admin/SignalementsAdmin";
+=======
+>>>>>>> origin/notifcalendrier
 
 import DashboardEleve from "./pages/eleve/DashboardEleve";
 import Marketplace from "./pages/eleve/Marketplace";
 import Profile from "./pages/eleve/profile";
 import Panier from "./pages/eleve/Panier";
+<<<<<<< HEAD
 
 import EmailConfirmed from "./pages/auth/EmailConfirmed";
 
@@ -23,12 +27,20 @@ import Selection from "./pages/eleve/exercices/Selection";
 import ListeExercices from "./pages/eleve/exercices/ListeExercices";
 import Quiz from "./pages/eleve/exercices/Quiz";
 import Resultat from "./pages/eleve/exercices/Resultat";
+=======
+import EmailConfirmed from "./pages/auth/EmailConfirmed";
+import MessagesAdmin from "./pages/admin/MessagesAdmin";
+import SignalementsAdmin from "./pages/admin/SignalementsAdmin";
+import Calendrier from "./pages/eleve/Calendrier";
+import DemandesAcces from "./pages/admin/DemandesAcces";
+>>>>>>> origin/notifcalendrier
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+<<<<<<< HEAD
 
           {/* PUBLIC */}
           <Route path="/" element={<Accueil />} />
@@ -37,6 +49,12 @@ function App() {
           <Route path="/email-confirmed" element={<EmailConfirmed />} />
 
           {/* ADMIN */}
+=======
+          <Route path="/" element={<Accueil />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/inscription" element={<Inscription />} />
+
+>>>>>>> origin/notifcalendrier
           <Route
             path="/admin"
             element={
@@ -65,6 +83,7 @@ function App() {
           />
 
           <Route
+<<<<<<< HEAD
             path="/admin/messages"
             element={
               <ProtectedRoute role="admin">
@@ -84,6 +103,8 @@ function App() {
 
           {/* ELEVE */}
           <Route
+=======
+>>>>>>> origin/notifcalendrier
             path="/eleve"
             element={
               <ProtectedRoute role="etudiant">
@@ -118,6 +139,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+<<<<<<< HEAD
 
           {/* EXERCICES */}
           <Route
@@ -152,6 +174,34 @@ function App() {
             element={
               <ProtectedRoute role="etudiant">
                 <Resultat />
+=======
+          <Route
+  path="/email-confirmed"
+  element={<EmailConfirmed />}
+/>
+<Route
+  path="/admin/messages"
+  element={
+    <ProtectedRoute role="admin">
+      <MessagesAdmin />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/signalements"
+  element={
+    <ProtectedRoute role="admin">
+      <SignalementsAdmin />
+    </ProtectedRoute>
+  }
+/>
+<Route path="/eleve/calendrier" element={<Calendrier />} />
+          <Route
+            path="/admin/demandes"
+            element={
+              <ProtectedRoute role="admin">
+                <DemandesAcces />
+>>>>>>> origin/notifcalendrier
               </ProtectedRoute>
             }
           />

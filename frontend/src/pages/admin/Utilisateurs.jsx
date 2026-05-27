@@ -9,6 +9,24 @@ const Utilisateurs = () => {
   const [utilisateurs, setUtilisateurs] = useState([]);
   const [modeEdition, setModeEdition] = useState(null);
   const [erreur, setErreur] = useState("");
+<<<<<<< HEAD
+=======
+  const [modalBan, setModalBan] = useState(false);
+  const [utilisateurABannir, setUtilisateurABannir] = useState(null);
+
+  const [recherche, setRecherche] = useState("");
+  const [filtreRole, setFiltreRole] = useState("tous");
+  const [filtreBan, setFiltreBan] = useState("tous");
+  const [filtreAcces, setFiltreAcces] = useState("tous");
+
+  const [banForm, setBanForm] = useState({
+    type: "temporaire",
+    duree: 1,
+    unite: "jours",
+    raison: "",
+  });
+
+>>>>>>> origin/notifcalendrier
   const [form, setForm] = useState({
     user_first_name: "",
     user_last_name: "",
@@ -86,7 +104,13 @@ const Utilisateurs = () => {
       charger();
       setErreur("");
     } catch (err) {
+<<<<<<< HEAD
       setErreur(err.response?.data?.message || "Erreur lors de l'enregistrement");
+=======
+      setErreur(
+        err.response?.data?.message || "Erreur lors de l'enregistrement"
+      );
+>>>>>>> origin/notifcalendrier
     }
   };
 
@@ -111,6 +135,10 @@ const Utilisateurs = () => {
 
   const supprimer = async (id) => {
     if (!window.confirm("Supprimer cet utilisateur ?")) return;
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/notifcalendrier
     try {
       await axios.delete(`${API}/api/admin/utilisateurs/${id}`);
       setErreur("");
@@ -120,11 +148,85 @@ const Utilisateurs = () => {
     }
   };
 
+<<<<<<< HEAD
+=======
+  const ouvrirModalBan = (u) => {
+    setUtilisateurABannir(u);
+    setBanForm({
+      type: "temporaire",
+      duree: 1,
+      unite: "jours",
+      raison: "",
+    });
+    setModalBan(true);
+  };
+
+  const fermerModalBan = () => {
+    setModalBan(false);
+    setUtilisateurABannir(null);
+  };
+
+  const bannir = async () => {
+    if (!utilisateurABannir) return;
+
+    try {
+      await axios.patch(
+        `${API}/api/admin/utilisateurs/${utilisateurABannir._id}/bannir`,
+        banForm
+      );
+
+      fermerModalBan();
+      charger();
+    } catch (err) {
+      setErreur(err.response?.data?.message || "Erreur lors du bannissement");
+    }
+  };
+
+  const annulerBanissement = async (id) => {
+    try {
+      await axios.patch(
+        `${API}/api/admin/utilisateurs/${id}/annuler-banissement`
+      );
+      charger();
+    } catch (err) {
+      setErreur(
+        err.response?.data?.message ||
+          "Erreur lors de l'annulation du bannissement"
+      );
+    }
+  };
+
+>>>>>>> origin/notifcalendrier
   useEffect(() => {
     charger();
   }, []);
 
+<<<<<<< HEAD
   return (
+=======
+  const utilisateursFiltres = utilisateurs.filter((u) => {
+    const texte = `${u.user_first_name || ""} ${u.user_last_name || ""} ${
+      u.user_email || ""
+    } ${u.user_phone || ""}`.toLowerCase();
+
+    const matchRecherche = texte.includes(recherche.toLowerCase());
+    const matchRole = filtreRole === "tous" || u.role === filtreRole;
+
+    const matchBan =
+      filtreBan === "tous" ||
+      (filtreBan === "actif" && !u.banni) ||
+      (filtreBan === "banni" && u.banni);
+
+    const matchAcces =
+      filtreAcces === "tous"
+        ? true
+        : filtreAcces === "admin"
+        ? u.role === "admin"
+        : u.role !== "admin" && u.statutAcces === filtreAcces;
+
+    return matchRecherche && matchRole && matchBan && matchAcces;
+  });  return (
+>>>>>>> origin/notifcalendrier
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap');
@@ -209,6 +311,18 @@ const Utilisateurs = () => {
           gap: 14px;
         }
 
+<<<<<<< HEAD
+=======
+        .filters-box {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr 1fr;
+          gap: 12px;
+          padding: 18px 24px;
+          border-bottom: 1px solid rgba(171, 71, 188, 0.08);
+          background: rgba(250, 247, 255, 0.75);
+        }
+
+>>>>>>> origin/notifcalendrier
         .input {
           padding: 12px 14px;
           border-radius: 14px;
@@ -263,7 +377,11 @@ const Utilisateurs = () => {
         .users-table {
           width: 100%;
           border-collapse: collapse;
+<<<<<<< HEAD
           min-width: 850px;
+=======
+          min-width: 950px;
+>>>>>>> origin/notifcalendrier
         }
 
         .users-table thead tr {
@@ -320,6 +438,10 @@ const Utilisateurs = () => {
         .actions {
           display: flex;
           gap: 8px;
+<<<<<<< HEAD
+=======
+          flex-wrap: wrap;
+>>>>>>> origin/notifcalendrier
         }
 
         .empty-state {
@@ -329,10 +451,108 @@ const Utilisateurs = () => {
           font-weight: 800;
         }
 
+<<<<<<< HEAD
+=======
+        .ban-badge {
+          display: inline-flex;
+          padding: 7px 12px;
+          border-radius: 999px;
+          font-size: 0.78rem;
+          font-weight: 900;
+          white-space: nowrap;
+        }
+
+        .ban-badge.active {
+          background: #e8f5e9;
+          color: #2e7d32;
+        }
+
+        .ban-badge.banned {
+          background: #ffebee;
+          color: #c62828;
+        }
+
+        .ban-btn,
+        .unban-btn {
+          border: none;
+          border-radius: 14px;
+          padding: 11px 14px;
+          cursor: pointer;
+          font-family: 'Nunito', sans-serif;
+          font-size: 0.88rem;
+          font-weight: 900;
+          color: white;
+        }
+
+        .ban-btn {
+          background: linear-gradient(135deg, #fb8c00, #e53935);
+        }
+
+        .unban-btn {
+          background: linear-gradient(135deg, #42a5f5, #5c6bc0);
+        }
+
+        .ban-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(20, 15, 35, 0.45);
+          backdrop-filter: blur(8px);
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+
+        .ban-modal {
+          width: 100%;
+          max-width: 460px;
+          background: white;
+          border-radius: 26px;
+          padding: 26px;
+          box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .ban-modal h3 {
+          margin: 0;
+          color: #322b45;
+          font-size: 1.35rem;
+          font-weight: 900;
+        }
+
+        .ban-modal p {
+          margin: 0;
+          color: #7e7a8a;
+          font-weight: 800;
+        }
+
+        .ban-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .ban-modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+        }
+
+>>>>>>> origin/notifcalendrier
         @media (max-width: 900px) {
           .admin-layout { flex-direction: column; }
           .admin-main { padding: 18px; }
           .admin-main-title { font-size: 1.6rem; }
+<<<<<<< HEAD
+=======
+
+          .filters-box {
+            grid-template-columns: 1fr;
+          }
+>>>>>>> origin/notifcalendrier
         }
       `}</style>
 
@@ -351,8 +571,15 @@ const Utilisateurs = () => {
             <h3 className="section-title">
               {modeEdition ? "Modifier un utilisateur" : "Ajouter un utilisateur"}
             </h3>
+<<<<<<< HEAD
             <p className="section-subtitle">
               L’email contenant les identifiants sera envoyé automatiquement si un mot de passe est défini.
+=======
+
+            <p className="section-subtitle">
+              L’email contenant les identifiants sera envoyé automatiquement si
+              un mot de passe est défini.
+>>>>>>> origin/notifcalendrier
             </p>
 
             <form onSubmit={envoyerForm} className="user-form">
@@ -389,6 +616,7 @@ const Utilisateurs = () => {
           <section className="table-card">
             <div className="table-header">
               <h3 className="section-title">Liste des utilisateurs</h3>
+<<<<<<< HEAD
               <p className="section-subtitle">
                 Suivez les utilisateurs enregistrés et supprimez un compte si nécessaire.
               </p>
@@ -396,6 +624,57 @@ const Utilisateurs = () => {
 
             <div className="table-wrap">
               {utilisateurs.length > 0 ? (
+=======
+
+              <p className="section-subtitle">
+                Suivez les utilisateurs enregistrés et supprimez un compte si
+                nécessaire.
+              </p>
+            </div>
+
+            <div className="filters-box">
+              <input
+                className="input"
+                placeholder="Rechercher par nom, email ou téléphone..."
+                value={recherche}
+                onChange={(e) => setRecherche(e.target.value)}
+              />
+
+              <select
+                className="input"
+                value={filtreRole}
+                onChange={(e) => setFiltreRole(e.target.value)}
+              >
+                <option value="tous">Tous les rôles</option>
+                <option value="etudiant">Étudiants</option>
+                <option value="admin">Admins</option>
+              </select>
+
+              <select
+                className="input"
+                value={filtreBan}
+                onChange={(e) => setFiltreBan(e.target.value)}
+              >
+                <option value="tous">Tous les statuts</option>
+                <option value="actif">Actifs</option>
+                <option value="banni">Bannis</option>
+              </select>
+
+              <select
+                className="input"
+                value={filtreAcces}
+                onChange={(e) => setFiltreAcces(e.target.value)}
+              >
+                <option value="tous">Tous les accès</option>
+                <option value="accepte">Acceptés</option>
+                <option value="en_attente">En attente</option>
+                <option value="refuse">Refusés</option>
+              </select>
+            </div>
+
+            <div className="table-wrap">
+              {utilisateursFiltres.length > 0 ? (
+>>>>>>> origin/notifcalendrier
                 <table className="users-table">
                   <thead>
                     <tr>
@@ -403,31 +682,79 @@ const Utilisateurs = () => {
                       <th>Email</th>
                       <th>Téléphone</th>
                       <th>Rôle</th>
+<<<<<<< HEAD
+=======
+                      <th>Statut</th>
+>>>>>>> origin/notifcalendrier
                       <th>Actions</th>
                     </tr>
                   </thead>
 
                   <tbody>
+<<<<<<< HEAD
                     {utilisateurs.map((u) => (
+=======
+                    {utilisateursFiltres.map((u) => (
+>>>>>>> origin/notifcalendrier
                       <tr key={u._id}>
                         <td className="user-name">
                           {u.user_first_name} {u.user_last_name}
                         </td>
+<<<<<<< HEAD
                         <td className="user-email">{u.user_email}</td>
                         <td>{u.user_phone}</td>
+=======
+
+                        <td className="user-email">{u.user_email}</td>
+                        <td>{u.user_phone}</td>
+
+>>>>>>> origin/notifcalendrier
                         <td>
                           <span className={`role-badge ${u.role === "admin" ? "admin" : "eleve"}`}>
                             {u.role}
                           </span>
                         </td>
+<<<<<<< HEAD
+=======
+
+                        <td>
+                          {u.banni ? (
+                            <span className="ban-badge banned">
+                              {u.banType === "definitif"
+                                ? "Banni définitivement"
+                                : `Banni jusqu'au ${new Date(u.banExpireLe).toLocaleDateString("fr-FR")}`}
+                            </span>
+                          ) : (
+                            <span className="ban-badge active">Actif</span>
+                          )}
+                        </td>
+
+>>>>>>> origin/notifcalendrier
                         <td>
                           <div className="actions">
                             <button className="secondary-btn" onClick={() => modifier(u)}>
                               Modifier
                             </button>
+<<<<<<< HEAD
                             <button className="delete-btn" onClick={() => supprimer(u._id)}>
                               Supprimer
                             </button>
+=======
+
+                            <button className="delete-btn" onClick={() => supprimer(u._id)}>
+                              Supprimer
+                            </button>
+
+                            {u.banni ? (
+                              <button className="unban-btn" onClick={() => annulerBanissement(u._id)}>
+                                Annuler ban
+                              </button>
+                            ) : (
+                              <button className="ban-btn" onClick={() => ouvrirModalBan(u)}>
+                                Bannir
+                              </button>
+                            )}
+>>>>>>> origin/notifcalendrier
                           </div>
                         </td>
                       </tr>
@@ -441,6 +768,69 @@ const Utilisateurs = () => {
           </section>
         </main>
       </div>
+<<<<<<< HEAD
+=======
+
+      {modalBan && (
+        <div className="ban-modal-overlay">
+          <div className="ban-modal">
+            <h3>Bannir utilisateur</h3>
+
+            <p>
+              {utilisateurABannir?.user_first_name}{" "}
+              {utilisateurABannir?.user_last_name}
+            </p>
+
+            <select
+              className="input"
+              value={banForm.type}
+              onChange={(e) => setBanForm({ ...banForm, type: e.target.value })}
+            >
+              <option value="temporaire">Temporaire</option>
+              <option value="definitif">Définitif</option>
+            </select>
+
+            {banForm.type === "temporaire" && (
+              <div className="ban-row">
+                <input
+                  className="input"
+                  type="number"
+                  min="1"
+                  value={banForm.duree}
+                  onChange={(e) => setBanForm({ ...banForm, duree: e.target.value })}
+                />
+
+                <select
+                  className="input"
+                  value={banForm.unite}
+                  onChange={(e) => setBanForm({ ...banForm, unite: e.target.value })}
+                >
+                  <option value="jours">Jours</option>
+                  <option value="mois">Mois</option>
+                </select>
+              </div>
+            )}
+
+            <textarea
+              className="input"
+              placeholder="Raison du bannissement"
+              value={banForm.raison}
+              onChange={(e) => setBanForm({ ...banForm, raison: e.target.value })}
+            />
+
+            <div className="ban-modal-actions">
+              <button className="secondary-btn" onClick={fermerModalBan}>
+                Annuler
+              </button>
+
+              <button className="ban-btn" onClick={bannir}>
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+>>>>>>> origin/notifcalendrier
     </>
   );
 };

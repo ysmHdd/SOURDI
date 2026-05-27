@@ -3,6 +3,7 @@ import AdminSidebar from "../../components/layout/AdminSidebar";
 import "../../styles/adminLayout.css";
 import axios from "../../api/axios";
 
+<<<<<<< HEAD
 const MATIERES   = ["francais", "arabe", "maths", "sciences", "histoire"];
 const NIVEAUX    = [1, 2, 3, 4, 5, 6];
 const DIFFICULTES = ["facile", "moyen", "difficile"];
@@ -31,18 +32,45 @@ const Exercices = () => {
   const [message, setMessage]           = useState("");
   const [filtreMatiere, setFiltreMatiere] = useState("maths");
   const [filtreNiveau, setFiltreNiveau]   = useState(1);
+=======
+const MATIERES = ["francais", "arabe", "maths", "sciences", "histoire"];
+const NIVEAUX = [1, 2, 3, 4, 5, 6];
+
+const vide = {
+  matiere: "maths",
+  niveau: 1,
+  sousCat: "",
+  question: "",
+  options: ["", "", "", ""],
+  reponse: 0,
+  points: 10,
+};
+
+const Exercices = () => {
+  const [exercices, setExercices] = useState([]);
+  const [form, setForm] = useState(vide);
+  const [editId, setEditId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [filtreMatiere, setFiltreMatiere] = useState("maths");
+  const [filtreNiveau, setFiltreNiveau] = useState(1);
+>>>>>>> origin/notifcalendrier
 
   const charger = async () => {
     try {
       const res = await axios.get(
         `http://localhost:5004/api/exercices?matiere=${filtreMatiere}&niveau=${filtreNiveau}`
       );
+<<<<<<< HEAD
       const data = res.data;
       if (Array.isArray(data)) {
         setExercices(data);
       } else {
         setExercices([...(data.aFaire || []), ...(data.done || [])]);
       }
+=======
+      setExercices(res.data);
+>>>>>>> origin/notifcalendrier
     } catch (e) { console.error(e); }
   };
 
@@ -85,6 +113,7 @@ const Exercices = () => {
 
   const editer = (ex) => {
     setForm({
+<<<<<<< HEAD
       matiere:      ex.matiere,
       niveau:       ex.niveau,
       sousCat:      ex.sousCat,
@@ -97,6 +126,15 @@ const Exercices = () => {
       options:      ex.options,
       reponse:      ex.reponse,
       exp:          ex.exp         || 20,
+=======
+      matiere: ex.matiere,
+      niveau: ex.niveau,
+      sousCat: ex.sousCat,
+      question: ex.question,
+      options: ex.options,
+      reponse: ex.reponse,
+      points: ex.points,
+>>>>>>> origin/notifcalendrier
     });
     setEditId(ex._id);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -113,19 +151,29 @@ const Exercices = () => {
           <p className="admin-main-subtitle">Ajouter, modifier et supprimer les exercices de la plateforme</p>
         </div>
 
+<<<<<<< HEAD
         {/* ── Formulaire ── */}
         <div className="admin-top-card" style={{ marginBottom: 24 }}>
           <h3 className="admin-form-title">{editId ? "Modifier l'exercice" : "Ajouter un exercice"}</h3>
 
+=======
+        {/* Formulaire */}
+        <div className="admin-top-card" style={{ marginBottom: 24 }}>
+          <h3 className="admin-form-title">{editId ? "Modifier l'exercice" : "Ajouter un exercice"}</h3>
+>>>>>>> origin/notifcalendrier
           {message && (
             <div className={`admin-msg ${message.startsWith("Erreur") ? "error" : "success"}`}>
               {message}
             </div>
           )}
+<<<<<<< HEAD
 
           <form onSubmit={soumettre} className="ex-form">
 
             {/* Ligne 1 — matière / niveau / sousCat / difficulté */}
+=======
+          <form onSubmit={soumettre} className="ex-form">
+>>>>>>> origin/notifcalendrier
             <div className="ex-form-row">
               <div className="ex-field">
                 <label className="ex-label">Matière</label>
@@ -133,18 +181,25 @@ const Exercices = () => {
                   {MATIERES.map((m) => <option key={m} value={m}>{m}</option>)}
                 </select>
               </div>
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/notifcalendrier
               <div className="ex-field">
                 <label className="ex-label">Niveau (classe)</label>
                 <select className="ex-input ex-select" value={form.niveau} onChange={(e) => setForm({ ...form, niveau: parseInt(e.target.value) })}>
                   {NIVEAUX.map((n) => <option key={n} value={n}>{n}ère/ème année</option>)}
                 </select>
               </div>
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/notifcalendrier
               <div className="ex-field">
                 <label className="ex-label">Sous-catégorie</label>
                 <input className="ex-input" placeholder="Ex: addition, alphabet..." value={form.sousCat} onChange={(e) => setForm({ ...form, sousCat: e.target.value })} required />
               </div>
+<<<<<<< HEAD
 
               <div className="ex-field">
                 <label className="ex-label">Difficulté</label>
@@ -198,6 +253,23 @@ const Exercices = () => {
                   <div className={`ex-option-badge ${form.reponse === idx ? "correct" : ""}`}>
                     {["A", "B", "C", "D"][idx]}
                   </div>
+=======
+              <div className="ex-field">
+                <label className="ex-label">Points</label>
+                <input className="ex-input" type="number" min="5" max="50" value={form.points} onChange={(e) => setForm({ ...form, points: parseInt(e.target.value) })} />
+              </div>
+            </div>
+
+            <div className="ex-field" style={{ marginBottom: 16 }}>
+              <label className="ex-label">Question</label>
+              <input className="ex-input" placeholder="Écris la question ici..." value={form.question} onChange={(e) => setForm({ ...form, question: e.target.value })} required />
+            </div>
+
+            <div className="ex-options-grid">
+              {form.options.map((opt, idx) => (
+                <div key={idx} className="ex-option-field">
+                  <div className={`ex-option-badge ${form.reponse === idx ? "correct" : ""}`}>{["A", "B", "C", "D"][idx]}</div>
+>>>>>>> origin/notifcalendrier
                   <input
                     className="ex-input"
                     placeholder={`Option ${["A", "B", "C", "D"][idx]}`}
@@ -226,11 +298,18 @@ const Exercices = () => {
                 {loading ? "..." : editId ? "Modifier" : "Ajouter l'exercice"}
               </button>
             </div>
+<<<<<<< HEAD
 
           </form>
         </div>
 
         {/* ── Filtres ── */}
+=======
+          </form>
+        </div>
+
+        {/* Filtres */}
+>>>>>>> origin/notifcalendrier
         <div className="admin-top-card" style={{ marginBottom: 16 }}>
           <div className="ex-filtres">
             <div className="ex-field" style={{ flex: 1 }}>
@@ -248,12 +327,17 @@ const Exercices = () => {
           </div>
         </div>
 
+<<<<<<< HEAD
         {/* ── Liste ── */}
+=======
+        {/* Liste exercices */}
+>>>>>>> origin/notifcalendrier
         <div className="ex-list">
           {exercices.length === 0 ? (
             <div className="admin-top-card" style={{ textAlign: "center", color: "#9C8AA5" }}>
               Aucun exercice pour cette sélection.
             </div>
+<<<<<<< HEAD
           ) : (
             exercices.map((ex) => (
               <div key={ex._id} className="ex-card">
@@ -286,6 +370,32 @@ const Exercices = () => {
               </div>
             ))
           )}
+=======
+          ) : exercices.map((ex) => (
+            <div key={ex._id} className="ex-card">
+              <div className="ex-card-head">
+                <div className="ex-card-badges">
+                  <span className="ex-badge matiere">{ex.matiere}</span>
+                  <span className="ex-badge niveau">Niveau {ex.niveau}</span>
+                  <span className="ex-badge sousCat">{ex.sousCat}</span>
+                </div>
+                <span className="ex-points">{ex.points} pts</span>
+              </div>
+              <p className="ex-question">{ex.question}</p>
+              <div className="ex-opts-preview">
+                {ex.options.map((opt, idx) => (
+                  <span key={idx} className={`ex-opt-chip ${ex.reponse === idx ? "correct" : ""}`}>
+                    {["A", "B", "C", "D"][idx]}. {opt}
+                  </span>
+                ))}
+              </div>
+              <div className="ex-card-actions">
+                <button className="ex-edit-btn" onClick={() => editer(ex)}>Modifier</button>
+                <button className="ex-delete-btn" onClick={() => supprimer(ex._id)}>Supprimer</button>
+              </div>
+            </div>
+          ))}
+>>>>>>> origin/notifcalendrier
         </div>
 
       </main>

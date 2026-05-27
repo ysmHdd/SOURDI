@@ -252,4 +252,107 @@
   top: 50%;
   transform: translateY(-50%);
   box-shadow: 0 0 0 4px rgba(239, 83, 80, 0.14);
+<<<<<<< HEAD
+=======
+}
+/* ── DEMANDES D'ACCÈS ── */
+.table-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(171, 71, 188, 0.1);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 16px 34px rgba(90, 70, 120, 0.08);
+}
+
+.table-header {
+  padding: 24px;
+  border-bottom: 1px solid rgba(171, 71, 188, 0.08);
+}
+
+.section-title {
+  margin: 0 0 8px;
+  color: #322b45;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.section-subtitle {
+  margin: 0;
+  color: #7e7a8a;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+}
+
+.users-table thead tr {
+  background: linear-gradient(135deg, #f7f0fc, #eef0ff);
+}
+
+.users-table th {
+  padding: 16px 20px;
+  text-align: left;
+  color: #5e548e;
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.users-table td {
+  padding: 16px 20px;
+  color: #4a4458;
+  font-size: 0.94rem;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(171, 71, 188, 0.07);
+}
+
+.user-name {
+  font-weight: 900;
+  color: #322b45;
+}
+
+.user-email {
+  color: #7e7a8a;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.secondary-btn,
+.delete-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 9px 14px;
+  cursor: pointer;
+  font-family: "Nunito", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: white;
+}
+
+.secondary-btn {
+  background: linear-gradient(135deg, #26a69a, #43a047);
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #ef5350, #e53935);
+}
+
+.empty-state {
+  padding: 26px 24px;
+  color: #8a8298;
+  font-size: 0.95rem;
+  font-weight: 800;
+>>>>>>> origin/notifcalendrier
 }

@@ -10,6 +10,15 @@ const Produits = () => {
   const [modeEdition, setModeEdition] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [preview, setPreview] = useState("");
+<<<<<<< HEAD
+=======
+  const [erreur, setErreur] = useState("");
+
+  const [recherche, setRecherche] = useState("");
+  const [filtreCategorie, setFiltreCategorie] = useState("tous");
+  const [filtreDisponibilite, setFiltreDisponibilite] = useState("tous");
+
+>>>>>>> origin/notifcalendrier
   const [form, setForm] = useState({
     nom: "",
     description: "",
@@ -18,7 +27,10 @@ const Produits = () => {
     categorie: "cours",
     disponible: true,
   });
+<<<<<<< HEAD
   const [erreur, setErreur] = useState("");
+=======
+>>>>>>> origin/notifcalendrier
 
   const charger = async () => {
     try {
@@ -79,7 +91,13 @@ const Produits = () => {
       setErreur("");
       charger();
     } catch {
+<<<<<<< HEAD
       setErreur(modeEdition ? "Erreur modification produit" : "Erreur création produit");
+=======
+      setErreur(
+        modeEdition ? "Erreur modification produit" : "Erreur création produit"
+      );
+>>>>>>> origin/notifcalendrier
     }
   };
 
@@ -114,7 +132,25 @@ const Produits = () => {
     charger();
   }, []);
 
+<<<<<<< HEAD
   return (
+=======
+  const produitsFiltres = produits.filter((p) => {
+    const texte = `${p.nom || ""} ${p.description || ""}`.toLowerCase();
+
+    const matchRecherche = texte.includes(recherche.toLowerCase());
+
+    const matchCategorie =
+      filtreCategorie === "tous" || p.categorie === filtreCategorie;
+
+    const matchDisponibilite =
+      filtreDisponibilite === "tous" ||
+      (filtreDisponibilite === "disponible" && p.disponible) ||
+      (filtreDisponibilite === "indisponible" && !p.disponible);
+
+    return matchRecherche && matchCategorie && matchDisponibilite;
+  });  return (
+>>>>>>> origin/notifcalendrier
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap');
@@ -199,6 +235,16 @@ const Produits = () => {
           gap: 14px;
         }
 
+<<<<<<< HEAD
+=======
+        .filters-box {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr;
+          gap: 12px;
+          margin-bottom: 22px;
+        }
+
+>>>>>>> origin/notifcalendrier
         .input {
           padding: 12px 14px;
           border-radius: 14px;
@@ -316,6 +362,13 @@ const Produits = () => {
           .admin-main { padding: 18px; }
           .admin-top-card { padding: 22px; }
           .admin-main-title { font-size: 1.6rem; }
+<<<<<<< HEAD
+=======
+
+          .filters-box {
+            grid-template-columns: 1fr;
+          }
+>>>>>>> origin/notifcalendrier
         }
       `}</style>
 
@@ -334,14 +387,26 @@ const Produits = () => {
             <h3 className="section-title">
               {modeEdition ? "Modifier le produit" : "Ajouter un produit"}
             </h3>
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/notifcalendrier
             <p className="section-subtitle">
               Remplissez les informations du produit avant de l’ajouter à la marketplace.
             </p>
 
             <form onSubmit={envoyerForm} className="product-form">
               <input className="input" placeholder="Nom" value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} required />
+<<<<<<< HEAD
               <input className="input" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
               <input className="input" type="number" placeholder="Prix en Coins" value={form.prixEnCoins} onChange={(e) => setForm({ ...form, prixEnCoins: e.target.value })} required />
+=======
+
+              <input className="input" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
+
+              <input className="input" type="number" placeholder="Prix en Coins" value={form.prixEnCoins} onChange={(e) => setForm({ ...form, prixEnCoins: e.target.value })} required />
+
+>>>>>>> origin/notifcalendrier
               <input className="input" type="number" placeholder="Stock" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
 
               <select className="input" value={form.categorie} onChange={(e) => setForm({ ...form, categorie: e.target.value })}>
@@ -357,22 +422,75 @@ const Produits = () => {
 
               <input className="input" type="file" accept="image/*" onChange={handlePhoto} />
 
+<<<<<<< HEAD
               {preview && <img src={preview} alt="Aperçu produit" className="photo-preview" />}
+=======
+              {preview && (
+                <img
+                  src={preview}
+                  alt="Aperçu produit"
+                  className="photo-preview"
+                />
+              )}
+>>>>>>> origin/notifcalendrier
 
               <button type="submit" className="primary-btn">
                 {modeEdition ? "Modifier" : "Ajouter"}
               </button>
 
               {modeEdition && (
+<<<<<<< HEAD
                 <button type="button" className="secondary-btn" onClick={resetForm}>
+=======
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  onClick={resetForm}
+                >
+>>>>>>> origin/notifcalendrier
                   Annuler
                 </button>
               )}
             </form>
           </section>
 
+<<<<<<< HEAD
           <div className="products-grid">
             {produits.map((p) => (
+=======
+          <div className="filters-box">
+            <input
+              className="input"
+              placeholder="Rechercher un produit..."
+              value={recherche}
+              onChange={(e) => setRecherche(e.target.value)}
+            />
+
+            <select
+              className="input"
+              value={filtreCategorie}
+              onChange={(e) => setFiltreCategorie(e.target.value)}
+            >
+              <option value="tous">Toutes catégories</option>
+              <option value="cours">Cours</option>
+              <option value="livre">Livre</option>
+              <option value="autre">Autre</option>
+            </select>
+
+            <select
+              className="input"
+              value={filtreDisponibilite}
+              onChange={(e) => setFiltreDisponibilite(e.target.value)}
+            >
+              <option value="tous">Tous</option>
+              <option value="disponible">Disponible</option>
+              <option value="indisponible">Non disponible</option>
+            </select>
+          </div>
+
+          <div className="products-grid">
+            {produitsFiltres.map((p) => (
+>>>>>>> origin/notifcalendrier
               <div key={p._id} className="product-card">
                 {p.photo && (
                   <img
@@ -383,21 +501,51 @@ const Produits = () => {
                 )}
 
                 <h3 className="product-title">{p.nom}</h3>
+<<<<<<< HEAD
                 <p className="product-desc">{p.description}</p>
 
                 <div className="product-meta">
                   <span>Prix: <strong>{p.prixEnCoins}</strong> coins</span>
                   <span>Stock: {p.stock}</span>
                   <span>{p.disponible ? "Disponible" : "Non disponible"}</span>
+=======
+
+                <p className="product-desc">{p.description}</p>
+
+                <div className="product-meta">
+                  <span>
+                    Prix: <strong>{p.prixEnCoins}</strong> coins
+                  </span>
+
+                  <span>Stock: {p.stock}</span>
+
+                  <span>
+                    {p.disponible ? "Disponible" : "Non disponible"}
+                  </span>
+>>>>>>> origin/notifcalendrier
                 </div>
 
                 <span className="badge">{p.categorie}</span>
 
                 <div className="actions">
+<<<<<<< HEAD
                   <button className="secondary-btn" onClick={() => modifier(p)}>
                     Modifier
                   </button>
                   <button className="danger-btn" onClick={() => supprimer(p._id)}>
+=======
+                  <button
+                    className="secondary-btn"
+                    onClick={() => modifier(p)}
+                  >
+                    Modifier
+                  </button>
+
+                  <button
+                    className="danger-btn"
+                    onClick={() => supprimer(p._id)}
+                  >
+>>>>>>> origin/notifcalendrier
                     Supprimer
                   </button>
                 </div>

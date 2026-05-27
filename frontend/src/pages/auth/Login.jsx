@@ -48,6 +48,13 @@ const Login = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+<<<<<<< HEAD
+=======
+  const estMessageBan = (message) => {
+    return message?.toLowerCase().includes("banni");
+  };
+
+>>>>>>> origin/notifcalendrier
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -482,6 +489,18 @@ const Login = () => {
           justify-content: center;
         }
 
+<<<<<<< HEAD
+=======
+        .login-error.banned {
+          align-items: flex-start;
+          background: linear-gradient(135deg, #fff3e0, #ffebee);
+          border: 2px solid rgba(239, 83, 80, 0.32);
+          color: #b71c1c;
+          text-align: left;
+          line-height: 1.5;
+        }
+
+>>>>>>> origin/notifcalendrier
         .login-btn {
           width: 100%;
           padding: 16px;
@@ -554,6 +573,7 @@ const Login = () => {
 
         <div className="login-card">
           <div className="lang-switch">
+<<<<<<< HEAD
             <button
               className={`lang-btn ${lang === "fr" ? "active" : ""}`}
               onClick={() => changeLang("fr")}
@@ -566,6 +586,12 @@ const Login = () => {
               onClick={() => changeLang("en")}
               type="button"
             >
+=======
+            <button className={`lang-btn ${lang === "fr" ? "active" : ""}`} onClick={() => changeLang("fr")} type="button">
+              FR
+            </button>
+            <button className={`lang-btn ${lang === "en" ? "active" : ""}`} onClick={() => changeLang("en")} type="button">
+>>>>>>> origin/notifcalendrier
               EN
             </button>
           </div>
@@ -603,8 +629,13 @@ const Login = () => {
           <h2 className="login-title">SOURDI</h2>
 
           {erreur && (
+<<<<<<< HEAD
             <div className="login-error">
               <span>😬</span> {erreur}
+=======
+            <div className={`login-error ${estMessageBan(erreur) ? "banned" : ""}`}>
+              <span>{estMessageBan(erreur) ? "🚫" : "😬"}</span> {erreur}
+>>>>>>> origin/notifcalendrier
             </div>
           )}
 

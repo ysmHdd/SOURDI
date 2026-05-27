@@ -49,6 +49,10 @@ const genererToken = (utilisateur) => {
       email: utilisateur.user_email,
       role: utilisateur.role,
       grade: utilisateur.params?.grade || "1",
+<<<<<<< HEAD
+=======
+      statutAcces: utilisateur.statutAcces,
+>>>>>>> origin/notifcalendrier
     },
     process.env.JWT_SECRET,
     { expiresIn: "1d" }
@@ -67,6 +71,46 @@ const validerEmailEtMotDePasse = (email, motDePasse) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+const verifierBanissement = async (utilisateur) => {
+  if (!utilisateur.banni) {
+    return;
+  }
+
+  if (
+    utilisateur.banType === "temporaire" &&
+    utilisateur.banExpireLe &&
+    new Date(utilisateur.banExpireLe) <= new Date()
+  ) {
+    utilisateur.banni = false;
+    utilisateur.banType = null;
+    utilisateur.banRaison = "";
+    utilisateur.banExpireLe = null;
+
+    await utilisateur.save();
+
+    return;
+  }
+
+  if (utilisateur.banType === "definitif") {
+    throw new Error(
+      `Votre compte est banni définitivement.${
+        utilisateur.banRaison ? ` Raison : ${utilisateur.banRaison}` : ""
+      }`
+    );
+  }
+
+  throw new Error(
+    `Votre compte est banni jusqu'au ${new Date(
+      utilisateur.banExpireLe
+    ).toLocaleDateString("fr-FR")}.${
+      utilisateur.banRaison ? ` Raison : ${utilisateur.banRaison}` : ""
+    }`
+  );
+};
+
+>>>>>>> origin/notifcalendrier
 const inscrireUtilisateur = async (donnees) => {
   const {
     user_first_name,
@@ -106,6 +150,10 @@ const inscrireUtilisateur = async (donnees) => {
     avatar: avatarFinal,
     role: "etudiant",
     emailConfirme: false,
+<<<<<<< HEAD
+=======
+    statutAcces: "en_attente",
+>>>>>>> origin/notifcalendrier
     emailToken,
     emailTokenExpire: Date.now() + 60 * 60 * 1000,
   });
@@ -120,6 +168,10 @@ const inscrireUtilisateur = async (donnees) => {
       user_email: utilisateur.user_email,
       role: utilisateur.role,
       emailConfirme: utilisateur.emailConfirme,
+<<<<<<< HEAD
+=======
+      statutAcces: utilisateur.statutAcces,
+>>>>>>> origin/notifcalendrier
       avatar: utilisateur.avatar,
     },
   };
@@ -160,6 +212,10 @@ const creerAdmin = async (donnees) => {
     avatar: avatarFinal,
     role: "admin",
     emailConfirme: true,
+<<<<<<< HEAD
+=======
+    statutAcces: "accepte",
+>>>>>>> origin/notifcalendrier
   });
 
   return {
@@ -168,6 +224,10 @@ const creerAdmin = async (donnees) => {
     user_last_name: admin.user_last_name,
     user_email: admin.user_email,
     role: admin.role,
+<<<<<<< HEAD
+=======
+    statutAcces: admin.statutAcces,
+>>>>>>> origin/notifcalendrier
     avatar: admin.avatar,
   };
 };
@@ -198,6 +258,11 @@ const connecterUtilisateur = async (email, motDePasse) => {
     throw new Error("Veuillez confirmer votre email avant de vous connecter");
   }
 
+<<<<<<< HEAD
+=======
+  await verifierBanissement(utilisateur);
+
+>>>>>>> origin/notifcalendrier
   const token = genererToken(utilisateur);
 
   return {
@@ -207,6 +272,14 @@ const connecterUtilisateur = async (email, motDePasse) => {
       user_last_name: utilisateur.user_last_name,
       user_email: utilisateur.user_email,
       role: utilisateur.role,
+<<<<<<< HEAD
+=======
+      statutAcces: utilisateur.statutAcces,
+      banni: utilisateur.banni,
+      banType: utilisateur.banType,
+      banRaison: utilisateur.banRaison,
+      banExpireLe: utilisateur.banExpireLe,
+>>>>>>> origin/notifcalendrier
       avatar: utilisateur.avatar,
     },
     token,

@@ -58,6 +58,36 @@ const utilisateurSchema = new mongoose.Schema(
       default: false,
     },
 
+<<<<<<< HEAD
+=======
+    statutAcces: {
+      type: String,
+      enum: ["en_attente", "accepte", "refuse"],
+      default: "en_attente",
+    },
+    banni: {
+  type: Boolean,
+  default: false,
+},
+
+banType: {
+  type: String,
+  enum: ["temporaire", "definitif", null],
+  default: null,
+},
+
+banRaison: {
+  type: String,
+  default: "",
+  trim: true,
+},
+
+banExpireLe: {
+  type: Date,
+  default: null,
+},
+
+>>>>>>> origin/notifcalendrier
     emailToken: {
       type: String,
     },
