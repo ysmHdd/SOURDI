@@ -126,6 +126,13 @@ const getNextGoalCoins = (solde) => {
   return null;
 };
 
+const getNotificationIcon = (type) => {
+  if (type === "message") return "💬";
+  if (type === "marketplace") return "🛒";
+  if (type === "calendrier") return "📅";
+  return "🔔";
+};
+
 const ProgressCircle = ({ value, max, color, size = 64 }) => {
   const r = (size - 8) / 2;
   const circ = 2 * Math.PI * r;
@@ -285,9 +292,7 @@ export default function Accueil() {
 
   useEffect(() => {
     chargerNotifications();
-
     const interval = setInterval(chargerNotifications, 10000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -332,7 +337,8 @@ export default function Accueil() {
 
     return () => clearInterval(timerRef.current);
   }, []);
-    const kpi = profil?.kpi || {};
+
+  const kpi = profil?.kpi || {};
   const solde = profil?.solde ?? 0;
   const niveauIdx = getNiveau(solde);
   const nextGoal = getNextGoalCoins(solde);
@@ -487,7 +493,9 @@ export default function Accueil() {
                       notificationsAffichees.map((n) => (
                         <div
                           key={n._id}
-                          className={`fb-notif-item ${!n.lu ? "unread" : ""}`}
+                          className={`fb-notif-item ${!n.lu ? "unread" : ""} ${
+                            n.type === "marketplace" ? "marketplace-notif" : ""
+                          }`}
                           role="button"
                           tabIndex={0}
                           onClick={() => ouvrirNotification(n)}
@@ -498,19 +506,15 @@ export default function Accueil() {
                           }}
                         >
                           <div className={`fb-notif-icon ${n.type}`}>
-                            {n.type === "message"
-                              ? "💬"
-                              : n.type === "marketplace"
-                              ? "🛒"
-                              : n.type === "calendrier"
-                              ? "📅"
-                              : "🔔"}
+                            {getNotificationIcon(n.type)}
                           </div>
 
                           <div className="fb-notif-content">
                             <p>
-                              <strong>{n.titre}</strong> {n.message}
+                              <strong>{n.titre}</strong>
                             </p>
+
+                            <p className="fb-notif-message">{n.message}</p>
 
                             <span>
                               {new Date(n.createdAt).toLocaleString("fr-FR", {
@@ -791,15 +795,16 @@ export default function Accueil() {
               Vous pouvez toujours utiliser la messagerie pour contacter
               l'administration.
             </div>
+
             <button
-  className="acc-access-logout"
-  onClick={() => {
-    deconnexion();
-    navigate("/login");
-  }}
->
-  Déconnexion
-</button>
+              className="acc-access-logout"
+              onClick={() => {
+                deconnexion();
+                navigate("/login");
+              }}
+            >
+              Déconnexion
+            </button>
           </div>
         </div>
       )}

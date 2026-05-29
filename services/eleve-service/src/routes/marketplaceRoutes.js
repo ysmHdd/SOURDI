@@ -53,5 +53,15 @@ routeur.get(
   verifierToken,
   marketplaceController.historiqueAchats
 );
+routeur.patch(
+  "/commandes/:idTransaction/annuler",
+  verifierToken,
+  marketplaceController.annulerCommande
+);
+routeur.delete(
+  "/commandes/:idTransaction",
+  verifierToken,
+  marketplaceController.supprimerCommande
+);
 
 module.exports = routeur;

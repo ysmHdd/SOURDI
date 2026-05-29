@@ -52,18 +52,45 @@ const clientSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const annulationSchema = new mongoose.Schema(
+  {
+    annuleePar: {
+      type: String,
+      enum: ["admin", "eleve", null],
+      default: null,
+    },
+    cause: {
+      type: String,
+      enum: ["rupture_stock", "autre", ""],
+      default: "",
+    },
+    details: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    dateAnnulation: {
+      type: Date,
+      default: null,
+    },
+  },
+  { _id: false }
+);
+
 const transactionSchema = new mongoose.Schema(
   {
     utilisateur: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Utilisateur",
       required: true,
+      index: true,
     },
 
     produit: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Produit",
       required: true,
+      index: true,
     },
 
     quantite: {
@@ -76,6 +103,7 @@ const transactionSchema = new mongoose.Schema(
     montantEnCoins: {
       type: Number,
       required: true,
+      min: 0,
     },
 
     client: {
@@ -90,11 +118,24 @@ const transactionSchema = new mongoose.Schema(
 
     statut: {
       type: String,
-      enum: ["reussi", "echoue", "rembourse"],
+      enum: ["reussi", "livree", "echoue", "rembourse", "annulee"],
       default: "reussi",
+      index: true,
+    },
+
+    dateLivraison: {
+      type: Date,
+      default: null,
+    },
+
+    annulation: {
+      type: annulationSchema,
+      default: () => ({}),
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model("Transaction", transactionSchema);

@@ -19,6 +19,7 @@ import MessagesAdmin from "./pages/admin/MessagesAdmin";
 import SignalementsAdmin from "./pages/admin/SignalementsAdmin";
 import Calendrier from "./pages/eleve/Calendrier";
 import DemandesAcces from "./pages/admin/DemandesAcces";
+import CommandesAdmin from "./pages/admin/CommandesAdmin";
 
 function App() {
   return (
@@ -120,6 +121,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/admin/commandes" element={<CommandesAdmin />} />
 
         </Routes>
       </BrowserRouter>

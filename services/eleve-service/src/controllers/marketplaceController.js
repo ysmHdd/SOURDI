@@ -150,6 +150,37 @@ const validerPanier = async (req, res) => {
     });
   }
 };
+const annulerCommande = async (req, res) => {
+  try {
+    const resultat = await marketplaceService.annulerCommandeEleve(
+      req.utilisateur.id,
+      req.params.idTransaction
+    );
+
+    res.status(200).json({
+      message: "Commande annulée avec succès. Coins remboursés.",
+      ...resultat,
+    });
+  } catch (erreur) {
+    res.status(400).json({ message: erreur.message });
+  }
+};
+const supprimerCommande = async (req, res) => {
+  try {
+    await marketplaceService.supprimerCommande(
+      req.utilisateur.id,
+      req.params.idTransaction
+    );
+
+    res.status(200).json({
+      message: "Commande supprimée avec succès",
+    });
+  } catch (erreur) {
+    res.status(400).json({
+      message: erreur.message,
+    });
+  }
+};
 
 module.exports = {
   listerProduits,
@@ -161,4 +192,6 @@ module.exports = {
   supprimerDuPanier,
   viderPanier,
   validerPanier,
+  annulerCommande,
+  supprimerCommande,
 };

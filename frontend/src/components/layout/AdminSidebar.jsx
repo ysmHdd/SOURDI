@@ -144,6 +144,19 @@ const AdminSidebar = () => {
         </svg>
       ),
     },
+    {
+  label: "Commandes",
+  path: "/admin/commandes",
+  notification: false,
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M6 2h12l2 5H4l2-5z" />
+      <path d="M4 7h16v14H4z" />
+      <path d="M9 11h6" />
+      <path d="M9 15h6" />
+    </svg>
+  ),
+},
   ];
 
   return (

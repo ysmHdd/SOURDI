@@ -15,6 +15,7 @@ const Panier = () => {
   const [dark, setDark] = useState(localStorage.getItem("sourdi_dark") === "true");
   const [profil, setProfil] = useState(null);
   const [panier, setPanier] = useState(null);
+  const [commandes, setCommandes] = useState([]);
   const [total, setTotal] = useState(0);
   const [message, setMessage] = useState("");
   const [erreur, setErreur] = useState("");
@@ -29,14 +30,16 @@ const Panier = () => {
 
   const charger = async () => {
     try {
-      const [panierRes, profilRes] = await Promise.all([
+      const [panierRes, profilRes, commandesRes] = await Promise.all([
         axios.get(`${API_ELEVE}/api/eleve/marketplace/panier`),
         axios.get(`${API_ELEVE}/api/eleve/profil`),
+        axios.get(`${API_ELEVE}/api/eleve/marketplace/historique`),
       ]);
 
       setPanier(panierRes.data.panier);
       setTotal(panierRes.data.total);
       setProfil(profilRes.data);
+      setCommandes(commandesRes.data || []);
 
       setAdresseLivraison((prev) => ({
         ...prev,
@@ -44,7 +47,7 @@ const Panier = () => {
         delegation: profilRes.data?.params?.delegation || "",
       }));
     } catch (err) {
-      setErreur("Erreur lors du chargement du panier.");
+      setErreur("Erreur lors du chargement.");
     }
   };
 
@@ -121,6 +124,50 @@ const Panier = () => {
     }
   };
 
+  const annulerCommande = async (idTransaction) => {
+    try {
+      setErreur("");
+      setMessage("");
+
+      await axios.patch(
+        `${API_ELEVE}/api/eleve/marketplace/commandes/${idTransaction}/annuler`
+      );
+
+      setMessage("Commande annulée.");
+      charger();
+    } catch (err) {
+      setErreur(err.response?.data?.message || "Erreur lors de l'annulation.");
+    }
+  };
+
+  const supprimerCommande = async (idTransaction) => {
+    try {
+      setErreur("");
+      setMessage("");
+
+      await axios.delete(
+        `${API_ELEVE}/api/eleve/marketplace/commandes/${idTransaction}`
+      );
+
+      setMessage("Commande supprimée.");
+      charger();
+    } catch (err) {
+      setErreur(err.response?.data?.message || "Erreur lors de la suppression.");
+    }
+  };
+
+  const getStatutLabel = (statut) => {
+    if (statut === "annulee") return "Annulée";
+    if (statut === "livree") return "Livrée";
+    return "Réussie";
+  };
+
+  const getStatutClass = (statut) => {
+    if (statut === "annulee") return "statut-annulee";
+    if (statut === "livree") return "statut-livree";
+    return "statut-reussi";
+  };
+
   const produits = panier?.produits || [];
 
   return (
@@ -173,7 +220,7 @@ const Panier = () => {
       <main className="panier-page">
         <div className="panier-head">
           <h1>Mon panier</h1>
-          <p>Modifie ta commande, supprime des produits ou valide avec ton adresse.</p>
+          <p>Modifie ton panier, valide ta commande et consulte tes commandes.</p>
         </div>
 
         {message && <div className="panier-success">{message}</div>}
@@ -216,9 +263,7 @@ const Panier = () => {
                           min="1"
                           max={p.stock}
                           value={item.quantite}
-                          onChange={(e) =>
-                            modifierQuantite(p._id, Number(e.target.value))
-                          }
+                          onChange={(e) => modifierQuantite(p._id, Number(e.target.value))}
                         />
 
                         <button type="button" onClick={() => supprimerProduit(p._id)}>
@@ -267,10 +312,7 @@ const Panier = () => {
                   type="text"
                   value={adresseLivraison.adresse}
                   onChange={(e) =>
-                    setAdresseLivraison({
-                      ...adresseLivraison,
-                      adresse: e.target.value,
-                    })
+                    setAdresseLivraison({ ...adresseLivraison, adresse: e.target.value })
                   }
                   required
                 />
@@ -282,10 +324,7 @@ const Panier = () => {
                   type="text"
                   value={adresseLivraison.gouvernorat}
                   onChange={(e) =>
-                    setAdresseLivraison({
-                      ...adresseLivraison,
-                      gouvernorat: e.target.value,
-                    })
+                    setAdresseLivraison({ ...adresseLivraison, gouvernorat: e.target.value })
                   }
                   required
                 />
@@ -297,10 +336,7 @@ const Panier = () => {
                   type="text"
                   value={adresseLivraison.delegation}
                   onChange={(e) =>
-                    setAdresseLivraison({
-                      ...adresseLivraison,
-                      delegation: e.target.value,
-                    })
+                    setAdresseLivraison({ ...adresseLivraison, delegation: e.target.value })
                   }
                   required
                 />
@@ -310,12 +346,10 @@ const Panier = () => {
                 <label>Code postal</label>
                 <input
                   type="text"
+                  required
                   value={adresseLivraison.codePostal}
                   onChange={(e) =>
-                    setAdresseLivraison({
-                      ...adresseLivraison,
-                      codePostal: e.target.value,
-                    })
+                    setAdresseLivraison({ ...adresseLivraison, codePostal: e.target.value })
                   }
                 />
               </div>
@@ -325,10 +359,7 @@ const Panier = () => {
                 <textarea
                   value={adresseLivraison.note}
                   onChange={(e) =>
-                    setAdresseLivraison({
-                      ...adresseLivraison,
-                      note: e.target.value,
-                    })
+                    setAdresseLivraison({ ...adresseLivraison, note: e.target.value })
                   }
                 />
               </div>
@@ -339,6 +370,88 @@ const Panier = () => {
             </form>
           </section>
         </div>
+
+        <section className="panier-card commandes-card">
+          <div className="panier-card-head">
+            <h2>Mes commandes</h2>
+            <span className="panier-total">{commandes.length} commande(s)</span>
+          </div>
+
+          {commandes.length > 0 ? (
+            <div className="commandes-list">
+              {commandes.map((commande) => {
+                const produit = commande.produit;
+                const estAnnulee = commande.statut === "annulee";
+                const estLivree = commande.statut === "livree";
+
+                return (
+                  <div
+                    key={commande._id}
+                    className={`commande-item ${estAnnulee ? "annulee" : ""} ${
+                      estLivree ? "livree" : ""
+                    }`}
+                  >
+                    <div className="commande-photo">
+                      {produit?.photo ? (
+                        <img src={`${API_ADMIN}${produit.photo}`} alt={produit.nom} />
+                      ) : (
+                        <div className="panier-placeholder" />
+                      )}
+                    </div>
+
+                    <div className="commande-info">
+                      <h3>{produit?.nom || "Produit supprimé"}</h3>
+                      <p>Quantité : {commande.quantite}</p>
+                      <p>Total : {commande.montantEnCoins} coins</p>
+                      <p>
+                        Date :{" "}
+                        {commande.createdAt
+                          ? new Date(commande.createdAt).toLocaleDateString("fr-FR")
+                          : "-"}
+                      </p>
+
+                      {estAnnulee && (
+                        <div className="commande-annulation">
+                          <strong>Commande annulée</strong>
+                        </div>
+                      )}
+
+                      {estLivree && (
+                        <div className="commande-livraison">
+                          <strong>Commande livrée</strong>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="commande-actions">
+                      <span className={`commande-statut ${getStatutClass(commande.statut)}`}>
+                        {getStatutLabel(commande.statut)}
+                      </span>
+
+                      {!estAnnulee && !estLivree && (
+                        <button type="button" onClick={() => annulerCommande(commande._id)}>
+                          Annuler
+                        </button>
+                      )}
+
+                      {(estAnnulee || estLivree) && (
+                        <button
+                          type="button"
+                          className="commande-delete-btn"
+                          onClick={() => supprimerCommande(commande._id)}
+                        >
+                          Supprimer
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="panier-empty">Tu n'as pas encore de commandes.</div>
+          )}
+        </section>
       </main>
     </div>
   );

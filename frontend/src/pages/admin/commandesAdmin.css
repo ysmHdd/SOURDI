@@ -1,0 +1,179 @@
+.commandes-top-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(171, 71, 188, 0.1);
+  border-radius: 28px;
+  padding: 34px 36px;
+  box-shadow: 0 18px 40px rgba(90, 70, 120, 0.08);
+  margin-bottom: 28px;
+}
+
+.commandes-label {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #f1e3f8;
+  color: #7b4baa;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.commandes-main-title {
+  margin: 0;
+  color: #322b45;
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.commandes-main-subtitle {
+  margin: 14px 0 0;
+  color: #7e7a8a;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.commandes-table-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(171, 71, 188, 0.1);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 16px 34px rgba(90, 70, 120, 0.08);
+}
+
+.commandes-table-header {
+  padding: 24px 28px;
+}
+
+.commandes-section-title {
+  margin: 0 0 8px;
+  color: #322b45;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.commandes-section-subtitle {
+  margin: 0;
+  color: #7e7a8a;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.commandes-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.commandes-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.commandes-table thead tr {
+  background: linear-gradient(135deg, #f7f0fc, #eef0ff);
+}
+
+.commandes-table th {
+  padding: 16px 20px;
+  text-align: left;
+  color: #5e548e;
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.commandes-table td {
+  padding: 16px 20px;
+  color: #4a4458;
+  font-size: 0.94rem;
+  font-weight: 800;
+  border-bottom: 1px solid rgba(171, 71, 188, 0.07);
+}
+
+.commandes-table td span {
+  display: block;
+  color: #8a8298;
+  font-size: 0.82rem;
+  margin-top: 4px;
+}
+
+.commande-badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.badge-reussi {
+  background: #f1fff5;
+  color: #2e7d32;
+}
+
+.badge-annulee {
+  background: #fff3f3;
+  color: #c62828;
+}
+
+.commande-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.commande-annuler-btn,
+.commande-supprimer-btn {
+  border: none;
+  border-radius: 14px;
+  padding: 10px 16px;
+  cursor: pointer;
+  color: white;
+  font-weight: 900;
+  font-family: "Nunito", sans-serif;
+}
+
+.commande-annuler-btn {
+  background: #ef5350;
+}
+
+.commande-supprimer-btn {
+  background: #7e7a8a;
+}
+
+.commandes-success,
+.commandes-error {
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-weight: 900;
+  margin-bottom: 16px;
+}
+
+.commandes-success {
+  background: #f1fff5;
+  color: #2e7d32;
+}
+
+.commandes-error {
+  background: #fff3f3;
+  color: #c62828;
+}
+
+.commandes-empty {
+  padding: 28px;
+  color: #8a8298;
+  font-weight: 900;
+}
+.badge-livree {
+  background: rgba(33, 150, 243, 0.12);
+  color: #2196f3;
+}
+
+.commande-livree-btn {
+  border: none;
+  border-radius: 14px;
+  padding: 10px 16px;
+  cursor: pointer;
+  color: white;
+  font-weight: 900;
+  font-family: "Nunito", sans-serif;
+  background: #2196f3;
+}

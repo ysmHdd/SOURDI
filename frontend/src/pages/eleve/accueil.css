@@ -865,3 +865,14 @@
   transform: translateY(-2px);
   box-shadow: 0 14px 30px rgba(255, 82, 82, 0.32);
 }
+.fb-notif-message {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.marketplace-notif .fb-notif-icon {
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+}

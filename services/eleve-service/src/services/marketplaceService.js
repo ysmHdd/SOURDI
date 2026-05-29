@@ -342,6 +342,86 @@ const obtenirHistoriqueAchats = async (idUtilisateur) => {
     .populate("produit", "nom description prixEnCoins categorie photo")
     .sort({ createdAt: -1 });
 };
+const annulerCommandeEleve = async (idUtilisateur, idTransaction) => {
+  const transaction = await Transaction.findOne({
+    _id: idTransaction,
+    utilisateur: idUtilisateur,
+  });
+
+  if (!transaction) {
+    throw new Error("Commande introuvable");
+  }
+
+  if (transaction.statut === "livree") {
+    throw new Error(
+      "Impossible d'annuler cette commande car elle a déjà été livrée"
+    );
+  }
+
+  if (
+    transaction.statut === "annulee" ||
+    transaction.statut === "rembourse"
+  ) {
+    throw new Error("Cette commande est déjà annulée ou remboursée");
+  }
+
+  const coins = await SourdiCoins.findOne({
+    utilisateur: idUtilisateur,
+  });
+
+  if (!coins) {
+    throw new Error("Solde introuvable");
+  }
+
+  coins.solde += transaction.montantEnCoins;
+  await coins.save();
+
+  const produit = await Produit.findById(transaction.produit);
+
+  if (produit) {
+    produit.stock += transaction.quantite || 1;
+    produit.disponible = true;
+    await produit.save();
+  }
+
+  transaction.statut = "annulee";
+
+  transaction.annulation = {
+    annuleePar: "eleve",
+    cause: "autre",
+    details: "Commande annulée par l'élève. Coins remboursés.",
+    dateAnnulation: new Date(),
+  };
+
+  await transaction.save();
+
+  return {
+    transaction,
+    soldeRestant: coins.solde,
+  };
+};
+const supprimerCommande = async (idUtilisateur, idTransaction) => {
+  const transaction = await Transaction.findOne({
+    _id: idTransaction,
+    utilisateur: idUtilisateur,
+  });
+
+  if (!transaction) {
+    throw new Error("Commande introuvable");
+  }
+
+  if (!["annulee", "livree"].includes(transaction.statut)) {
+    throw new Error(
+      "Vous devez annuler la commande avant de la supprimer"
+    );
+  }
+
+  await Transaction.findByIdAndDelete(idTransaction);
+
+  return {
+    message: "Commande supprimée avec succès",
+  };
+};
 
 module.exports = {
   obtenirProduits,
@@ -353,4 +433,6 @@ module.exports = {
   supprimerDuPanier,
   viderPanier,
   validerPanier,
+  annulerCommandeEleve,
+  supprimerCommande,
 };
