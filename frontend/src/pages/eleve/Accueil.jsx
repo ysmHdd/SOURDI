@@ -6,6 +6,10 @@ import "./accueil.css";
 import EleveMessageBox from "../../components/messages/EleveMessageBox";
 import SourdiHelperChat from "../../components/ai/SourdiHelperChat";
 
+const API_EX = "http://localhost:5004/api/exercices";
+const API_COINS = "http://localhost:5005/api/coins";
+const API_ELEVE = "http://localhost:5003/api/eleve";
+
 const T = {
   fr: {
     tagline: "Plateforme d'apprentissage",
@@ -15,7 +19,7 @@ const T = {
     marketSub: "Dépense tes coins pour des récompenses",
     seeAll: "Voir tout",
     coursesTitle: "Cours disponibles",
-    coursesSub: "Continue ton apprentissage en langue des signes",
+    coursesSub: "Continue ton apprentissage avec tes cours",
     start: "Commencer",
     statsTitle: "Ma progression",
     lessons: "Leçons complétées",
@@ -42,7 +46,7 @@ const T = {
     marketSub: "Spend your coins to get rewards",
     seeAll: "See all",
     coursesTitle: "Available Courses",
-    coursesSub: "Continue your sign language learning",
+    coursesSub: "Continue learning with your lessons",
     start: "Start",
     statsTitle: "My Progress",
     lessons: "Completed Lessons",
@@ -63,53 +67,6 @@ const T = {
   },
 };
 
-const COURSES = [
-  {
-    id: 1,
-    title: { fr: "L'alphabet LSF", en: "LSF Alphabet" },
-    desc: {
-      fr: "Les bases de la langue des signes française",
-      en: "Basics of French sign language",
-    },
-    level: { fr: "Débutant", en: "Beginner" },
-    duration: "15 min",
-    color: "#7C4DFF",
-  },
-  {
-    id: 2,
-    title: { fr: "Salutations courantes", en: "Common Greetings" },
-    desc: {
-      fr: "Bonjour, merci, au revoir et plus encore",
-      en: "Hello, thank you, goodbye and more",
-    },
-    level: { fr: "Débutant", en: "Beginner" },
-    duration: "20 min",
-    color: "#E040FB",
-  },
-  {
-    id: 3,
-    title: { fr: "Les chiffres 1 à 20", en: "Numbers 1 to 20" },
-    desc: {
-      fr: "Compter et utiliser les chiffres en LSF",
-      en: "Count and use numbers in LSF",
-    },
-    level: { fr: "Intermédiaire", en: "Intermediate" },
-    duration: "25 min",
-    color: "#00BCD4",
-  },
-  {
-    id: 4,
-    title: { fr: "Les couleurs", en: "Colors" },
-    desc: {
-      fr: "Rouge, bleu, vert et bien d'autres",
-      en: "Red, blue, green and many more",
-    },
-    level: { fr: "Débutant", en: "Beginner" },
-    duration: "18 min",
-    color: "#FF6D00",
-  },
-];
-
 const getNiveau = (solde) => {
   if (solde >= 500) return 4;
   if (solde >= 200) return 3;
@@ -124,6 +81,16 @@ const getNextGoalCoins = (solde) => {
   if (solde < 200) return 200;
   if (solde < 500) return 500;
   return null;
+};
+
+const formatTemps = (minutes) => {
+  const total = Number(minutes) || 0;
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+
+  if (h > 0 && m > 0) return `${h}h ${m}min`;
+  if (h > 0) return `${h}h`;
+  return `${m}min`;
 };
 
 const getNotificationIcon = (type) => {
@@ -171,14 +138,15 @@ export default function Accueil() {
   const navigate = useNavigate();
 
   const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
-  const [dark, setDark] = useState(
-    localStorage.getItem("sourdi_dark") === "true"
-  );
+  const [dark, setDark] = useState(localStorage.getItem("sourdi_dark") === "true");
 
   const [profil, setProfil] = useState(null);
   const [produits, setProduits] = useState([]);
+  const [solde, setSolde] = useState(0);
   const [streak, setStreak] = useState(0);
   const [tempsSession, setTempsSession] = useState(0);
+  const [coursAccueil, setCoursAccueil] = useState([]);
+  const [coinsStats, setCoinsStats] = useState(null);
 
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -195,6 +163,49 @@ export default function Accueil() {
   const accesBloque =
     utilisateur?.statutAcces === "en_attente" ||
     utilisateur?.statutAcces === "refuse";
+
+  const chargerSolde = async () => {
+    const res = await axios.get(`${API_ELEVE}/coins/solde`);
+    setSolde(res.data?.solde || 0);
+    return res.data?.solde || 0;
+  };
+
+  const chargerProfil = async () => {
+    const res = await axios.get(`${API_ELEVE}/profil`);
+    setProfil(res.data);
+    return res.data;
+  };
+
+  const chargerCoursEtCoins = async () => {
+    try {
+      const [coursRes, statsRes] = await Promise.all([
+        axios.get(`${API_EX}/cours`),
+        axios.get(`${API_COINS}/stats`),
+      ]);
+
+      setCoursAccueil((coursRes.data || []).slice(0, 4));
+      setCoinsStats(statsRes.data || null);
+      setStreak(statsRes.data?.streak || 0);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const chargerDonneesAccueil = async () => {
+    try {
+      const [profilRes, produitsRes] = await Promise.all([
+        chargerProfil(),
+        axios.get(`${API_ELEVE}/marketplace`),
+        chargerSolde(),
+      ]);
+
+      setProfil(profilRes);
+      setProduits((produitsRes.data || []).slice(0, 3));
+      await chargerCoursEtCoins();
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const chargerNotifications = async () => {
     try {
@@ -260,34 +271,23 @@ export default function Accueil() {
   }, [dark]);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [p, m] = await Promise.all([
-          axios.get("http://localhost:5003/api/eleve/profil"),
-          axios.get("http://localhost:5003/api/eleve/marketplace"),
-        ]);
-
-        setProfil(p.data);
-        setProduits(m.data.slice(0, 3));
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    load();
+    chargerDonneesAccueil();
   }, []);
 
   useEffect(() => {
-    const loadStreak = async () => {
-      try {
-        const res = await axios.get("http://localhost:5005/api/coins/stats");
-        setStreak(res.data.streak || 0);
-      } catch (e) {
-        console.error(e);
-      }
+    const refresh = () => {
+      chargerSolde().catch(() => {});
+      chargerProfil().catch(() => {});
+      chargerCoursEtCoins();
     };
 
-    loadStreak();
+    window.addEventListener("focus", refresh);
+    window.addEventListener("coins-updated", refresh);
+
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("coins-updated", refresh);
+    };
   }, []);
 
   useEffect(() => {
@@ -316,17 +316,14 @@ export default function Accueil() {
           minutesEnvoyeesRef.current = nouvelles;
 
           axios
-            .post("http://localhost:5005/api/coins/temps", { minutes: 30 })
-            .then(() =>
-              axios
-                .get("http://localhost:5003/api/eleve/profil")
-                .then((r) => setProfil(r.data))
-            )
-            .catch(() => {});
-
-          axios
-            .patch("http://localhost:5003/api/eleve/coins/kpi", {
-              tempsPasseEnMinutes: nouvelles,
+            .post(`${API_COINS}/temps`, { minutes: 30 })
+            .then(() => {
+              window.dispatchEvent(new Event("coins-updated"));
+              return Promise.all([
+                chargerSolde(),
+                chargerProfil(),
+                chargerCoursEtCoins(),
+              ]);
             })
             .catch(() => {});
         }
@@ -338,11 +335,16 @@ export default function Accueil() {
     return () => clearInterval(timerRef.current);
   }, []);
 
-  const kpi = profil?.kpi || {};
-  const solde = profil?.solde ?? 0;
   const niveauIdx = getNiveau(solde);
   const nextGoal = getNextGoalCoins(solde);
   const niveauPct = nextGoal ? Math.round((solde / nextGoal) * 100) : 100;
+
+  const lessonsCompletes = Math.floor((coinsStats?.parType?.lecon || 0) / 20);
+  const tempsPasse = coinsStats?.minutesAccumulees || 0;
+  const totalConnexions = streak;
+  const autoEvaluation = Math.floor(
+    (coinsStats?.parType?.auto_evaluation || 0) / 15
+  );
 
   const notificationsAffichees =
     notifFiltre === "non-lu"
@@ -353,7 +355,7 @@ export default function Accueil() {
     {
       key: "lessons",
       label: t.lessons,
-      value: kpi.lessonsCompletes ?? 0,
+      value: lessonsCompletes,
       max: 20,
       color: "#7C4DFF",
       unit: "",
@@ -361,15 +363,15 @@ export default function Accueil() {
     {
       key: "time",
       label: t.time,
-      value: kpi.tempsPasseEnMinutes ?? 0,
+      value: tempsPasse,
       max: 300,
       color: "#E040FB",
-      unit: t.timeUnit,
+      unit: "",
     },
     {
       key: "connections",
       label: t.connections,
-      value: streak,
+      value: totalConnexions,
       max: 30,
       color: "#FF6D00",
       unit: "",
@@ -377,7 +379,7 @@ export default function Accueil() {
     {
       key: "selfEval",
       label: t.selfEval,
-      value: kpi.autoEvaluation ?? 0,
+      value: autoEvaluation,
       max: 10,
       color: "#00BCD4",
       unit: "/10",
@@ -500,9 +502,7 @@ export default function Accueil() {
                           tabIndex={0}
                           onClick={() => ouvrirNotification(n)}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              ouvrirNotification(n);
-                            }
+                            if (e.key === "Enter") ouvrirNotification(n);
                           }}
                         >
                           <div className={`fb-notif-icon ${n.type}`}>
@@ -658,43 +658,51 @@ export default function Accueil() {
             </div>
 
             <div className="acc-courses-list">
-              {COURSES.map((c) => (
-                <div key={c.id} className="acc-course-item">
-                  <div
-                    className="acc-course-stripe"
-                    style={{ background: c.color }}
-                  />
+              {coursAccueil.length > 0 ? (
+                coursAccueil.map((c) => (
+                  <div key={c._id} className="acc-course-item">
+                    <div
+                      className="acc-course-stripe"
+                      style={{ background: "#7C4DFF" }}
+                    />
 
-                  <div className="acc-course-info">
-                    <span className="acc-course-title">{c.title[lang]}</span>
-                    <span className="acc-course-desc">{c.desc[lang]}</span>
-
-                    <div className="acc-course-meta">
-                      <span
-                        className="acc-course-tag"
-                        style={{
-                          color: c.color,
-                          background: `${c.color}18`,
-                          border: `1px solid ${c.color}30`,
-                        }}
-                      >
-                        {c.level[lang]}
+                    <div className="acc-course-info">
+                      <span className="acc-course-title">{c.titre}</span>
+                      <span className="acc-course-desc">
+                        {c.description || c.matiere}
                       </span>
 
-                      <span className="acc-course-dur">{c.duration}</span>
-                    </div>
-                  </div>
+                      <div className="acc-course-meta">
+                        <span
+                          className="acc-course-tag"
+                          style={{
+                            color: "#7C4DFF",
+                            background: "rgba(124,77,255,0.10)",
+                            border: "1px solid rgba(124,77,255,0.25)",
+                          }}
+                        >
+                          Niveau {c.niveau}
+                        </span>
 
-                  <button
-                    className="acc-course-btn"
-                    style={{ background: c.color }}
-                    onClick={() => navigate("/eleve/exercices")}
-                    type="button"
-                  >
-                    {t.start}
-                  </button>
-                </div>
-              ))}
+                        <span className="acc-course-dur">
+                          +{c.coinsCompletion || 20} coins
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      className="acc-course-btn"
+                      style={{ background: "#7C4DFF" }}
+                      onClick={() => navigate("/eleve/exercices")}
+                      type="button"
+                    >
+                      {t.start}
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="acc-empty">Aucun cours disponible</p>
+              )}
             </div>
           </section>
 
@@ -730,8 +738,10 @@ export default function Accueil() {
                     <span className="acc-stat-label">{s.label}</span>
 
                     <span className="acc-stat-value">
-                      {s.value}
-                      <span className="acc-stat-unit">{s.unit}</span>
+                      {s.key === "time" ? formatTemps(s.value) : s.value}
+                      <span className="acc-stat-unit">
+                        {s.key === "time" ? "" : s.unit}
+                      </span>
                     </span>
 
                     <div className="acc-stat-bar">

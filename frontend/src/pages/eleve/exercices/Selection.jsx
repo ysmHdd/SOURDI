@@ -1,159 +1,412 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../context/AuthContext";
 import axios from "../../../api/axios";
 import "./exercices.css";
 
+const API_EX = "http://localhost:5004/api/exercices";
+const API_COINS = "http://localhost:5005/api/coins";
+
 const T = {
   fr: {
-    titre: "Exercices",
-    sousTitre: "Choisis ta matière et commence à apprendre",
-    niveau: "Ton niveau",
-    choisirSousCat: "Choisir un thème",
-    commencer: "Commencer le quiz",
-    matieres: {
-      francais: "Français",
-      arabe: "Arabe",
-      maths: "Mathématiques",
-      sciences: "Sciences",
-      histoire: "Histoire & Géo",
-    },
+    titre: "Cours & Quiz",
+    sousTitre: "Choisis une matière, lis ton cours PDF puis fais le quiz",
     retour: "← Retour",
+    niveau: "Ton niveau",
+    cours: "Cours disponibles",
+    voirPdf: "Voir PDF",
+    completer: "Cours terminé",
+    quiz: "Quiz",
+    commencer: "Commencer",
+    historique: "Historique des quiz",
+    autoEval: "Auto-évaluation",
+    envoyer: "Envoyer",
+    note: "Note /100",
+    commentaire: "Commentaire",
+    supprimer: "Supprimer",
+    aucunCours: "Aucun cours pour cette matière.",
+    aucunQuiz: "Aucun quiz pour ce cours.",
+    matieres: {
+      maths: "Mathématiques",
+      francais: "Français",
+      anglais: "Anglais",
+      arabe: "Arabe",
+      sciences: "Sciences",
+      histoire: "Histoire",
+      education_islamique: "Éducation islamique",
+    },
   },
   en: {
-    titre: "Exercises",
-    sousTitre: "Choose your subject and start learning",
-    niveau: "Your level",
-    choisirSousCat: "Choose a theme",
-    commencer: "Start quiz",
-    matieres: {
-      francais: "French",
-      arabe: "Arabic",
-      maths: "Mathematics",
-      sciences: "Sciences",
-      histoire: "History & Geo",
-    },
+    titre: "Lessons & Quizzes",
+    sousTitre: "Choose a subject, read the PDF lesson, then take the quiz",
     retour: "← Back",
+    niveau: "Your level",
+    cours: "Available lessons",
+    voirPdf: "Open PDF",
+    completer: "Complete lesson",
+    quiz: "Quiz",
+    commencer: "Start",
+    historique: "Quiz history",
+    autoEval: "Self-evaluation",
+    envoyer: "Send",
+    note: "Score /100",
+    commentaire: "Comment",
+    supprimer: "Delete",
+    aucunCours: "No lessons for this subject.",
+    aucunQuiz: "No quiz for this lesson.",
+    matieres: {
+      maths: "Mathematics",
+      francais: "French",
+      anglais: "English",
+      arabe: "Arabic",
+      sciences: "Science",
+      histoire: "History",
+      education_islamique: "Islamic education",
+    },
   },
 };
 
 const MATIERE_CONFIG = {
+  maths: { color: "#FF7043", icon: "∑" },
   francais: { color: "#AB47BC", icon: "📖" },
-  arabe:    { color: "#EF5350", icon: "ع" },
-  maths:    { color: "#FF7043", icon: "∑" },
+  anglais: { color: "#5C6BC0", icon: "ABC" },
+  arabe: { color: "#EF5350", icon: "ع" },
   sciences: { color: "#26C6DA", icon: "🔬" },
   histoire: { color: "#66BB6A", icon: "🗺" },
+  education_islamique: { color: "#FFA726", icon: "☪" },
+};
+
+const getNiveauFromToken = () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return 1;
+
+    const decoded = JSON.parse(atob(token.split(".")[1]));
+
+    const raw =
+      decoded.niveau ||
+      decoded.grade ||
+      decoded.classe ||
+      decoded.niveauScolaire ||
+      1;
+
+    if (typeof raw === "number") return raw;
+
+    const text = String(raw).toLowerCase().trim();
+
+    if (text.includes("1")) return 1;
+    if (text.includes("2")) return 2;
+    if (text.includes("3")) return 3;
+    if (text.includes("4")) return 4;
+    if (text.includes("5")) return 5;
+    if (text.includes("6")) return 6;
+
+    return 1;
+  } catch {
+    return 1;
+  }
 };
 
 export default function Selection() {
-  const { utilisateur } = useAuth();
   const navigate = useNavigate();
   const [lang] = useState(localStorage.getItem("sourdi_lang") || "fr");
   const [dark] = useState(localStorage.getItem("sourdi_dark") === "true");
+
   const [matieres, setMatieres] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [sousCats, setSousCats] = useState([]);
-  const [sousCatSelected, setSousCatSelected] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [matiereSelected, setMatiereSelected] = useState("maths");
+  const [cours, setCours] = useState([]);
+  const [quizParCours, setQuizParCours] = useState({});
+  const [historique, setHistorique] = useState([]);
+
+  const [note, setNote] = useState("");
+  const [commentaire, setCommentaire] = useState("");
+  const [message, setMessage] = useState("");
+  const [loadingCours, setLoadingCours] = useState(false);
 
   const t = T[lang];
-const token = localStorage.getItem("token");
-const decoded = token ? JSON.parse(atob(token.split(".")[1])) : {};
-const niveau = decoded.grade ? parseInt(decoded.grade) : 1;
+  const niveau = getNiveauFromToken();
+
+  const afficherMessage = (txt) => {
+    setMessage(txt);
+    setTimeout(() => setMessage(""), 3500);
+  };
+
+  const chargerMatieres = async () => {
+    try {
+      const res = await axios.get(`${API_EX}/matieres`);
+      setMatieres(res.data || []);
+      if (res.data?.length > 0) setMatiereSelected(res.data[0]);
+    } catch (err) {
+      console.error(err);
+      afficherMessage("Erreur chargement matières");
+    }
+  };
+
+  const chargerCours = async (matiere) => {
+    if (!matiere) return;
+    setLoadingCours(true);
+
+    try {
+      const res = await axios.get(`${API_EX}/cours?matiere=${matiere}&niveau=${niveau}`);
+      setCours(res.data || []);
+
+      const map = {};
+      for (const c of res.data || []) {
+        try {
+          const qRes = await axios.get(`${API_EX}/cours/${c._id}/quiz`);
+          map[c._id] = qRes.data || [];
+        } catch {
+          map[c._id] = [];
+        }
+      }
+      setQuizParCours(map);
+    } catch (err) {
+      console.error(err);
+      setCours([]);
+      afficherMessage("Erreur chargement cours");
+    }
+
+    setLoadingCours(false);
+  };
+
+  const chargerHistorique = async () => {
+    try {
+      const res = await axios.get(`${API_EX}/historique`);
+      setHistorique(res.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const supprimerHistorique = async (id) => {
+    if (!window.confirm("Supprimer ce résultat de l'historique ?")) return;
+
+    try {
+      await axios.delete(`${API_EX}/historique/${id}`);
+      setHistorique((prev) => prev.filter((h) => h._id !== id));
+      afficherMessage("Historique supprimé");
+    } catch (err) {
+      afficherMessage(err.response?.data?.message || "Erreur suppression historique");
+    }
+  };
+
+  const completerCours = async (coursId) => {
+    try {
+      const res = await axios.post(`${API_EX}/cours/${coursId}/completer`);
+      afficherMessage(
+        res.data?.dejaComplete
+          ? "Cours déjà complété"
+          : `Cours complété ! +${res.data?.coinsGagnes || 0} coins`
+      );
+    } catch (err) {
+      afficherMessage(err.response?.data?.message || "Erreur cours terminé");
+    }
+  };
+
+  const faireAutoEvaluation = async (e) => {
+    e.preventDefault();
+
+    try {
+      await axios.post(`${API_EX}/auto-evaluation`, {
+        note: Number(note),
+        commentaire,
+        niveau,
+      });
+
+      setNote("");
+      setCommentaire("");
+      afficherMessage("Auto-évaluation enregistrée !");
+    } catch (err) {
+      afficherMessage(err.response?.data?.message || "Erreur auto-évaluation");
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await axios.get(`http://localhost:5004/api/exercices/matieres?niveau=${niveau}`);
-        setMatieres(res.data);
-      } catch (e) { console.error(e); }
-    };
-    load();
-  }, [niveau]);
+    chargerMatieres();
+    chargerHistorique();
 
-  const choisirMatiere = async (matiere) => {
-    setSelected(matiere);
-    setSousCatSelected(null);
-    setLoading(true);
-    try {
-      const res = await axios.get(`http://localhost:5004/api/exercices/souscats?matiere=${matiere}&niveau=${niveau}`);
-      setSousCats(res.data);
-    } catch (e) { console.error(e); }
-    setLoading(false);
-  };
+    const interval = setInterval(() => {
+      axios.post(`${API_COINS}/temps`, { minutes: 1 }).catch(() => {});
+    }, 60000);
 
-  const commencer = () => {
-    if (!selected) return;
-    navigate("/eleve/exercices/quiz", {
-      state: { matiere: selected, sousCat: sousCatSelected, niveau },
-    });
-  };
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    chargerCours(matiereSelected);
+  }, [matiereSelected]);
 
   return (
     <div className={`ex-root ${dark ? "dark" : "light"}`}>
-      <div className="blob blob-1" /><div className="blob blob-2" />
+      <div className="blob blob-1" />
+      <div className="blob blob-2" />
 
       <header className="ex-header">
-        <button className="ex-back-btn" onClick={() => navigate("/eleve")}>{t.retour}</button>
+        <button className="ex-back-btn" onClick={() => navigate("/eleve")}>
+          {t.retour}
+        </button>
         <span className="ex-logo">SOURDI</span>
-        <span className="ex-niveau">{t.niveau} : <strong>{niveau}</strong></span>
+        <span className="ex-niveau">
+          {t.niveau} : <strong>{niveau}</strong>
+        </span>
       </header>
 
       <main className="ex-main">
-        <div className="ex-page-title">
+        <section className="ex-page-title">
           <h1>{t.titre}</h1>
           <p>{t.sousTitre}</p>
-        </div>
+        </section>
 
-        {/* Grille des matières */}
-        <div className="ex-matieres-grid">
+        {message && <div className="ex-message">{message}</div>}
+
+        <section className="ex-matieres-grid">
           {matieres.map((m) => {
             const cfg = MATIERE_CONFIG[m] || { color: "#AB47BC", icon: "📚" };
             return (
               <button
                 key={m}
-                className={`ex-matiere-card ${selected === m ? "active" : ""}`}
+                className={`ex-matiere-card ${matiereSelected === m ? "active" : ""}`}
                 style={{ "--accent": cfg.color }}
-                onClick={() => choisirMatiere(m)}
+                onClick={() => setMatiereSelected(m)}
               >
                 <span className="ex-matiere-icon">{cfg.icon}</span>
                 <span className="ex-matiere-name">{t.matieres[m] || m}</span>
               </button>
             );
           })}
-        </div>
+        </section>
 
-        {/* Sous-catégories */}
-        {selected && (
-          <div className="ex-souscats-section">
-            <p className="ex-souscats-label">{t.choisirSousCat} :</p>
-            <div className="ex-souscats-list">
-              {loading ? (
-                <span className="ex-loading">...</span>
-              ) : sousCats.map((sc) => (
-                <button
-                  key={sc}
-                  className={`ex-sousCat-btn ${sousCatSelected === sc ? "active" : ""}`}
-                  style={{ "--accent": MATIERE_CONFIG[selected]?.color || "#AB47BC" }}
-                  onClick={() => setSousCatSelected(sc)}
-                >
-                  {sc}
-                </button>
+        <section className="ex-section">
+          <h2>{t.cours}</h2>
+
+          {loadingCours ? (
+            <div className="ex-loading">Chargement...</div>
+          ) : cours.length === 0 ? (
+            <div className="ex-empty">{t.aucunCours}</div>
+          ) : (
+            <div className="ex-cours-grid">
+              {cours.map((c) => (
+                <article key={c._id} className="ex-cours-card">
+                  <div className="ex-cours-top">
+                    <span className="ex-cours-badge">{t.matieres[c.matiere] || c.matiere}</span>
+                    <span className="ex-cours-coins">+{c.coinsCompletion || 20} coins</span>
+                  </div>
+
+                  <h3>{c.titre}</h3>
+                  <p>{c.description || "Aucune description"}</p>
+
+                  <div className="ex-cours-actions">
+                    {c.pdfUrl && (
+                      <a
+                        className="ex-small-btn pdf"
+                        href={`http://localhost:5004${c.pdfUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {t.voirPdf}
+                      </a>
+                    )}
+
+                    <button
+                      className="ex-small-btn done"
+                      onClick={() => completerCours(c._id)}
+                    >
+                      {t.completer}
+                    </button>
+                  </div>
+
+                  <div className="ex-quiz-list">
+                    <h4>{t.quiz}</h4>
+
+                    {(quizParCours[c._id] || []).length === 0 ? (
+                      <p className="ex-mini-empty">{t.aucunQuiz}</p>
+                    ) : (
+                      (quizParCours[c._id] || []).map((q) => (
+                        <div key={q._id} className="ex-quiz-row">
+                          <span>{q.titre}</span>
+                          <button
+                            onClick={() =>
+                              navigate("/eleve/exercices/quiz", {
+                                state: {
+                                  coursId: c._id,
+                                  quizId: q._id,
+                                  coursTitre: c.titre,
+                                  quizTitre: q.titre,
+                                },
+                              })
+                            }
+                          >
+                            {t.commencer}
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </article>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </section>
 
-        {/* Bouton commencer */}
-        {selected && (
-          <button
-            className="ex-start-btn"
-            style={{ background: `linear-gradient(135deg, ${MATIERE_CONFIG[selected]?.color}, ${MATIERE_CONFIG[selected]?.color}aa)` }}
-            onClick={commencer}
-          >
-            {t.commencer}
-          </button>
-        )}
+        <section className="ex-section ex-two-cols">
+          <div className="ex-panel">
+            <h2>{t.autoEval}</h2>
+
+            <form onSubmit={faireAutoEvaluation} className="ex-auto-form">
+              <label>{t.note}</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                required
+              />
+
+              <label>{t.commentaire}</label>
+              <textarea
+                value={commentaire}
+                onChange={(e) => setCommentaire(e.target.value)}
+                rows="3"
+              />
+
+              <button>{t.envoyer}</button>
+            </form>
+          </div>
+
+          <div className="ex-panel">
+            <h2>{t.historique}</h2>
+
+            {historique.length === 0 ? (
+              <p className="ex-mini-empty">Aucun résultat.</p>
+            ) : (
+              <div className="ex-history-list">
+                {historique.map((h) => (
+                  <div key={h._id} className="ex-history-item">
+                    <div>
+                      <strong>{h.quizId?.titre || "Quiz"}</strong>
+                      <span>{h.coursId?.titre || h.matiere}</span>
+                    </div>
+
+                    <div>
+                      <b>
+                        {h.score}/{h.total}
+                      </b>
+                      <span>+{h.pointsGagnes || 0} coins</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="ex-history-delete"
+                      onClick={() => supprimerHistorique(h._id)}
+                    >
+                      {t.supprimer}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
       </main>
     </div>
   );

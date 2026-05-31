@@ -1,103 +1,191 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../../context/AuthContext";
 import axios from "../../../api/axios";
 import "./exercices.css";
 
+const API_EX = "http://localhost:5004/api/exercices";
+const API_COINS = "http://localhost:5005/api/coins";
+
 const T = {
-  fr: { question: "Question", suivant: "Suivant →", terminer: "Terminer", retour: "← Quitter", temps: "Temps" },
-  en: { question: "Question", suivant: "Next →", terminer: "Finish", retour: "← Quit", temps: "Time" },
+  fr: {
+    question: "Question",
+    suivant: "Suivant →",
+    terminer: "Terminer",
+    retour: "← Quitter",
+    temps: "Temps",
+    chargement: "Chargement...",
+    vide: "Quiz introuvable",
+  },
+  en: {
+    question: "Question",
+    suivant: "Next →",
+    terminer: "Finish",
+    retour: "← Quit",
+    temps: "Time",
+    chargement: "Loading...",
+    vide: "Quiz not found",
+  },
 };
 
 export default function Quiz() {
-  const { utilisateur } = useAuth();
   const navigate = useNavigate();
   const { state } = useLocation();
+
   const [lang] = useState(localStorage.getItem("sourdi_lang") || "fr");
   const [dark] = useState(localStorage.getItem("sourdi_dark") === "true");
-  const [exercices, setExercices] = useState([]);
+
+  const [questions, setQuestions] = useState([]);
+  const [quiz, setQuiz] = useState(null);
   const [current, setCurrent] = useState(0);
   const [reponses, setReponses] = useState([]);
   const [selected, setSelected] = useState(null);
   const [temps, setTemps] = useState(0);
   const [loading, setLoading] = useState(true);
+
   const timerRef = useRef(null);
+  const coinsTimerRef = useRef(null);
 
   const t = T[lang];
-  const { matiere, sousCat, niveau } = state || {};
+  const { coursId, quizId, coursTitre, quizTitre } = state || {};
 
   useEffect(() => {
-    if (!matiere) { navigate("/eleve/exercices"); return; }
+    if (!coursId || !quizId) {
+      navigate("/eleve/exercices");
+      return;
+    }
+
     const load = async () => {
       try {
-        const url = `http://localhost:5004/api/exercices?matiere=${matiere}&niveau=${niveau}${sousCat ? `&sousCat=${sousCat}` : ""}`;
-        const res = await axios.get(url);
-        setExercices(res.data);
-      } catch (e) { console.error(e); }
+        const res = await axios.get(`${API_EX}/cours/${coursId}/quiz`);
+        const found = (res.data || []).find((q) => q._id === quizId);
+
+        if (!found) {
+          setQuiz(null);
+          setQuestions([]);
+        } else {
+          setQuiz(found);
+          setQuestions(found.questions || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
       setLoading(false);
     };
+
     load();
-    timerRef.current = setInterval(() => setTemps((t) => t + 1), 1000);
-    return () => clearInterval(timerRef.current);
-  }, []);
+
+    timerRef.current = setInterval(() => {
+      setTemps((x) => x + 1);
+    }, 1000);
+
+    coinsTimerRef.current = setInterval(() => {
+      axios.post(`${API_COINS}/temps`, { minutes: 1 }).catch(() => {});
+    }, 60000);
+
+    return () => {
+      clearInterval(timerRef.current);
+      clearInterval(coinsTimerRef.current);
+    };
+  }, [coursId, quizId, navigate]);
 
   const choisir = (idx) => {
-    if (selected !== null) return;
     setSelected(idx);
   };
 
   const suivant = () => {
-    const nouvellesReponses = [...reponses, { exerciceId: exercices[current]._id, reponse: selected }];
+    const nouvellesReponses = [
+      ...reponses,
+      {
+        questionIndex: current,
+        reponse: selected,
+      },
+    ];
+
     setReponses(nouvellesReponses);
     setSelected(null);
 
-    if (current + 1 >= exercices.length) {
+    if (current + 1 >= questions.length) {
       clearInterval(timerRef.current);
+
       navigate("/eleve/exercices/resultat", {
-        state: { reponses: nouvellesReponses, matiere, sousCat, niveau, tempsEnSecondes: temps },
+        state: {
+          coursId,
+          quizId,
+          coursTitre,
+          quizTitre: quiz?.titre || quizTitre,
+          reponses: nouvellesReponses,
+          tempsEnSecondes: temps,
+        },
       });
     } else {
       setCurrent(current + 1);
     }
   };
 
-  const formatTemps = (s) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+  const formatTemps = (s) =>
+    `${Math.floor(s / 60)
+      .toString()
+      .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
-  if (loading) return <div className={`ex-root ${dark ? "dark" : "light"}`}><div className="ex-loading-full">Chargement...</div></div>;
+  if (loading) {
+    return (
+      <div className={`ex-root ${dark ? "dark" : "light"}`}>
+        <div className="ex-loading-full">{t.chargement}</div>
+      </div>
+    );
+  }
 
-  const ex = exercices[current];
-  if (!ex) return null;
+  const question = questions[current];
 
-  const progress = ((current) / exercices.length) * 100;
+  if (!question) {
+    return (
+      <div className={`ex-root ${dark ? "dark" : "light"}`}>
+        <div className="ex-loading-full">{t.vide}</div>
+      </div>
+    );
+  }
+
+  const progress = ((current + 1) / questions.length) * 100;
 
   return (
     <div className={`ex-root ${dark ? "dark" : "light"}`}>
-      <div className="blob blob-1" /><div className="blob blob-2" />
+      <div className="blob blob-1" />
+      <div className="blob blob-2" />
 
       <header className="ex-header">
-        <button className="ex-back-btn" onClick={() => navigate("/eleve/exercices")}>{t.retour}</button>
+        <button className="ex-back-btn" onClick={() => navigate("/eleve/exercices")}>
+          {t.retour}
+        </button>
         <span className="ex-logo">SOURDI</span>
-        <span className="ex-timer">{t.temps} : {formatTemps(temps)}</span>
+        <span className="ex-timer">
+          {t.temps} : {formatTemps(temps)}
+        </span>
       </header>
 
       <main className="ex-quiz-main">
-        {/* Barre de progression */}
+        <div className="ex-quiz-title">
+          <h2>{quiz?.titre || quizTitre}</h2>
+          <p>{coursTitre}</p>
+        </div>
+
         <div className="ex-progress-bar">
           <div className="ex-progress-fill" style={{ width: `${progress}%` }} />
         </div>
-        <p className="ex-progress-label">{t.question} {current + 1} / {exercices.length}</p>
 
-        {/* Carte question */}
+        <p className="ex-progress-label">
+          {t.question} {current + 1} / {questions.length}
+        </p>
+
         <div className="ex-question-card">
-          <p className="ex-question-text">{ex.question}</p>
+          <p className="ex-question-text">{question.question}</p>
         </div>
 
-        {/* Options */}
         <div className="ex-options-grid">
-          {ex.options.map((opt, idx) => (
+          {question.options.map((opt, idx) => (
             <button
               key={idx}
-              className={`ex-option-btn ${selected === idx ? "chosen" : ""} ${selected !== null && idx === selected ? "chosen" : ""}`}
+              className={`ex-option-btn ${selected === idx ? "chosen" : ""}`}
               onClick={() => choisir(idx)}
             >
               <span className="ex-option-letter">{["A", "B", "C", "D"][idx]}</span>
@@ -106,10 +194,9 @@ export default function Quiz() {
           ))}
         </div>
 
-        {/* Suivant */}
         {selected !== null && (
           <button className="ex-next-btn" onClick={suivant}>
-            {current + 1 >= exercices.length ? t.terminer : t.suivant}
+            {current + 1 >= questions.length ? t.terminer : t.suivant}
           </button>
         )}
       </main>

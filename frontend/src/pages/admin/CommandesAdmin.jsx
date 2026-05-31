@@ -10,6 +10,8 @@ const CommandesAdmin = () => {
   const [commandes, setCommandes] = useState([]);
   const [message, setMessage] = useState("");
   const [erreur, setErreur] = useState("");
+  const [commandeDetails, setCommandeDetails] = useState(null);
+
   const [annulation, setAnnulation] = useState({
     id: "",
     cause: "rupture_stock",
@@ -30,7 +32,8 @@ const CommandesAdmin = () => {
     chargerCommandes();
   }, []);
 
-  const ouvrirAnnulation = (commande) => {
+  const ouvrirAnnulation = (e, commande) => {
+    e.stopPropagation();
     setAnnulation({
       id: commande._id,
       cause: "rupture_stock",
@@ -72,7 +75,9 @@ const CommandesAdmin = () => {
     }
   };
 
-  const marquerLivree = async (idCommande) => {
+  const marquerLivree = async (e, idCommande) => {
+    e.stopPropagation();
+
     try {
       setErreur("");
       setMessage("");
@@ -86,7 +91,9 @@ const CommandesAdmin = () => {
     }
   };
 
-  const supprimerCommande = async (idCommande) => {
+  const supprimerCommande = async (e, idCommande) => {
+    e.stopPropagation();
+
     try {
       setErreur("");
       setMessage("");
@@ -100,6 +107,18 @@ const CommandesAdmin = () => {
     }
   };
 
+  const getStatutLabel = (statut) => {
+    if (statut === "annulee") return "Annulée";
+    if (statut === "livree") return "Livrée";
+    return "Réussie";
+  };
+
+  const getBadgeClass = (statut) => {
+    if (statut === "annulee") return "badge-annulee";
+    if (statut === "livree") return "badge-livree";
+    return "badge-reussi";
+  };
+
   return (
     <div className="admin-layout">
       <AdminSidebar />
@@ -109,7 +128,7 @@ const CommandesAdmin = () => {
           <span className="commandes-label">Administration</span>
           <h1 className="commandes-main-title">Liste des commandes</h1>
           <p className="commandes-main-subtitle">
-            Consulter les commandes des élèves, annuler avant livraison ou marquer une commande comme livrée.
+            Cliquer sur une commande pour voir tous les détails.
           </p>
         </div>
 
@@ -120,7 +139,7 @@ const CommandesAdmin = () => {
           <div className="commandes-table-header">
             <h2 className="commandes-section-title">Commandes des élèves</h2>
             <p className="commandes-section-subtitle">
-              Si la commande est livrée, elle ne peut plus être annulée.
+              Adresse complète, statut et raison d'annulation visibles dans la fenêtre de détails.
             </p>
           </div>
 
@@ -147,7 +166,11 @@ const CommandesAdmin = () => {
                     const estLivree = commande.statut === "livree";
 
                     return (
-                      <tr key={commande._id}>
+                      <tr
+                        key={commande._id}
+                        className="commande-row-clickable"
+                        onClick={() => setCommandeDetails(commande)}
+                      >
                         <td>
                           <strong>
                             {eleve?.user_first_name || commande.client?.nom || ""}{" "}
@@ -169,16 +192,8 @@ const CommandesAdmin = () => {
                         </td>
 
                         <td>
-                          <span
-                            className={`commande-badge ${
-                              estAnnulee
-                                ? "badge-annulee"
-                                : estLivree
-                                ? "badge-livree"
-                                : "badge-reussi"
-                            }`}
-                          >
-                            {estAnnulee ? "Annulée" : estLivree ? "Livrée" : "Réussie"}
+                          <span className={`commande-badge ${getBadgeClass(commande.statut)}`}>
+                            {getStatutLabel(commande.statut)}
                           </span>
                         </td>
 
@@ -189,7 +204,7 @@ const CommandesAdmin = () => {
                                 <button
                                   type="button"
                                   className="commande-livree-btn"
-                                  onClick={() => marquerLivree(commande._id)}
+                                  onClick={(e) => marquerLivree(e, commande._id)}
                                 >
                                   Livrée
                                 </button>
@@ -197,7 +212,7 @@ const CommandesAdmin = () => {
                                 <button
                                   type="button"
                                   className="commande-annuler-btn"
-                                  onClick={() => ouvrirAnnulation(commande)}
+                                  onClick={(e) => ouvrirAnnulation(e, commande)}
                                 >
                                   Annuler
                                 </button>
@@ -207,7 +222,7 @@ const CommandesAdmin = () => {
                             <button
                               type="button"
                               className="commande-supprimer-btn"
-                              onClick={() => supprimerCommande(commande._id)}
+                              onClick={(e) => supprimerCommande(e, commande._id)}
                             >
                               Supprimer
                             </button>
@@ -223,6 +238,113 @@ const CommandesAdmin = () => {
             <div className="commandes-empty">Aucune commande trouvée.</div>
           )}
         </section>
+
+        {commandeDetails && (
+          <div className="commande-modal-overlay">
+            <div className="commande-details-modal">
+              <div className="commande-details-head">
+                <h2>Détails de la commande</h2>
+                <button type="button" onClick={() => setCommandeDetails(null)}>
+                  ×
+                </button>
+              </div>
+
+              <div className="commande-details-grid">
+                <div>
+                  <span>Élève</span>
+                  <strong>
+                    {commandeDetails.utilisateur?.user_first_name ||
+                      commandeDetails.client?.nom ||
+                      "-"}{" "}
+                    {commandeDetails.utilisateur?.user_last_name || ""}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Email</span>
+                  <strong>
+                    {commandeDetails.utilisateur?.user_email ||
+                      commandeDetails.client?.email ||
+                      "-"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Produit</span>
+                  <strong>{commandeDetails.produit?.nom || "Produit supprimé"}</strong>
+                </div>
+
+                <div>
+                  <span>Statut</span>
+                  <strong>{getStatutLabel(commandeDetails.statut)}</strong>
+                </div>
+
+                <div>
+                  <span>Adresse</span>
+                  <strong>{commandeDetails.adresseLivraison?.adresse || "-"}</strong>
+                </div>
+
+                <div>
+                  <span>Gouvernorat</span>
+                  <strong>{commandeDetails.adresseLivraison?.gouvernorat || "-"}</strong>
+                </div>
+
+                <div>
+                  <span>Délégation</span>
+                  <strong>{commandeDetails.adresseLivraison?.delegation || "-"}</strong>
+                </div>
+
+                <div>
+                  <span>Code postal</span>
+                  <strong>{commandeDetails.adresseLivraison?.codePostal || "-"}</strong>
+                </div>
+
+                <div>
+                  <span>Quantité</span>
+                  <strong>{commandeDetails.quantite || 1}</strong>
+                </div>
+
+                <div>
+                  <span>Total</span>
+                  <strong>{commandeDetails.montantEnCoins} coins</strong>
+                </div>
+              </div>
+
+              {commandeDetails.adresseLivraison?.note && (
+                <div className="commande-details-note">
+                  <span>Note</span>
+                  <p>{commandeDetails.adresseLivraison.note}</p>
+                </div>
+              )}
+
+              {commandeDetails.statut === "annulee" && (
+                <div className="commande-details-annulation">
+                  <h3>Annulation</h3>
+                  <p>
+                    <strong>Par :</strong>{" "}
+                    {commandeDetails.annulation?.annuleePar === "admin"
+                      ? "Admin"
+                      : "Élève"}
+                  </p>
+                  <p>
+                    <strong>Raison :</strong>{" "}
+                    {commandeDetails.annulation?.cause === "rupture_stock"
+                      ? "Rupture de stock"
+                      : commandeDetails.annulation?.details || "Autre"}
+                  </p>
+                  {commandeDetails.annulation?.dateAnnulation && (
+                    <p>
+                      <strong>Date :</strong>{" "}
+                      {new Date(
+                        commandeDetails.annulation.dateAnnulation
+                      ).toLocaleString("fr-FR")}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {annulation.id && (
           <div className="commande-modal-overlay">

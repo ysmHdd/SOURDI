@@ -7,11 +7,18 @@ const derniereConnexionSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+
     date: {
       type: Date,
       required: true,
     },
+
     streak: {
+      type: Number,
+      default: 1,
+    },
+
+    totalConnexions: {
       type: Number,
       default: 1,
     },
