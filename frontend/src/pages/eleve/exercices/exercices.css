@@ -792,3 +792,34 @@
 .dark .ex-history-delete {
   box-shadow: 0 4px 14px rgba(239, 71, 111, 0.4);
 }
+.ex-small-btn.disabled,
+.ex-small-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+  pointer-events: none;
+}
+.ex-option-btn.correct {
+  background: rgba(76, 175, 80, 0.18);
+  border-color: #4caf50;
+  color: #2e7d32;
+}
+
+.ex-option-btn.correct .ex-option-letter {
+  background: #4caf50;
+}
+
+.ex-option-btn.wrong {
+  background: rgba(244, 67, 54, 0.18);
+  border-color: #f44336;
+  color: #c62828;
+}
+
+.ex-option-btn.wrong .ex-option-letter {
+  background: #f44336;
+}
+
+.ex-option-btn.correct .ex-option-text,
+.ex-option-btn.wrong .ex-option-text {
+  color: inherit;
+}

@@ -97,6 +97,7 @@ const getNotificationIcon = (type) => {
   if (type === "message") return "💬";
   if (type === "marketplace") return "🛒";
   if (type === "calendrier") return "📅";
+  if (type === "quiz") return "📝";
   return "🔔";
 };
 
@@ -138,7 +139,9 @@ export default function Accueil() {
   const navigate = useNavigate();
 
   const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
-  const [dark, setDark] = useState(localStorage.getItem("sourdi_dark") === "true");
+  const [dark, setDark] = useState(
+    localStorage.getItem("sourdi_dark") === "true"
+  );
 
   const [profil, setProfil] = useState(null);
   const [produits, setProduits] = useState([]);
@@ -496,7 +499,11 @@ export default function Accueil() {
                         <div
                           key={n._id}
                           className={`fb-notif-item ${!n.lu ? "unread" : ""} ${
-                            n.type === "marketplace" ? "marketplace-notif" : ""
+                            n.type === "marketplace"
+                              ? "marketplace-notif"
+                              : n.type === "quiz"
+                              ? "quiz-notif"
+                              : ""
                           }`}
                           role="button"
                           tabIndex={0}

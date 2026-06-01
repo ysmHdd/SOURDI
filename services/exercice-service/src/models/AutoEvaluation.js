@@ -19,11 +19,6 @@ const autoEvaluationSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
-
-    commentaire: {
-      type: String,
-      default: "",
-    },
   },
   { timestamps: true }
 );

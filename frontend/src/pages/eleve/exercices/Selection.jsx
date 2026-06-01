@@ -21,10 +21,11 @@ const T = {
     autoEval: "Auto-évaluation",
     envoyer: "Envoyer",
     note: "Note /100",
-    commentaire: "Commentaire",
     supprimer: "Supprimer",
     aucunCours: "Aucun cours pour cette matière.",
     aucunQuiz: "Aucun quiz pour ce cours.",
+    terminerQuizAvantCours:
+      "Termine tous les quiz avant de compléter le cours",
     matieres: {
       maths: "Mathématiques",
       francais: "Français",
@@ -49,10 +50,11 @@ const T = {
     autoEval: "Self-evaluation",
     envoyer: "Send",
     note: "Score /100",
-    commentaire: "Comment",
     supprimer: "Delete",
     aucunCours: "No lessons for this subject.",
     aucunQuiz: "No quiz for this lesson.",
+    terminerQuizAvantCours:
+      "Finish all quizzes before completing the lesson",
     matieres: {
       maths: "Mathematics",
       francais: "French",
@@ -118,7 +120,6 @@ export default function Selection() {
   const [historique, setHistorique] = useState([]);
 
   const [note, setNote] = useState("");
-  const [commentaire, setCommentaire] = useState("");
   const [message, setMessage] = useState("");
   const [loadingCours, setLoadingCours] = useState(false);
 
@@ -146,7 +147,9 @@ export default function Selection() {
     setLoadingCours(true);
 
     try {
-      const res = await axios.get(`${API_EX}/cours?matiere=${matiere}&niveau=${niveau}`);
+      const res = await axios.get(
+        `${API_EX}/cours?matiere=${matiere}&niveau=${niveau}`
+      );
       setCours(res.data || []);
 
       const map = {};
@@ -185,11 +188,34 @@ export default function Selection() {
       setHistorique((prev) => prev.filter((h) => h._id !== id));
       afficherMessage("Historique supprimé");
     } catch (err) {
-      afficherMessage(err.response?.data?.message || "Erreur suppression historique");
+      afficherMessage(
+        err.response?.data?.message || "Erreur suppression historique"
+      );
     }
   };
 
+  const coursQuizTermines = (coursId) => {
+    const quizDuCours = quizParCours[coursId] || [];
+
+    if (quizDuCours.length === 0) return false;
+
+    return quizDuCours.every((q) =>
+      historique.some(
+        (h) =>
+          h.quizId?._id === q._id ||
+          h.quizId === q._id ||
+          String(h.quizId?._id) === String(q._id) ||
+          String(h.quizId) === String(q._id)
+      )
+    );
+  };
+
   const completerCours = async (coursId) => {
+    if (!coursQuizTermines(coursId)) {
+      afficherMessage(t.terminerQuizAvantCours);
+      return;
+    }
+
     try {
       const res = await axios.post(`${API_EX}/cours/${coursId}/completer`);
       afficherMessage(
@@ -208,12 +234,10 @@ export default function Selection() {
     try {
       await axios.post(`${API_EX}/auto-evaluation`, {
         note: Number(note),
-        commentaire,
         niveau,
       });
 
       setNote("");
-      setCommentaire("");
       afficherMessage("Auto-évaluation enregistrée !");
     } catch (err) {
       afficherMessage(err.response?.data?.message || "Erreur auto-évaluation");
@@ -264,7 +288,9 @@ export default function Selection() {
             return (
               <button
                 key={m}
-                className={`ex-matiere-card ${matiereSelected === m ? "active" : ""}`}
+                className={`ex-matiere-card ${
+                  matiereSelected === m ? "active" : ""
+                }`}
                 style={{ "--accent": cfg.color }}
                 onClick={() => setMatiereSelected(m)}
               >
@@ -284,65 +310,77 @@ export default function Selection() {
             <div className="ex-empty">{t.aucunCours}</div>
           ) : (
             <div className="ex-cours-grid">
-              {cours.map((c) => (
-                <article key={c._id} className="ex-cours-card">
-                  <div className="ex-cours-top">
-                    <span className="ex-cours-badge">{t.matieres[c.matiere] || c.matiere}</span>
-                    <span className="ex-cours-coins">+{c.coinsCompletion || 20} coins</span>
-                  </div>
+              {cours.map((c) => {
+                const quizTermines = coursQuizTermines(c._id);
 
-                  <h3>{c.titre}</h3>
-                  <p>{c.description || "Aucune description"}</p>
+                return (
+                  <article key={c._id} className="ex-cours-card">
+                    <div className="ex-cours-top">
+                      <span className="ex-cours-badge">
+                        {t.matieres[c.matiere] || c.matiere}
+                      </span>
+                      <span className="ex-cours-coins">
+                        +{c.coinsCompletion || 20} coins
+                      </span>
+                    </div>
 
-                  <div className="ex-cours-actions">
-                    {c.pdfUrl && (
-                      <a
-                        className="ex-small-btn pdf"
-                        href={`http://localhost:5004${c.pdfUrl}`}
-                        target="_blank"
-                        rel="noreferrer"
+                    <h3>{c.titre}</h3>
+                    <p>{c.description || "Aucune description"}</p>
+
+                    <div className="ex-cours-actions">
+                      {c.pdfUrl && (
+                        <a
+                          className="ex-small-btn pdf"
+                          href={`http://localhost:5004${c.pdfUrl}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {t.voirPdf}
+                        </a>
+                      )}
+
+                      <button
+                        className={`ex-small-btn done ${
+                          !quizTermines ? "disabled" : ""
+                        }`}
+                        disabled={!quizTermines}
+                        onClick={() => completerCours(c._id)}
+                        title={!quizTermines ? t.terminerQuizAvantCours : ""}
                       >
-                        {t.voirPdf}
-                      </a>
-                    )}
+                        {t.completer}
+                      </button>
+                    </div>
 
-                    <button
-                      className="ex-small-btn done"
-                      onClick={() => completerCours(c._id)}
-                    >
-                      {t.completer}
-                    </button>
-                  </div>
+                    <div className="ex-quiz-list">
+                      <h4>{t.quiz}</h4>
 
-                  <div className="ex-quiz-list">
-                    <h4>{t.quiz}</h4>
-
-                    {(quizParCours[c._id] || []).length === 0 ? (
-                      <p className="ex-mini-empty">{t.aucunQuiz}</p>
-                    ) : (
-                      (quizParCours[c._id] || []).map((q) => (
-                        <div key={q._id} className="ex-quiz-row">
-                          <span>{q.titre}</span>
-                          <button
-                            onClick={() =>
-                              navigate("/eleve/exercices/quiz", {
-                                state: {
-                                  coursId: c._id,
-                                  quizId: q._id,
-                                  coursTitre: c.titre,
-                                  quizTitre: q.titre,
-                                },
-                              })
-                            }
-                          >
-                            {t.commencer}
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </article>
-              ))}
+                      {(quizParCours[c._id] || []).length === 0 ? (
+                        <p className="ex-mini-empty">{t.aucunQuiz}</p>
+                      ) : (
+                        (quizParCours[c._id] || []).map((q) => (
+                          <div key={q._id} className="ex-quiz-row">
+                            <span>{q.titre}</span>
+                            <button
+                              onClick={() =>
+                                navigate("/eleve/exercices/quiz", {
+                                  state: {
+                                    coursId: c._id,
+                                    quizId: q._id,
+                                    coursTitre: c.titre,
+                                    quizTitre: q.titre,
+                                  },
+                                })
+                              }
+                            >
+                              {t.commencer}
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>
@@ -360,13 +398,6 @@ export default function Selection() {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 required
-              />
-
-              <label>{t.commentaire}</label>
-              <textarea
-                value={commentaire}
-                onChange={(e) => setCommentaire(e.target.value)}
-                rows="3"
               />
 
               <button>{t.envoyer}</button>

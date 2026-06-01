@@ -1,7 +1,7 @@
 const Notification = require("../models/Notification");
 
 const creerNotification = async ({
-  utilisateurId,
+  utilisateurId = null,
   role = "etudiant",
   titre,
   message,
@@ -9,12 +9,12 @@ const creerNotification = async ({
   lien = "",
   referenceId = "",
 }) => {
-  if (!utilisateurId || !titre || !message || !type) {
+  if (!titre || !message || !type) {
     throw new Error("Données notification incomplètes");
   }
 
   if (referenceId) {
-    const existe = await Notification.findOne({ utilisateurId, referenceId });
+    const existe = await Notification.findOne({ utilisateurId, role, referenceId });
     if (existe) return existe;
   }
 
@@ -31,14 +31,20 @@ const creerNotification = async ({
 
 const listerNotifications = async (utilisateur) => {
   return await Notification.find({
-    utilisateurId: utilisateur.id,
+    $or: [
+      { utilisateurId: utilisateur.id },
+      { utilisateurId: null, role: utilisateur.role },
+    ],
   }).sort({ createdAt: -1 });
 };
 
 const compterNonLues = async (utilisateur) => {
   return await Notification.countDocuments({
-    utilisateurId: utilisateur.id,
     lu: false,
+    $or: [
+      { utilisateurId: utilisateur.id },
+      { utilisateurId: null, role: utilisateur.role },
+    ],
   });
 };
 
@@ -46,7 +52,10 @@ const marquerCommeLue = async (utilisateur, notificationId) => {
   const notification = await Notification.findOneAndUpdate(
     {
       _id: notificationId,
-      utilisateurId: utilisateur.id,
+      $or: [
+        { utilisateurId: utilisateur.id },
+        { utilisateurId: null, role: utilisateur.role },
+      ],
     },
     { lu: true },
     { new: true }
@@ -62,8 +71,11 @@ const marquerCommeLue = async (utilisateur, notificationId) => {
 const toutMarquerCommeLu = async (utilisateur) => {
   await Notification.updateMany(
     {
-      utilisateurId: utilisateur.id,
       lu: false,
+      $or: [
+        { utilisateurId: utilisateur.id },
+        { utilisateurId: null, role: utilisateur.role },
+      ],
     },
     { lu: true }
   );
@@ -74,7 +86,10 @@ const toutMarquerCommeLu = async (utilisateur) => {
 const supprimerNotification = async (utilisateur, notificationId) => {
   const notification = await Notification.findOneAndDelete({
     _id: notificationId,
-    utilisateurId: utilisateur.id,
+    $or: [
+      { utilisateurId: utilisateur.id },
+      { utilisateurId: null, role: utilisateur.role },
+    ],
   });
 
   if (!notification) {

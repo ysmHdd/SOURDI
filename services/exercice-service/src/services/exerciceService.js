@@ -6,6 +6,8 @@ const AutoEvaluation = require("../models/AutoEvaluation");
 const ProgressionCours = require("../models/ProgressionCours");
 
 const COINS_URL = process.env.COINS_SERVICE_URL || "http://localhost:5005";
+const NOTIFICATION_URL =
+  process.env.NOTIFICATION_SERVICE_URL || "http://localhost:5009";
 
 const MATIERES = [
   "maths",
@@ -169,6 +171,19 @@ const completerCours = async (utilisateur, coursId, token) => {
   const eleveId = utilisateur.id;
   const cours = await getCoursById(utilisateur, coursId);
 
+  const quizDuCours = await Quiz.find({ coursId, actif: true }).select("_id");
+  const quizIds = quizDuCours.map((q) => q._id);
+
+  const quizCompletes = await Resultat.distinct("quizId", {
+    eleveId,
+    coursId,
+    quizId: { $in: quizIds },
+  });
+
+  if (quizDuCours.length > 0 && quizCompletes.length < quizDuCours.length) {
+    throw new Error("Tu dois terminer tous les quiz avant de compléter le cours");
+  }
+
   const dejaComplete = await ProgressionCours.findOne({
     eleveId,
     coursId,
@@ -219,12 +234,10 @@ const completerCours = async (utilisateur, coursId, token) => {
 const getQuizParCours = async (utilisateur, coursId) => {
   await getCoursById(utilisateur, coursId);
 
-  const quiz = await Quiz.find({ coursId, actif: true }).lean();
-
-  return quiz.map((q) => ({
-    ...q,
-    questions: q.questions.map(({ bonneReponse, ...question }) => question),
-  }));
+  return await Quiz.find({
+    coursId,
+    actif: true,
+  }).lean();
 };
 
 const creerQuiz = async (data) => {
@@ -234,11 +247,26 @@ const creerQuiz = async (data) => {
     throw new Error("Cours introuvable");
   }
 
-  return await Quiz.create({
+  const quiz = await Quiz.create({
     coursId: data.coursId,
     titre: data.titre,
     questions: data.questions,
   });
+
+  try {
+    await axios.post(`${NOTIFICATION_URL}/api/notifications/interne`, {
+      role: "etudiant",
+      titre: "Nouveau quiz disponible",
+      message: `Nouveau quiz : ${quiz.titre} dans le cours ${cours.titre}`,
+      type: "quiz",
+      lien: "/eleve/exercices",
+      referenceId: `quiz-${quiz._id}`,
+    });
+  } catch (err) {
+    console.error("Erreur notification nouveau quiz:", err.message);
+  }
+
+  return quiz;
 };
 
 const modifierQuiz = async (quizId, data) => {
@@ -378,7 +406,6 @@ const faireAutoEvaluation = async (utilisateur, body, token) => {
     eleveId,
     niveau,
     note: body.note,
-    commentaire: body.commentaire || "",
   });
 
   try {

@@ -876,3 +876,11 @@
 .marketplace-notif .fb-notif-icon {
   background: linear-gradient(135deg, #7c4dff, #e040fb);
 }
+.quiz-notif {
+  border-left: 4px solid #7c4dff;
+}
+
+.fb-notif-icon.quiz {
+  background: rgba(124, 77, 255, 0.12);
+  color: #7c4dff;
+}

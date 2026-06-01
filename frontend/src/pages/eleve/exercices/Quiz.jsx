@@ -39,6 +39,7 @@ export default function Quiz() {
   const [current, setCurrent] = useState(0);
   const [reponses, setReponses] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [answered, setAnswered] = useState(false);
   const [temps, setTemps] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -90,7 +91,10 @@ export default function Quiz() {
   }, [coursId, quizId, navigate]);
 
   const choisir = (idx) => {
+    if (answered) return;
+
     setSelected(idx);
+    setAnswered(true);
   };
 
   const suivant = () => {
@@ -104,6 +108,7 @@ export default function Quiz() {
 
     setReponses(nouvellesReponses);
     setSelected(null);
+    setAnswered(false);
 
     if (current + 1 >= questions.length) {
       clearInterval(timerRef.current);
@@ -121,6 +126,22 @@ export default function Quiz() {
     } else {
       setCurrent(current + 1);
     }
+  };
+
+  const getOptionClass = (idx) => {
+    if (!answered) {
+      return selected === idx ? "chosen" : "";
+    }
+
+    if (idx === question.bonneReponse) {
+      return "correct";
+    }
+
+    if (selected === idx && idx !== question.bonneReponse) {
+      return "wrong";
+    }
+
+    return "";
   };
 
   const formatTemps = (s) =>
@@ -154,7 +175,10 @@ export default function Quiz() {
       <div className="blob blob-2" />
 
       <header className="ex-header">
-        <button className="ex-back-btn" onClick={() => navigate("/eleve/exercices")}>
+        <button
+          className="ex-back-btn"
+          onClick={() => navigate("/eleve/exercices")}
+        >
           {t.retour}
         </button>
         <span className="ex-logo">SOURDI</span>
@@ -185,10 +209,13 @@ export default function Quiz() {
           {question.options.map((opt, idx) => (
             <button
               key={idx}
-              className={`ex-option-btn ${selected === idx ? "chosen" : ""}`}
+              className={`ex-option-btn ${getOptionClass(idx)}`}
               onClick={() => choisir(idx)}
+              disabled={answered}
             >
-              <span className="ex-option-letter">{["A", "B", "C", "D"][idx]}</span>
+              <span className="ex-option-letter">
+                {["A", "B", "C", "D"][idx]}
+              </span>
               <span className="ex-option-text">{opt}</span>
             </button>
           ))}

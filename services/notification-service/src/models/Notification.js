@@ -4,7 +4,7 @@ const notificationSchema = new mongoose.Schema(
   {
     utilisateurId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      default: null,
       index: true,
     },
 
@@ -28,7 +28,13 @@ const notificationSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["message", "marketplace", "calendrier", "systeme"],
+      enum: [
+        "message",
+        "marketplace",
+        "calendrier",
+        "systeme",
+        "quiz",
+      ],
       required: true,
     },
 
