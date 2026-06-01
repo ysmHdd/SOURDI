@@ -59,6 +59,7 @@ const FichierMessage = ({ fichier }) => {
 const MessagesAdmin = () => {
   const [conversations, setConversations] = useState([]);
   const [conversationActive, setConversationActive] = useState(null);
+  const [conversationActiveId, setConversationActiveId] = useState(null);
   const [contenu, setContenu] = useState("");
   const [fichiers, setFichiers] = useState([]);
   const [chargement, setChargement] = useState(false);
@@ -107,8 +108,14 @@ const MessagesAdmin = () => {
 
   const ouvrirConversation = async (id) => {
     try {
+      setConversationActiveId(id);
+
       const res = await getConversationAdmin(id);
-      setConversationActive(res.data);
+      setConversationActive({
+        ...res.data,
+        messages: [...(res.data.messages || [])],
+      });
+
       chargerConversations();
     } catch (erreur) {
       console.error(erreur);
@@ -117,9 +124,34 @@ const MessagesAdmin = () => {
 
   useEffect(() => {
     chargerConversations();
-    const interval = setInterval(chargerConversations, 8000);
+
+    const interval = setInterval(chargerConversations, 3000);
+
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!conversationActiveId) return;
+
+    const chargerConversationActive = async () => {
+      try {
+        const res = await getConversationAdmin(conversationActiveId);
+
+        setConversationActive({
+          ...res.data,
+          messages: [...(res.data.messages || [])],
+        });
+      } catch (erreur) {
+        console.error(erreur);
+      }
+    };
+
+    chargerConversationActive();
+
+    const interval = setInterval(chargerConversationActive, 1000);
+
+    return () => clearInterval(interval);
+  }, [conversationActiveId]);
 
   useEffect(() => {
     if (pageActuelle > totalPages) {
@@ -131,12 +163,12 @@ const MessagesAdmin = () => {
     if (messagesRef.current) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
-  }, [conversationActive]);
+  }, [conversationActive?.messages]);
 
   const repondre = async (e) => {
     e.preventDefault();
 
-    if (!conversationActive?._id) return;
+    if (!conversationActiveId) return;
     if (!contenu.trim() && fichiers.length === 0) return;
 
     try {
@@ -149,12 +181,13 @@ const MessagesAdmin = () => {
         formData.append("fichiers", fichier);
       });
 
-      const res = await repondreConversationAdmin(
-        conversationActive._id,
-        formData
-      );
+      const res = await repondreConversationAdmin(conversationActiveId, formData);
 
-      setConversationActive(res.data.conversation);
+      setConversationActive({
+        ...res.data.conversation,
+        messages: [...(res.data.conversation?.messages || [])],
+      });
+
       setContenu("");
       setFichiers([]);
 
@@ -170,12 +203,27 @@ const MessagesAdmin = () => {
     }
   };
 
+  const gererToucheEntree = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+
+      if (!chargement && (contenu.trim() || fichiers.length > 0)) {
+        repondre(e);
+      }
+    }
+  };
+
   const terminer = async () => {
-    if (!conversationActive?._id) return;
+    if (!conversationActiveId) return;
 
     try {
-      const res = await terminerConversationAdmin(conversationActive._id);
-      setConversationActive(res.data.conversation);
+      const res = await terminerConversationAdmin(conversationActiveId);
+
+      setConversationActive({
+        ...res.data.conversation,
+        messages: [...(res.data.conversation?.messages || [])],
+      });
+
       chargerConversations();
     } catch (erreur) {
       console.error(erreur);
@@ -214,17 +262,19 @@ const MessagesAdmin = () => {
                     key={conv._id}
                     type="button"
                     className={`messages-admin-student ${
-                      conversationActive?._id === conv._id ? "active" : ""
+                      conversationActiveId === conv._id ? "active" : ""
                     } ${conv.statut}`}
                     onClick={() => ouvrirConversation(conv._id)}
                   >
-                   <div className="messages-admin-avatar">
-  {conv.etudiantAvatar?.url ? (
-    <img src={conv.etudiantAvatar.url} alt="Avatar élève" />
-  ) : (
-    (conv.etudiantNom || conv.etudiantEmail || "?").charAt(0).toUpperCase()
-  )}
-</div>
+                    <div className="messages-admin-avatar">
+                      {conv.etudiantAvatar?.url ? (
+                        <img src={conv.etudiantAvatar.url} alt="Avatar élève" />
+                      ) : (
+                        (conv.etudiantNom || conv.etudiantEmail || "?")
+                          .charAt(0)
+                          .toUpperCase()
+                      )}
+                    </div>
 
                     <div className="messages-admin-student-info">
                       <strong>{conv.etudiantNom}</strong>
@@ -319,6 +369,7 @@ const MessagesAdmin = () => {
                   <textarea
                     value={contenu}
                     onChange={(e) => setContenu(e.target.value)}
+                    onKeyDown={gererToucheEntree}
                     placeholder="Répondre à l'élève..."
                     rows="3"
                   />

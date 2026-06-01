@@ -3,9 +3,12 @@ import axios from "./axios";
 const MESSAGE_URL = "http://localhost:5006/api/messages";
 
 export const getConversationEleve = (marquerCommeLu = false) => {
-  return axios.get(
-    `${MESSAGE_URL}/eleve/conversation?marquerCommeLu=${marquerCommeLu}`
-  );
+  return axios.get(`${MESSAGE_URL}/eleve/conversation`, {
+    params: {
+      marquerCommeLu,
+      t: Date.now(),
+    },
+  });
 };
 
 export const envoyerMessageEleve = (formData) => {
@@ -34,11 +37,19 @@ export const signalerMessageEleve = (
 };
 
 export const getConversationsAdmin = () => {
-  return axios.get(`${MESSAGE_URL}/admin/conversations`);
+  return axios.get(`${MESSAGE_URL}/admin/conversations`, {
+    params: {
+      t: Date.now(),
+    },
+  });
 };
 
 export const getConversationAdmin = (conversationId) => {
-  return axios.get(`${MESSAGE_URL}/admin/conversations/${conversationId}`);
+  return axios.get(`${MESSAGE_URL}/admin/conversations/${conversationId}`, {
+    params: {
+      t: Date.now(),
+    },
+  });
 };
 
 export const repondreConversationAdmin = (conversationId, formData) => {
@@ -58,7 +69,11 @@ export const terminerConversationAdmin = (conversationId) => {
 };
 
 export const getSignalementsAdmin = () => {
-  return axios.get(`${MESSAGE_URL}/admin/signalements`);
+  return axios.get(`${MESSAGE_URL}/admin/signalements`, {
+    params: {
+      t: Date.now(),
+    },
+  });
 };
 
 export const traiterSignalementAdmin = (signalementId) => {

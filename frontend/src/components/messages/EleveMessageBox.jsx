@@ -145,6 +145,16 @@ const EleveMessageBox = () => {
     }
   };
 
+  const gererToucheEntree = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+
+      if (!chargement && (contenu.trim() || fichiers.length > 0)) {
+        envoyer(e);
+      }
+    }
+  };
+
   const supprimerTousLesMessages = async () => {
     try {
       const res = await supprimerMessagesEleve();
@@ -285,6 +295,7 @@ const EleveMessageBox = () => {
             <textarea
               value={contenu}
               onChange={(e) => setContenu(e.target.value)}
+              onKeyDown={gererToucheEntree}
               placeholder="Écris ton message..."
               rows="2"
             />

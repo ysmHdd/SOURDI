@@ -123,7 +123,12 @@ const envoyerMessageEtudiant = async (utilisateur, contenu, req) => {
   conversation.dernierMessageDate = new Date();
 
   await conversation.save();
-  return conversation;
+
+  const conversationActualisee = await Conversation.findById(
+    conversation._id
+  ).lean();
+
+  return conversationActualisee;
 };
 
 const envoyerMessageAdmin = async (admin, conversationId, contenu, req) => {
@@ -168,7 +173,11 @@ const envoyerMessageAdmin = async (admin, conversationId, contenu, req) => {
     referenceId: `message-${conversation._id}-${Date.now()}`,
   });
 
-  return conversation;
+  const conversationActualisee = await Conversation.findById(
+    conversation._id
+  ).lean();
+
+  return conversationActualisee;
 };
 
 const obtenirConversationEtudiant = async (
@@ -201,13 +210,15 @@ const obtenirConversationEtudiant = async (
     await conversation.save();
   }
 
-  const conversationObjet = conversation.toObject();
+  const conversationActualisee = await Conversation.findById(
+    conversation._id
+  ).lean();
 
-  conversationObjet.messages = conversationObjet.messages.filter(
+  conversationActualisee.messages = conversationActualisee.messages.filter(
     (message) => !message.masquePourEtudiant
   );
 
-  return conversationObjet;
+  return conversationActualisee;
 };
 
 const supprimerMessagesEtudiant = async (utilisateur) => {
@@ -225,14 +236,19 @@ const supprimerMessagesEtudiant = async (utilisateur) => {
 
   await conversation.save();
 
-  const conversationObjet = conversation.toObject();
-  conversationObjet.messages = [];
+  const conversationActualisee = await Conversation.findById(
+    conversation._id
+  ).lean();
 
-  return conversationObjet;
+  conversationActualisee.messages = [];
+
+  return conversationActualisee;
 };
 
 const listerConversationsAdmin = async () => {
-  const conversations = await Conversation.find().select("-messages");
+  const conversations = await Conversation.find()
+    .select("-messages")
+    .sort({ dernierMessageDate: -1 });
 
   const conversationsAvecEleves = await Promise.all(
     conversations.map((conversation) =>
@@ -280,7 +296,11 @@ const obtenirConversationAdmin = async (conversationId, admin) => {
 
   await conversation.save();
 
-  return enrichirConversationAvecEleve(conversation);
+  const conversationActualisee = await Conversation.findById(
+    conversationId
+  ).lean();
+
+  return enrichirConversationAvecEleve(conversationActualisee);
 };
 
 const terminerConversation = async (conversationId, admin) => {
@@ -295,7 +315,12 @@ const terminerConversation = async (conversationId, admin) => {
   conversation.adminAssigneEmail = admin.email;
 
   await conversation.save();
-  return conversation;
+
+  const conversationActualisee = await Conversation.findById(
+    conversationId
+  ).lean();
+
+  return conversationActualisee;
 };
 
 const signalerMessageEtudiant = async (
@@ -399,6 +424,7 @@ const traiterSignalementAdmin = async (signalementId, admin) => {
   signalement.dateTraitement = new Date();
 
   await signalement.save();
+
   return signalement;
 };
 

@@ -19,6 +19,8 @@ const envoyerMessageEtudiant = async (req, res) => {
 
 const obtenirConversationEtudiant = async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store");
+
     const marquerCommeLu = req.query.marquerCommeLu === "true";
 
     const conversation = await messageService.obtenirConversationEtudiant(
@@ -68,6 +70,8 @@ const signalerMessageEtudiant = async (req, res) => {
 
 const listerConversationsAdmin = async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store");
+
     const conversations = await messageService.listerConversationsAdmin();
     res.json(conversations);
   } catch (erreur) {
@@ -77,6 +81,8 @@ const listerConversationsAdmin = async (req, res) => {
 
 const obtenirConversationAdmin = async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store");
+
     const conversation = await messageService.obtenirConversationAdmin(
       req.params.id,
       req.utilisateur
@@ -124,6 +130,8 @@ const terminerConversation = async (req, res) => {
 
 const listerSignalementsAdmin = async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store");
+
     const signalements = await messageService.listerSignalementsAdmin();
     res.json(signalements);
   } catch (erreur) {
