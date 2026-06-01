@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { envoyerMessageIA, envoyerDevoirIA } from "../../api/aiApi";
-
 import "./sourdiHelperChat.css";
 
 const createNewChat = () => ({
@@ -9,13 +8,16 @@ const createNewChat = () => ({
   messages: [
     {
       sender: "ai",
-      text: "مرحبا 😊 أنا Sourdi Helper. اسألني على أي حاجة ما فهمتها في القراية.",
+      text: "مرحبا 😊 أنا Sourdi Helper. نعاونك كان في القراية والتمارين.",
     },
   ],
   devoirTexte: "",
+  questions: [],
+  currentQuestionIndex: 0,
+  completedQuestions: [],
 });
 
-const detecterLangue = (texte) => {
+const detecterLangue = (texte = "") => {
   const message = texte.toLowerCase();
 
   if (/[\u0600-\u06FF]/.test(message)) return "ar";
@@ -35,6 +37,7 @@ const detecterLangue = (texte) => {
   if (
     message.includes("english") ||
     message.includes("anglais") ||
+    message.includes("aglai") ||
     message.includes("hello") ||
     message.includes("hi") ||
     message.includes("translate")
@@ -43,6 +46,55 @@ const detecterLangue = (texte) => {
   }
 
   return "auto";
+};
+
+const extraireQuestionsDepuisTexte = (texte = "") => {
+  const lines = texte
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const questions = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (/^[a-d]\)\s*\d+\s*[+\-×x*/]\s*\d+\s*=/.test(line)) {
+      questions.push(line);
+      continue;
+    }
+
+    if (/^[a-d]\)\s*\d+(,\s*\d+)+.*___/.test(line)) {
+      questions.push(line);
+      continue;
+    }
+
+    if (/^[a-d]\)\s*Combien/i.test(line)) {
+      questions.push(line);
+      continue;
+    }
+
+    if (/^[a-d]\)\s+/.test(line)) {
+      let block = line;
+
+      while (
+        i + 1 < lines.length &&
+        !/^[a-d]\)\s+/.test(lines[i + 1]) &&
+        !/^\d+\./.test(lines[i + 1]) &&
+        !/Bon courage/i.test(lines[i + 1])
+      ) {
+        i++;
+
+        if (!/^Réponse\s*:/i.test(lines[i])) {
+          block += " " + lines[i];
+        }
+      }
+
+      questions.push(block);
+    }
+  }
+
+  return questions;
 };
 
 const SourdiHelperChat = ({ student }) => {
@@ -89,13 +141,8 @@ const SourdiHelperChat = ({ student }) => {
     setChats((prev) =>
       prev.map((chat) => {
         if (chat.id !== activeChatId) return chat;
-
         if (typeof updater === "function") return updater(chat);
-
-        return {
-          ...chat,
-          ...updater,
-        };
+        return { ...chat, ...updater };
       })
     );
   };
@@ -104,10 +151,7 @@ const SourdiHelperChat = ({ student }) => {
     setChats((prev) =>
       prev.map((chat) =>
         chat.id === activeChatId
-          ? {
-              ...chat,
-              messages: [...chat.messages, msg],
-            }
+          ? { ...chat, messages: [...chat.messages, msg] }
           : chat
       )
     );
@@ -115,7 +159,6 @@ const SourdiHelperChat = ({ student }) => {
 
   const createChat = () => {
     const newChat = createNewChat();
-
     setChats((prev) => [newChat, ...prev]);
     setActiveChatId(newChat.id);
     setMessage("");
@@ -144,6 +187,9 @@ const SourdiHelperChat = ({ student }) => {
     updateCurrentChat({
       title: "Nouveau chat",
       devoirTexte: "",
+      questions: [],
+      currentQuestionIndex: 0,
+      completedQuestions: [],
       messages: createNewChat().messages,
     });
 
@@ -180,6 +226,28 @@ const SourdiHelperChat = ({ student }) => {
     event.target.value = "";
   };
 
+  const estDemandeSuivante = (texte = "") => {
+    const t = texte.toLowerCase().trim();
+
+    return [
+      "next",
+      "next question",
+      "continue",
+      "السؤال التالي",
+      "السؤال الموالي",
+      "اي",
+      "نعم",
+      "oui",
+      "yes",
+      "ey",
+      "السال التالي",
+      "السؤال الجاي",
+      "الموالي",
+      "التالي",
+      "next one",
+    ].includes(t);
+  };
+
   const envoyerMessage = async () => {
     if ((!message.trim() && !fichier) || loading || !activeChat) return;
 
@@ -210,10 +278,15 @@ const SourdiHelperChat = ({ student }) => {
         );
         formData.append("niveau", niveau);
         formData.append("langue", langueDetectee);
+        formData.append("historique", JSON.stringify(creerHistorique()));
 
         const response = await envoyerDevoirIA(formData);
 
         const extractedText = response.data?.extractedText || "";
+        const questions = extraireQuestionsDepuisTexte(extractedText);
+
+        console.log("QUESTIONS EXTRAITES:", questions);
+
         const aiText =
           response.data?.reponse || "Je n'ai pas pu analyser ce fichier.";
 
@@ -221,27 +294,48 @@ const SourdiHelperChat = ({ student }) => {
           ...chat,
           title: fichier.name,
           devoirTexte: extractedText,
+          questions,
+          currentQuestionIndex: 0,
+          completedQuestions: [],
           messages: [
             ...chat.messages,
             {
               sender: "ai",
               text: aiText,
+              source: response.data?.source || "Gemini",
             },
           ],
         }));
 
         setFichier(null);
       } else {
+        const questions = activeChat.questions || [];
+        const currentIndex = activeChat.currentQuestionIndex || 0;
+        const currentQuestion = questions[currentIndex] || "";
+        const nextQuestion = questions[currentIndex + 1] || "";
+
         const messagePourIA = activeChat.devoirTexte
           ? `
 HOMEWORK CONTENT:
 ${activeChat.devoirTexte}
+
+CURRENT QUESTION INDEX:
+${currentIndex + 1}
+
+CURRENT QUESTION:
+${currentQuestion}
+
+NEXT QUESTION:
+${nextQuestion || "No next question"}
 
 STUDENT MESSAGE:
 ${currentMessage}
 
 IMPORTANT:
 Answer using ONLY the HOMEWORK CONTENT above.
+If the student answered the CURRENT QUESTION correctly, confirm briefly and ask the NEXT QUESTION.
+If the student says "next", "next question", "continue", "oui", "yes", "اي", or "نعم", ask the NEXT QUESTION.
+Do not repeat the CURRENT QUESTION if it is already answered.
 Do not invent another exercise.
 `
           : currentMessage;
@@ -253,10 +347,31 @@ Do not invent another exercise.
           langue: langueDetectee,
         });
 
+        const aiText = response.data?.reponse || "Je n'ai pas pu répondre.";
+
         addMessage({
           sender: "ai",
-          text: response.data?.reponse || "Je n'ai pas pu répondre.",
+          text: aiText,
+          source: response.data?.source || "Gemini",
         });
+
+        if (activeChat.devoirTexte) {
+          const doitAvancer =
+            estDemandeSuivante(currentMessage) ||
+            /^\d+$/.test(currentMessage) ||
+            currentMessage.length <= 10;
+
+          if (doitAvancer && currentIndex < questions.length - 1) {
+            updateCurrentChat((chat) => ({
+              ...chat,
+              currentQuestionIndex: currentIndex + 1,
+              completedQuestions: [
+                ...(chat.completedQuestions || []),
+                currentIndex,
+              ],
+            }));
+          }
+        }
 
         if (activeChat.title === "Nouveau chat" && currentMessage) {
           updateCurrentChat({
@@ -421,7 +536,7 @@ Do not invent another exercise.
 
               <input
                 type="text"
-                placeholder="Pose ta question..."
+                placeholder="Pose ta question de cours ou de devoir..."
                 value={message}
                 disabled={loading}
                 onChange={(e) => setMessage(e.target.value)}
