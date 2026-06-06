@@ -18,7 +18,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("utilisateur", JSON.stringify(data.utilisateur));
     setUtilisateur(data.utilisateur);
 
-    // Sync profil dans eleve-service
     try {
       await axios.post(
         "http://localhost:5003/api/eleve/profil/sync",
@@ -29,6 +28,7 @@ export const AuthProvider = ({ children }) => {
             data.utilisateur.user_last_name,
           email: data.utilisateur.user_email,
           role: data.utilisateur.role,
+          avatar: data.utilisateur.avatar,
         },
         { headers: { Authorization: `Bearer ${data.token}` } }
       );
@@ -36,7 +36,6 @@ export const AuthProvider = ({ children }) => {
       console.error("Sync eleve-service échoué:", e);
     }
 
-    // Récompense connexion quotidienne
     try {
       await axios.post(
         "http://localhost:5005/api/coins/connexion",

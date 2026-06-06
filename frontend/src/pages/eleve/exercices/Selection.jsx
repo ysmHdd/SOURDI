@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../../api/axios";
+
+import EleveHeader from "../../../components/layout/EleveHeader";
+import EleveSidebar from "../../../components/layout/EleveSidebar";
+import EleveFooter from "../../../components/layout/EleveFooter";
+
+import "../accueil.css";
 import "./exercices.css";
 
 const API_EX = "http://localhost:5004/api/exercices";
@@ -10,7 +16,6 @@ const T = {
   fr: {
     titre: "Cours & Quiz",
     sousTitre: "Choisis une matière, lis ton cours PDF puis fais le quiz",
-    retour: "← Retour",
     niveau: "Ton niveau",
     cours: "Cours disponibles",
     voirPdf: "Voir PDF",
@@ -39,7 +44,6 @@ const T = {
   en: {
     titre: "Lessons & Quizzes",
     sousTitre: "Choose a subject, read the PDF lesson, then take the quiz",
-    retour: "← Back",
     niveau: "Your level",
     cours: "Available lessons",
     voirPdf: "Open PDF",
@@ -68,13 +72,13 @@ const T = {
 };
 
 const MATIERE_CONFIG = {
-  maths: { color: "#FF7043", icon: "∑" },
-  francais: { color: "#AB47BC", icon: "📖" },
-  anglais: { color: "#5C6BC0", icon: "ABC" },
-  arabe: { color: "#EF5350", icon: "ع" },
-  sciences: { color: "#26C6DA", icon: "🔬" },
-  histoire: { color: "#66BB6A", icon: "🗺" },
-  education_islamique: { color: "#FFA726", icon: "☪" },
+  maths: { color: "#7C4DFF", icon: "∑" },
+  francais: { color: "#7C4DFF", icon: "Aa" },
+  anglais: { color: "#7C4DFF", icon: "EN" },
+  arabe: { color: "#7C4DFF", icon: "ع" },
+  sciences: { color: "#7C4DFF", icon: "⚗" },
+  histoire: { color: "#7C4DFF", icon: "⌛" },
+  education_islamique: { color: "#7C4DFF", icon: "☪" },
 };
 
 const getNiveauFromToken = () => {
@@ -110,8 +114,12 @@ const getNiveauFromToken = () => {
 
 export default function Selection() {
   const navigate = useNavigate();
-  const [lang] = useState(localStorage.getItem("sourdi_lang") || "fr");
-  const [dark] = useState(localStorage.getItem("sourdi_dark") === "true");
+
+  const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
+  const [dark, setDark] = useState(
+    localStorage.getItem("sourdi_dark") === "true"
+  );
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [matieres, setMatieres] = useState([]);
   const [matiereSelected, setMatiereSelected] = useState("maths");
@@ -123,8 +131,10 @@ export default function Selection() {
   const [message, setMessage] = useState("");
   const [loadingCours, setLoadingCours] = useState(false);
 
-  const t = T[lang];
+  const t = T[lang] || T.fr;
   const niveau = getNiveauFromToken();
+
+  const enregistrerActiviteCoins = () => {};
 
   const afficherMessage = (txt) => {
     setMessage(txt);
@@ -135,7 +145,10 @@ export default function Selection() {
     try {
       const res = await axios.get(`${API_EX}/matieres`);
       setMatieres(res.data || []);
-      if (res.data?.length > 0) setMatiereSelected(res.data[0]);
+
+      if (res.data?.length > 0) {
+        setMatiereSelected(res.data[0]);
+      }
     } catch (err) {
       console.error(err);
       afficherMessage("Erreur chargement matières");
@@ -144,15 +157,18 @@ export default function Selection() {
 
   const chargerCours = async (matiere) => {
     if (!matiere) return;
+
     setLoadingCours(true);
 
     try {
       const res = await axios.get(
         `${API_EX}/cours?matiere=${matiere}&niveau=${niveau}`
       );
+
       setCours(res.data || []);
 
       const map = {};
+
       for (const c of res.data || []) {
         try {
           const qRes = await axios.get(`${API_EX}/cours/${c._id}/quiz`);
@@ -161,6 +177,7 @@ export default function Selection() {
           map[c._id] = [];
         }
       }
+
       setQuizParCours(map);
     } catch (err) {
       console.error(err);
@@ -218,6 +235,7 @@ export default function Selection() {
 
     try {
       const res = await axios.post(`${API_EX}/cours/${coursId}/completer`);
+
       afficherMessage(
         res.data?.dejaComplete
           ? "Cours déjà complété"
@@ -245,6 +263,14 @@ export default function Selection() {
   };
 
   useEffect(() => {
+    localStorage.setItem("sourdi_lang", lang);
+  }, [lang]);
+
+  useEffect(() => {
+    localStorage.setItem("sourdi_dark", dark);
+  }, [dark]);
+
+  useEffect(() => {
     chargerMatieres();
     chargerHistorique();
 
@@ -260,185 +286,212 @@ export default function Selection() {
   }, [matiereSelected]);
 
   return (
-    <div className={`ex-root ${dark ? "dark" : "light"}`}>
-      <div className="blob blob-1" />
-      <div className="blob blob-2" />
+    <div className={`acc-root ex-root ${dark ? "dark" : "light"}`}>
+      <div className="acc-blob acc-blob-1" />
+      <div className="acc-blob acc-blob-2" />
 
-      <header className="ex-header">
-        <button className="ex-back-btn" onClick={() => navigate("/eleve")}>
-          {t.retour}
-        </button>
-        <span className="ex-logo">SOURDI</span>
-        <span className="ex-niveau">
-          {t.niveau} : <strong>{niveau}</strong>
-        </span>
-      </header>
+      <EleveHeader
+        lang={lang}
+        setLang={setLang}
+        dark={dark}
+        setDark={setDark}
+        enregistrerActiviteCoins={enregistrerActiviteCoins}
+      />
 
-      <main className="ex-main">
-        <section className="ex-page-title">
-          <h1>{t.titre}</h1>
-          <p>{t.sousTitre}</p>
-        </section>
+      <div className="acc-layout">
+        <EleveSidebar
+          open={sidebarOpen}
+          setOpen={setSidebarOpen}
+          enregistrerActiviteCoins={enregistrerActiviteCoins}
+        />
 
-        {message && <div className="ex-message">{message}</div>}
+        <div className={`acc-page-content ${sidebarOpen ? "sidebar-open" : ""}`}>
+          <main className="ex-main">
+            <section className="ex-page-title">
+              <h1>{t.titre}</h1>
+              <p>{t.sousTitre}</p>
+              <span className="ex-niveau">
+                {t.niveau} : <strong>{niveau}</strong>
+              </span>
+            </section>
 
-        <section className="ex-matieres-grid">
-          {matieres.map((m) => {
-            const cfg = MATIERE_CONFIG[m] || { color: "#AB47BC", icon: "📚" };
-            return (
-              <button
-                key={m}
-                className={`ex-matiere-card ${
-                  matiereSelected === m ? "active" : ""
-                }`}
-                style={{ "--accent": cfg.color }}
-                onClick={() => setMatiereSelected(m)}
-              >
-                <span className="ex-matiere-icon">{cfg.icon}</span>
-                <span className="ex-matiere-name">{t.matieres[m] || m}</span>
-              </button>
-            );
-          })}
-        </section>
+            {message && <div className="ex-message">{message}</div>}
 
-        <section className="ex-section">
-          <h2>{t.cours}</h2>
-
-          {loadingCours ? (
-            <div className="ex-loading">Chargement...</div>
-          ) : cours.length === 0 ? (
-            <div className="ex-empty">{t.aucunCours}</div>
-          ) : (
-            <div className="ex-cours-grid">
-              {cours.map((c) => {
-                const quizTermines = coursQuizTermines(c._id);
+            <section className="ex-matieres-grid">
+              {matieres.map((m) => {
+                const cfg = MATIERE_CONFIG[m] || {
+                  color: "#7C4DFF",
+                  icon: "CO",
+                };
 
                 return (
-                  <article key={c._id} className="ex-cours-card">
-                    <div className="ex-cours-top">
-                      <span className="ex-cours-badge">
-                        {t.matieres[c.matiere] || c.matiere}
-                      </span>
-                      <span className="ex-cours-coins">
-                        +{c.coinsCompletion || 20} coins
-                      </span>
-                    </div>
-
-                    <h3>{c.titre}</h3>
-                    <p>{c.description || "Aucune description"}</p>
-
-                    <div className="ex-cours-actions">
-                      {c.pdfUrl && (
-                        <a
-                          className="ex-small-btn pdf"
-                          href={`http://localhost:5004${c.pdfUrl}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {t.voirPdf}
-                        </a>
-                      )}
-
-                      <button
-                        className={`ex-small-btn done ${
-                          !quizTermines ? "disabled" : ""
-                        }`}
-                        disabled={!quizTermines}
-                        onClick={() => completerCours(c._id)}
-                        title={!quizTermines ? t.terminerQuizAvantCours : ""}
-                      >
-                        {t.completer}
-                      </button>
-                    </div>
-
-                    <div className="ex-quiz-list">
-                      <h4>{t.quiz}</h4>
-
-                      {(quizParCours[c._id] || []).length === 0 ? (
-                        <p className="ex-mini-empty">{t.aucunQuiz}</p>
-                      ) : (
-                        (quizParCours[c._id] || []).map((q) => (
-                          <div key={q._id} className="ex-quiz-row">
-                            <span>{q.titre}</span>
-                            <button
-                              onClick={() =>
-                                navigate("/eleve/exercices/quiz", {
-                                  state: {
-                                    coursId: c._id,
-                                    quizId: q._id,
-                                    coursTitre: c.titre,
-                                    quizTitre: q.titre,
-                                  },
-                                })
-                              }
-                            >
-                              {t.commencer}
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </article>
+                  <button
+                    key={m}
+                    className={`ex-matiere-card ${
+                      matiereSelected === m ? "active" : ""
+                    }`}
+                    style={{ "--accent": cfg.color }}
+                    onClick={() => setMatiereSelected(m)}
+                    type="button"
+                  >
+                    <span className="ex-matiere-icon">{cfg.icon}</span>
+                    <span className="ex-matiere-name">
+                      {t.matieres[m] || m}
+                    </span>
+                  </button>
                 );
               })}
-            </div>
-          )}
-        </section>
+            </section>
 
-        <section className="ex-section ex-two-cols">
-          <div className="ex-panel">
-            <h2>{t.autoEval}</h2>
+            <section className="ex-section">
+              <h2>{t.cours}</h2>
 
-            <form onSubmit={faireAutoEvaluation} className="ex-auto-form">
-              <label>{t.note}</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                required
-              />
+              {loadingCours ? (
+                <div className="ex-loading">Chargement...</div>
+              ) : cours.length === 0 ? (
+                <div className="ex-empty">{t.aucunCours}</div>
+              ) : (
+                <div className="ex-cours-grid">
+                  {cours.map((c) => {
+                    const quizTermines = coursQuizTermines(c._id);
 
-              <button>{t.envoyer}</button>
-            </form>
-          </div>
+                    return (
+                      <article key={c._id} className="ex-cours-card">
+                        <div className="ex-cours-top">
+                          <span className="ex-cours-badge">
+                            {t.matieres[c.matiere] || c.matiere}
+                          </span>
 
-          <div className="ex-panel">
-            <h2>{t.historique}</h2>
+                          <span className="ex-cours-coins">
+                            +{c.coinsCompletion || 20} coins
+                          </span>
+                        </div>
 
-            {historique.length === 0 ? (
-              <p className="ex-mini-empty">Aucun résultat.</p>
-            ) : (
-              <div className="ex-history-list">
-                {historique.map((h) => (
-                  <div key={h._id} className="ex-history-item">
-                    <div>
-                      <strong>{h.quizId?.titre || "Quiz"}</strong>
-                      <span>{h.coursId?.titre || h.matiere}</span>
-                    </div>
+                        <h3>{c.titre}</h3>
+                        <p>{c.description || "Aucune description"}</p>
 
-                    <div>
-                      <b>
-                        {h.score}/{h.total}
-                      </b>
-                      <span>+{h.pointsGagnes || 0} coins</span>
-                    </div>
+                        <div className="ex-cours-actions">
+                          {c.pdfUrl && (
+                            <a
+                              className="ex-small-btn pdf"
+                              href={`http://localhost:5004${c.pdfUrl}`}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {t.voirPdf}
+                            </a>
+                          )}
 
-                    <button
-                      type="button"
-                      className="ex-history-delete"
-                      onClick={() => supprimerHistorique(h._id)}
-                    >
-                      {t.supprimer}
-                    </button>
-                  </div>
-                ))}
+                          <button
+                            className={`ex-small-btn done ${
+                              !quizTermines ? "disabled" : ""
+                            }`}
+                            disabled={!quizTermines}
+                            onClick={() => completerCours(c._id)}
+                            title={
+                              !quizTermines ? t.terminerQuizAvantCours : ""
+                            }
+                            type="button"
+                          >
+                            {t.completer}
+                          </button>
+                        </div>
+
+                        <div className="ex-quiz-list">
+                          <h4>{t.quiz}</h4>
+
+                          {(quizParCours[c._id] || []).length === 0 ? (
+                            <p className="ex-mini-empty">{t.aucunQuiz}</p>
+                          ) : (
+                            (quizParCours[c._id] || []).map((q) => (
+                              <div key={q._id} className="ex-quiz-row">
+                                <span>{q.titre}</span>
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    navigate("/eleve/exercices/quiz", {
+                                      state: {
+                                        coursId: c._id,
+                                        quizId: q._id,
+                                        coursTitre: c.titre,
+                                        quizTitre: q.titre,
+                                      },
+                                    })
+                                  }
+                                >
+                                  {t.commencer}
+                                </button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            <section className="ex-section ex-two-cols">
+              <div className="ex-panel">
+                <h2>{t.autoEval}</h2>
+
+                <form onSubmit={faireAutoEvaluation} className="ex-auto-form">
+                  <label>{t.note}</label>
+
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    required
+                  />
+
+                  <button type="submit">{t.envoyer}</button>
+                </form>
               </div>
-            )}
-          </div>
-        </section>
-      </main>
+
+              <div className="ex-panel">
+                <h2>{t.historique}</h2>
+
+                {historique.length === 0 ? (
+                  <p className="ex-mini-empty">Aucun résultat.</p>
+                ) : (
+                  <div className="ex-history-list">
+                    {historique.map((h) => (
+                      <div key={h._id} className="ex-history-item">
+                        <div>
+                          <strong>{h.quizId?.titre || "Quiz"}</strong>
+                          <span>{h.coursId?.titre || h.matiere}</span>
+                        </div>
+
+                        <div>
+                          <b>
+                            {h.score}/{h.total}
+                          </b>
+                          <span>+{h.pointsGagnes || 0} coins</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="ex-history-delete"
+                          onClick={() => supprimerHistorique(h._id)}
+                        >
+                          {t.supprimer}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          </main>
+
+          <EleveFooter />
+        </div>
+      </div>
     </div>
   );
 }

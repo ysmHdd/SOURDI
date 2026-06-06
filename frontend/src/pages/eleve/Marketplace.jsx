@@ -5,6 +5,10 @@ import axios from "../../api/axios";
 import "./accueil.css";
 import "./marketplace.css";
 
+import EleveHeader from "../../components/layout/EleveHeader";
+import EleveSidebar from "../../components/layout/EleveSidebar";
+import EleveFooter from "../../components/layout/EleveFooter";
+
 const API_ELEVE = "http://localhost:5003";
 const API_ADMIN = "http://localhost:5002";
 
@@ -20,9 +24,18 @@ const Marketplace = () => {
     localStorage.getItem("sourdi_dark") === "true"
   );
 
+  const [lang, setLang] = useState(
+    localStorage.getItem("sourdi_lang") || "fr"
+  );
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const enregistrerActiviteCoins = () => {};
+
   const [recherche, setRecherche] = useState("");
   const [filtreCategorie, setFiltreCategorie] = useState("tous");
   const [filtreStock, setFiltreStock] = useState("tous");
+  const [produitSelectionne, setProduitSelectionne] = useState(null);
 
   const charger = async () => {
     try {
@@ -85,64 +98,27 @@ const Marketplace = () => {
       <div className="acc-blob acc-blob-1" />
       <div className="acc-blob acc-blob-2" />
 
-      <header className="acc-header">
-        <div className="acc-header-left">
-          <span className="acc-logo">SOURDI</span>
-          <span className="acc-tagline">Marketplace</span>
-        </div>
+      <EleveHeader
+        lang={lang}
+        setLang={setLang}
+        dark={dark}
+        setDark={setDark}
+        enregistrerActiviteCoins={enregistrerActiviteCoins}
+      />
 
-        <div className="acc-header-center">
-          <button
-            className="acc-theme-btn"
-            onClick={() => setDark(!dark)}
-            type="button"
-          >
-            {dark ? "Clair" : "Sombre"}
-          </button>
-        </div>
+      <div className="acc-layout">
+        <EleveSidebar
+          open={sidebarOpen}
+          setOpen={setSidebarOpen}
+          enregistrerActiviteCoins={enregistrerActiviteCoins}
+        />
 
-        <div className="acc-header-right">
-          <div className="acc-coins-badge">
-            <span className="acc-coins-val">{solde}</span>
-            <span className="acc-coins-label">Sourdi Coins</span>
-          </div>
-
-          <Link to="/eleve" className="acc-cart-link">
-            Accueil
-          </Link>
-
-          <Link to="/eleve/panier" className="acc-cart-link">
-            Panier
-          </Link>
-
-          <Link to="/eleve/profile" className="acc-user-badge acc-user-link">
-            <span className="acc-user-avatar">
-              {profil?.avatar?.url ? (
-                <img src={profil.avatar.url} alt="Avatar" />
-              ) : (
-                (utilisateur?.user_first_name || "?")[0].toUpperCase()
-              )}
-            </span>
-
-            <span className="acc-user-name">
-              {utilisateur?.user_first_name} {utilisateur?.user_last_name}
-            </span>
-          </Link>
-
-          <button
-            className="acc-logout-btn"
-            type="button"
-            onClick={() => {
-              deconnexion();
-              navigate("/login");
-            }}
-          >
-            Déconnexion
-          </button>
-        </div>
-      </header>
-
-      <main className="market-page">
+        <div
+          className={`acc-page-content ${
+            sidebarOpen ? "sidebar-open" : ""
+          }`}
+        >
+          <main className="market-page">
         <div className="market-page-head">
           <h1>Marketplace SOURDI</h1>
           <p>Ajoute des produits à ton panier puis valide ta commande.</p>
@@ -183,7 +159,11 @@ const Marketplace = () => {
         {produitsFiltres.length > 0 ? (
           <div className="market-products-grid">
             {produitsFiltres.map((p) => (
-              <div key={p._id} className="market-product-card">
+              <div
+                key={p._id}
+                className="market-product-card"
+                onClick={() => setProduitSelectionne(p)}
+              >
                 {p.photo ? (
                   <img
                     src={`${API_ADMIN}${p.photo}`}
@@ -219,6 +199,70 @@ const Marketplace = () => {
           <div className="market-empty">Aucun produit trouvé.</div>
         )}
       </main>
+
+          {produitSelectionne && (
+            <div
+              className="market-modal-overlay"
+              onClick={() => setProduitSelectionne(null)}
+            >
+              <div
+                className="market-modal"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  className="market-modal-close"
+                  onClick={() => setProduitSelectionne(null)}
+                >
+                  ✕
+                </button>
+
+                {produitSelectionne.photo ? (
+                  <img
+                    src={`${API_ADMIN}${produitSelectionne.photo}`}
+                    alt={produitSelectionne.nom}
+                    className="market-modal-image"
+                  />
+                ) : (
+                  <div className="market-modal-image" />
+                )}
+
+                <h2>{produitSelectionne.nom}</h2>
+
+                <p>{produitSelectionne.description}</p>
+
+                <div className="market-modal-info">
+                  <span>
+                    <strong>Catégorie :</strong>{" "}
+                    {produitSelectionne.categorie}
+                  </span>
+
+                  <span>
+                    <strong>Prix :</strong>{" "}
+                    {produitSelectionne.prixEnCoins} Coins
+                  </span>
+
+                  <span>
+                    <strong>Stock :</strong>{" "}
+                    {produitSelectionne.stock}
+                  </span>
+                </div>
+
+                <button
+                  className="market-add-btn"
+                  onClick={() =>
+                    ajouterAuPanier(produitSelectionne._id)
+                  }
+                  disabled={produitSelectionne.stock <= 0}
+                >
+                  Ajouter au panier
+                </button>
+              </div>
+            </div>
+          )}
+
+          <EleveFooter />
+        </div>
+      </div>
     </div>
   );
 };

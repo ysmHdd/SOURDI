@@ -9,22 +9,23 @@ import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Utilisateurs from "./pages/admin/Utilisateurs";
 import Produits from "./pages/admin/Produits";
 import Exercices from "./pages/admin/Exercices";
+import MessagesAdmin from "./pages/admin/MessagesAdmin";
+import SignalementsAdmin from "./pages/admin/SignalementsAdmin";
+import DemandesAcces from "./pages/admin/DemandesAcces";
+import CommandesAdmin from "./pages/admin/CommandesAdmin";
 
 import Accueil from "./pages/eleve/Accueil";
 import DashboardEleve from "./pages/eleve/DashboardEleve";
 import Marketplace from "./pages/eleve/Marketplace";
 import Profile from "./pages/eleve/profile";
-
 import Selection from "./pages/eleve/exercices/Selection";
 import Quiz from "./pages/eleve/exercices/Quiz";
 import Resultat from "./pages/eleve/exercices/Resultat";
 import Panier from "./pages/eleve/Panier";
-import EmailConfirmed from "./pages/auth/EmailConfirmed";
-import MessagesAdmin from "./pages/admin/MessagesAdmin";
-import SignalementsAdmin from "./pages/admin/SignalementsAdmin";
 import Calendrier from "./pages/eleve/Calendrier";
-import DemandesAcces from "./pages/admin/DemandesAcces";
-import CommandesAdmin from "./pages/admin/CommandesAdmin";
+
+import EmailConfirmed from "./pages/auth/EmailConfirmed";
+
 function App() {
   return (
     <AuthProvider>
@@ -34,6 +35,7 @@ function App() {
 
           <Route path="/login" element={<Login />} />
           <Route path="/inscription" element={<Inscription />} />
+          <Route path="/email-confirmed" element={<EmailConfirmed />} />
 
           <Route
             path="/admin"
@@ -67,6 +69,42 @@ function App() {
             element={
               <ProtectedRoute role="admin">
                 <Exercices />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/messages"
+            element={
+              <ProtectedRoute role="admin">
+                <MessagesAdmin />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/signalements"
+            element={
+              <ProtectedRoute role="admin">
+                <SignalementsAdmin />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/demandes"
+            element={
+              <ProtectedRoute role="admin">
+                <DemandesAcces />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/commandes"
+            element={
+              <ProtectedRoute role="admin">
+                <CommandesAdmin />
               </ProtectedRoute>
             }
           />
@@ -133,44 +171,24 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
-  path="/eleve/panier"
-  element={
-    <ProtectedRoute role="etudiant">
-      <Panier />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/email-confirmed"
-  element={<EmailConfirmed />}
-/>
-<Route
-  path="/admin/messages"
-  element={
-    <ProtectedRoute role="admin">
-      <MessagesAdmin />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/admin/signalements"
-  element={
-    <ProtectedRoute role="admin">
-      <SignalementsAdmin />
-    </ProtectedRoute>
-  }
-/>
-<Route path="/eleve/calendrier" element={<Calendrier />} />
-<Route
-  path="/admin/demandes"
-  element={
-    <ProtectedRoute role="admin">
-      <DemandesAcces />
-    </ProtectedRoute>
-  }
-/>
-<Route path="/admin/commandes" element={<CommandesAdmin />} />
+            path="/eleve/panier"
+            element={
+              <ProtectedRoute role="etudiant">
+                <Panier />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/eleve/calendrier"
+            element={
+              <ProtectedRoute role="etudiant">
+                <Calendrier />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
+import { useAuth } from "../../context/AuthContext";
 import {
   getSeancesCalendrier,
   ajouterSeanceCalendrier,
@@ -11,9 +13,31 @@ import {
   supprimerSeanceCalendrier,
 } from "../../api/calendrierApi";
 
+import EleveHeader from "../../components/layout/EleveHeader";
+import EleveSidebar from "../../components/layout/EleveSidebar";
+import EleveFooter from "../../components/layout/EleveFooter";
+
 import "./calendrier.css";
 
+const T = {
+  tagline: "Plateforme d'apprentissage",
+  logout: "Déconnexion",
+  coins: "Sourdi Coins",
+  streak: "jours de suite",
+};
+
 const Calendrier = () => {
+  const { utilisateur, deconnexion } = useAuth();
+  const navigate = useNavigate();
+
+  const notifRef = useRef(null);
+
+  const [dark, setDark] = useState(
+    localStorage.getItem("sourdi_dark") === "true"
+  );
+  const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [seances, setSeances] = useState([]);
   const [modalOuvert, setModalOuvert] = useState(false);
   const [modeEdition, setModeEdition] = useState(false);
@@ -25,6 +49,8 @@ const Calendrier = () => {
     heureDebut: "",
     heureFin: "",
   });
+
+  const enregistrerActiviteCoins = () => {};
 
   const chargerSeances = async () => {
     try {
@@ -38,6 +64,14 @@ const Calendrier = () => {
   useEffect(() => {
     chargerSeances();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("sourdi_dark", dark);
+  }, [dark]);
+
+  useEffect(() => {
+    localStorage.setItem("sourdi_lang", lang);
+  }, [lang]);
 
   const events = seances.map((seance) => ({
     id: seance._id,
@@ -110,52 +144,74 @@ const Calendrier = () => {
   };
 
   return (
-    <div className="calendrier-page">
-      <div className="calendrier-header">
-        <div>
-          <h1>Calendrier d'étude</h1>
-          <p>Planifie tes heures de révision par matière.</p>
-        </div>
+    <div className={`acc-root ${dark ? "dark" : "light"}`}>
+      <EleveHeader
+        t={T}
+        lang={lang}
+        setLang={setLang}
+        dark={dark}
+        setDark={setDark}
+        solde={0}
+        streak={0}
+        profil={null}
+        utilisateur={utilisateur}
+        notifRef={notifRef}
+        notifOpen={false}
+        setNotifOpen={() => {}}
+        notifNonLues={0}
+        notifFiltre="tout"
+        setNotifFiltre={() => {}}
+        notificationsAffichees={[]}
+        enregistrerActiviteCoins={enregistrerActiviteCoins}
+        ouvrirNotification={() => {}}
+        toutMarquerLu={() => {}}
+        supprimerNotification={() => {}}
+        getAvatarUrl={() => ""}
+        getNotificationIcon={() => "NT"}
+        deconnexion={deconnexion}
+        navigate={navigate}
+      />
 
-        <button
-          className="btn-ajouter"
-          onClick={() => {
-            setModeEdition(false);
-            setIdSeance(null);
-            setFormulaire({
-              matiere: "",
-              date: "",
-              heureDebut: "",
-              heureFin: "",
-            });
-            setModalOuvert(true);
-          }}
-        >
-          + Ajouter
-        </button>
-      </div>
-
-      <div className="calendrier-card">
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay",
-          }}
-          events={events}
-          dateClick={ouvrirAjout}
-          eventClick={ouvrirEdition}
-          height="auto"
-          locale="fr"
-          buttonText={{
-            today: "Aujourd'hui",
-            month: "Mois",
-            week: "Semaine",
-            day: "Jour",
-          }}
+      <div className="acc-layout">
+        <EleveSidebar
+          open={sidebarOpen}
+          setOpen={setSidebarOpen}
+          enregistrerActiviteCoins={enregistrerActiviteCoins}
         />
+
+        <div className={`acc-page-content ${sidebarOpen ? "sidebar-open" : ""}`}>
+          <main className="calendrier-page">
+           
+            
+
+             
+
+            <div className="calendrier-card">
+              <FullCalendar
+                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                initialView="dayGridMonth"
+                headerToolbar={{
+                  left: "prev,next today",
+                  center: "title",
+                  right: "dayGridMonth,timeGridWeek,timeGridDay",
+                }}
+                events={events}
+                dateClick={ouvrirAjout}
+                eventClick={ouvrirEdition}
+                height="auto"
+                locale="fr"
+                buttonText={{
+                  today: "Aujourd'hui",
+                  month: "Mois",
+                  week: "Semaine",
+                  day: "Jour",
+                }}
+              />
+            </div>
+          </main>
+
+          <EleveFooter />
+        </div>
       </div>
 
       {modalOuvert && (
@@ -163,7 +219,9 @@ const Calendrier = () => {
           <div className="modal-calendrier">
             <div className="modal-header">
               <h2>{modeEdition ? "Modifier la séance" : "Ajouter une séance"}</h2>
-              <button onClick={() => setModalOuvert(false)}>×</button>
+              <button onClick={() => setModalOuvert(false)} type="button">
+                ×
+              </button>
             </div>
 
             <form onSubmit={enregistrerSeance} className="form-calendrier">

@@ -527,6 +527,8 @@
   font-family: 'Nunito', sans-serif;
   color: var(--text);
   font-weight: 900;
+  min-height: 150px;
+  justify-content: center;
   display: grid;
   gap: 8px;
   justify-items: center;
@@ -542,15 +544,15 @@
 }
 
 .profile-avatar-style-grid img {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   object-fit: contain;
   border-radius: 50%;
   background: rgba(255,255,255,0.65);
 }
 
-.profile-avatar-style-grid span {
-  font-size: 0.78rem;
+.profile-avatar-style-grid button span {
+  display: none;
 }
 
 @media (max-width: 900px) {

@@ -1,0 +1,114 @@
+.eleve-sidebar-toggle {
+  position: fixed;
+  top: 86px;
+  left: 18px;
+  z-index: 1001;
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+  color: white;
+  font-size: 26px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(124, 77, 255, 0.32);
+  transition: 0.25s;
+}
+
+.eleve-sidebar-toggle:hover {
+  transform: translateY(-2px);
+}
+
+.eleve-sidebar-toggle.open {
+  left: 238px;
+}
+
+.eleve-sidebar {
+  position: fixed;
+  top: 62px;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  z-index: 1000;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  box-shadow: 18px 0 45px rgba(90, 60, 160, 0.12);
+  backdrop-filter: blur(18px);
+  padding: 100px 18px 24px;
+  transition: transform 0.3s ease;
+}
+
+.eleve-sidebar.show {
+  transform: translateX(0);
+}
+
+.eleve-sidebar.hide {
+  transform: translateX(-100%);
+}
+
+.eleve-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eleve-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-weight: 900;
+  transition: 0.2s;
+}
+
+.eleve-sidebar-link:hover {
+  background: rgba(124, 77, 255, 0.08);
+  color: #7c4dff;
+}
+
+.eleve-sidebar-link.active {
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+  color: white;
+}
+
+.eleve-sidebar-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgba(124, 77, 255, 0.08);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1.2rem;
+  color: #7c4dff;
+
+  flex-shrink: 0;
+  transition: 0.2s;
+}
+
+.eleve-sidebar-link.active .eleve-sidebar-icon {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+}
+
+@media (max-width: 720px) {
+  .eleve-sidebar {
+    top: 0;
+    width: 240px;
+  }
+
+  .eleve-sidebar-toggle {
+    top: 18px;
+    left: 18px;
+  }
+
+  .eleve-sidebar-toggle.open {
+    left: 210px;
+  }
+}

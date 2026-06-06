@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { envoyerMessageIA, envoyerDevoirIA } from "../../api/aiApi";
+import { FaRobot } from "react-icons/fa";
 import "./sourdiHelperChat.css";
+
+const KEY_ACTIONS = "sourdi_actions_cycle";
+
+const enregistrerActiviteCoins = (nombre = 1) => {
+  const current = Number(localStorage.getItem(KEY_ACTIONS) || 0);
+  localStorage.setItem(KEY_ACTIONS, String(current + nombre));
+};
 
 const createNewChat = () => ({
   id: Date.now(),
@@ -97,6 +105,18 @@ const extraireQuestionsDepuisTexte = (texte = "") => {
   return questions;
 };
 
+const creerPreviewFichier = (file) => {
+  if (!file) return null;
+
+  return {
+    name: file.name,
+    type: file.type,
+    url: URL.createObjectURL(file),
+    isImage: file.type.startsWith("image/"),
+    isPdf: file.type === "application/pdf",
+  };
+};
+
 const SourdiHelperChat = ({ student }) => {
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -158,6 +178,8 @@ const SourdiHelperChat = ({ student }) => {
   };
 
   const createChat = () => {
+    enregistrerActiviteCoins();
+
     const newChat = createNewChat();
     setChats((prev) => [newChat, ...prev]);
     setActiveChatId(newChat.id);
@@ -166,6 +188,8 @@ const SourdiHelperChat = ({ student }) => {
   };
 
   const deleteChat = (chatId) => {
+    enregistrerActiviteCoins();
+
     setChats((prev) => {
       const filtered = prev.filter((chat) => chat.id !== chatId);
 
@@ -184,6 +208,8 @@ const SourdiHelperChat = ({ student }) => {
   };
 
   const resetConversation = () => {
+    enregistrerActiviteCoins();
+
     updateCurrentChat({
       title: "Nouveau chat",
       devoirTexte: "",
@@ -222,6 +248,7 @@ const SourdiHelperChat = ({ student }) => {
       return;
     }
 
+    enregistrerActiviteCoins();
     setFichier(selectedFile);
     event.target.value = "";
   };
@@ -251,16 +278,17 @@ const SourdiHelperChat = ({ student }) => {
   const envoyerMessage = async () => {
     if ((!message.trim() && !fichier) || loading || !activeChat) return;
 
+    enregistrerActiviteCoins(fichier ? 2 : 1);
+
     const currentMessage = message.trim();
     const langueDetectee = detecterLangue(currentMessage);
-
-    const userText = fichier
-      ? `${currentMessage || "Explique ce fichier"}\n📎 ${fichier.name}`
-      : currentMessage;
+    const fichierAEnvoyer = fichier;
+    const attachment = creerPreviewFichier(fichierAEnvoyer);
 
     addMessage({
       sender: "user",
-      text: userText,
+      text: currentMessage || "Explique ce fichier",
+      attachment,
     });
 
     setMessage("");
@@ -268,10 +296,10 @@ const SourdiHelperChat = ({ student }) => {
     try {
       setLoading(true);
 
-      if (fichier) {
+      if (fichierAEnvoyer) {
         const formData = new FormData();
 
-        formData.append("file", fichier);
+        formData.append("file", fichierAEnvoyer);
         formData.append(
           "question",
           currentMessage || "Explique ce devoir simplement"
@@ -292,7 +320,7 @@ const SourdiHelperChat = ({ student }) => {
 
         updateCurrentChat((chat) => ({
           ...chat,
-          title: fichier.name,
+          title: fichierAEnvoyer.name,
           devoirTexte: extractedText,
           questions,
           currentQuestionIndex: 0,
@@ -362,6 +390,8 @@ Do not invent another exercise.
             currentMessage.length <= 10;
 
           if (doitAvancer && currentIndex < questions.length - 1) {
+            enregistrerActiviteCoins();
+
             updateCurrentChat((chat) => ({
               ...chat,
               currentQuestionIndex: currentIndex + 1,
@@ -398,10 +428,13 @@ Do not invent another exercise.
     <>
       <button
         className="sourdi-floating-btn"
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          enregistrerActiviteCoins();
+          setOpen(!open);
+        }}
         type="button"
       >
-        🤖
+        <FaRobot />
       </button>
 
       {open && (
@@ -422,7 +455,10 @@ Do not invent another exercise.
                   <button
                     className="chat-history-item"
                     type="button"
-                    onClick={() => setActiveChatId(chat.id)}
+                    onClick={() => {
+                      enregistrerActiviteCoins();
+                      setActiveChatId(chat.id);
+                    }}
                   >
                     {chat.title}
                   </button>
@@ -443,7 +479,7 @@ Do not invent another exercise.
           <div className="sourdi-main">
             <div className="sourdi-header">
               <div className="sourdi-header-left">
-                <div className="sourdi-avatar">🤖</div>
+                <div className="sourdi-avatar"><FaRobot /></div>
 
                 <div>
                   <h3>Sourdi Helper</h3>
@@ -464,7 +500,10 @@ Do not invent another exercise.
                 <button
                   className="sourdi-reset-btn"
                   type="button"
-                  onClick={() => setFullscreen(!fullscreen)}
+                  onClick={() => {
+                    enregistrerActiviteCoins();
+                    setFullscreen(!fullscreen);
+                  }}
                   title="Agrandir"
                 >
                   {fullscreen ? "🗕" : "🗖"}
@@ -473,7 +512,10 @@ Do not invent another exercise.
                 <button
                   className="sourdi-close-btn"
                   type="button"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    enregistrerActiviteCoins();
+                    setOpen(false);
+                  }}
                 >
                   ×
                 </button>
@@ -483,17 +525,41 @@ Do not invent another exercise.
             <div className="sourdi-messages">
               {(activeChat?.messages || []).map((msg, index) => (
                 <div key={index} className={`message-row ${msg.sender}`}>
-                  {msg.sender === "ai" && <div className="mini-avatar">🤖</div>}
+                  {msg.sender === "ai" && <div className="mini-avatar"><FaRobot /></div>}
 
                   <div className={`message-bubble ${msg.sender}`}>
-                    {msg.text}
+                    {msg.attachment && (
+                      <div className="message-file-card">
+                        {msg.attachment.isImage ? (
+                          <img
+                            src={msg.attachment.url}
+                            alt={msg.attachment.name}
+                          />
+                        ) : (
+                          <div className="pdf-preview">📄 PDF</div>
+                        )}
+
+                        <div className="file-name">{msg.attachment.name}</div>
+
+                        <a
+                          href={msg.attachment.url}
+                          download={msg.attachment.name}
+                          className="file-download-btn"
+                          onClick={enregistrerActiviteCoins}
+                        >
+                          Télécharger
+                        </a>
+                      </div>
+                    )}
+
+                    {msg.text && <div>{msg.text}</div>}
                   </div>
                 </div>
               ))}
 
               {loading && (
                 <div className="message-row ai">
-                  <div className="mini-avatar">🤖</div>
+                  <div className="mini-avatar"><FaRobot /></div>
 
                   <div className="message-bubble ai typing">
                     <span></span>
@@ -510,7 +576,13 @@ Do not invent another exercise.
               <div className="sourdi-file-preview">
                 <span>📎 {fichier.name}</span>
 
-                <button type="button" onClick={() => setFichier(null)}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    enregistrerActiviteCoins();
+                    setFichier(null);
+                  }}
+                >
                   ×
                 </button>
               </div>
@@ -529,7 +601,10 @@ Do not invent another exercise.
                 className="sourdi-attach-btn"
                 type="button"
                 disabled={loading}
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => {
+                  enregistrerActiviteCoins();
+                  fileInputRef.current?.click();
+                }}
               >
                 📎
               </button>

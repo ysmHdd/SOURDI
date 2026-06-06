@@ -11,6 +11,7 @@ const Login = () => {
   const [erreur, setErreur] = useState("");
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [lang, setLang] = useState(localStorage.getItem("lang") || "fr");
+  const [showPassword, setShowPassword] = useState(false);
 
   const t = {
     fr: {
@@ -553,6 +554,29 @@ const Login = () => {
           background-clip: text;
           text-decoration: none;
         }
+
+        .password-wrapper {
+          position: relative;
+        }
+
+        .password-toggle {
+          position: absolute;
+          right: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          color: #AB47BC;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+        }
+
+        .password-input {
+          padding-right: 50px !important;
+        }
       `}</style>
 
       <div className={`login-bg ${theme}`}>
@@ -634,16 +658,60 @@ const Login = () => {
               <label className="field-label" htmlFor="motDePasse">
                 {t[lang].password}
               </label>
-              <input
-                className="login-input"
-                type="password"
-                id="motDePasse"
-                name="motDePasse"
-                placeholder={t[lang].password}
-                value={form.motDePasse}
-                onChange={handleChange}
-                required
-              />
+
+              <div className="password-wrapper">
+                <input
+                  className="login-input password-input"
+                  type={showPassword ? "text" : "password"}
+                  id="motDePasse"
+                  name="motDePasse"
+                  placeholder={t[lang].password}
+                  value={form.motDePasse}
+                  onChange={handleChange}
+                  required
+                />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="22"
+                      height="22"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-5 0-9-4-10-7 0 0 1.21-2.42 3.42-4.42M9.88 9.88A3 3 0 0014.12 14.12M6.1 6.1L17.9 17.9M21 12s-4-7-9-7c-.73 0-1.44.08-2.12.23"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="22"
+                      height="22"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
+                      />
+                      <circle cx="12" cy="12" r="3" strokeWidth="2" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             <button className="login-btn" type="submit">

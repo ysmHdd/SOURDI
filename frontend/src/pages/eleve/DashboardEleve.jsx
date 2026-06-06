@@ -1,285 +1,1072 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import axios from "../../api/axios";
+import "./accueil.css";
+import EleveMessageBox from "../../components/messages/EleveMessageBox";
+import SourdiHelperChat from "../../components/ai/SourdiHelperChat";
 
-const DashboardEleve = () => {
+const API_EX = "http://localhost:5004/api/exercices";
+const API_COINS = "http://localhost:5005/api/coins";
+const API_ELEVE = "http://localhost:5003/api/eleve";
+
+const CYCLE_SECONDS = 30 * 60;
+const KEY_CYCLE_SECONDS = "sourdi_cycle_seconds";
+const KEY_ACTIONS = "sourdi_actions_cycle";
+const KEY_LAST_TICK = "sourdi_last_tick";
+
+const getNumberStorage = (key) => Number(localStorage.getItem(key) || 0);
+
+const setNumberStorage = (key, value) => {
+  localStorage.setItem(key, String(value));
+};
+
+const getAvatarParams = (gender, style) => {
+  const base = [
+    "facialHairProbability=0",
+    "mouth=smile,twinkle,default",
+    "eyes=happy,default,wink",
+    "eyebrows=raisedExcited,defaultNatural,upDownNatural",
+    "radius=50",
+  ];
+
+  const femaleStyles = {
+    "girl-long": [
+      "top=longButNotTooLong,straight01,straight02,straightAndStrand",
+      "clothing=shirtScoopNeck,shirtVNeck,overall",
+      "clothesColor=ff488e,ffafb9,c0aede,ffffff",
+    ],
+    "girl-bun": [
+      "top=bun",
+      "clothing=shirtScoopNeck,shirtVNeck,hoodie",
+      "clothesColor=ff488e,f9a8d4,c0aede",
+    ],
+    "girl-bob": [
+      "top=bob",
+      "clothing=shirtScoopNeck,overall,shirtVNeck",
+      "clothesColor=ffafb9,ffffff,65c9ff",
+    ],
+    "girl-curly": [
+      "top=curvy,bigHair",
+      "clothing=shirtScoopNeck,hoodie,overall",
+      "clothesColor=f59797,ff488e,c0aede",
+    ],
+  };
+
+  const maleStyles = {
+    "boy-short": [
+      "top=shortWaved,shortRound",
+      "clothing=hoodie,shirtCrewNeck,overall",
+      "clothesColor=65c9ff,5199e4,25557c",
+    ],
+    "boy-flat": [
+      "top=shortFlat",
+      "clothing=hoodie,shirtCrewNeck",
+      "clothesColor=5199e4,25557c,b6e3f4",
+    ],
+    "boy-round": [
+      "top=shortRound",
+      "clothing=overall,shirtCrewNeck",
+      "clothesColor=65c9ff,b6e3f4,25557c",
+    ],
+    "boy-caesar": [
+      "top=theCaesar,theCaesarAndSidePart",
+      "clothing=hoodie,shirtCrewNeck",
+      "clothesColor=25557c,5199e4,65c9ff",
+    ],
+  };
+
+  if (gender === "male") {
+    return [
+      ...base,
+      "topProbability=100",
+      "hairColor=2c1b18,724133,a55728",
+      "backgroundColor=b6e3f4,93c5fd,e0f2fe,dbeafe",
+      "backgroundType=gradientLinear,solid",
+      ...(maleStyles[style] || maleStyles["boy-short"]),
+    ].join("&");
+  }
+
+  return [
+    ...base,
+    "topProbability=100",
+    "accessories=round,prescription01,prescription02",
+    "accessoriesProbability=35",
+    "hairColor=2c1b18,724133,a55728,d6b370,f59797",
+    "backgroundColor=fbcfe8,f9a8d4,fce7f3,ffd5dc",
+    "backgroundType=gradientLinear,solid",
+    ...(femaleStyles[style] || femaleStyles["girl-long"]),
+  ].join("&");
+};
+
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return "";
+
+  const gender = avatar.gender || "female";
+  const style =
+    avatar.style && avatar.style.includes("-")
+      ? avatar.style
+      : gender === "male"
+      ? "boy-short"
+      : "girl-long";
+  const seed = avatar.seed || "default-student";
+
+  return `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(
+    seed
+  )}&${getAvatarParams(gender, style)}`;
+};
+
+const T = {
+  fr: {
+    tagline: "Plateforme d'apprentissage",
+    logout: "Déconnexion",
+    coins: "Sourdi Coins",
+    marketTitle: "Marketplace",
+    marketSub: "Dépense tes coins pour des récompenses",
+    seeAll: "Voir tout",
+    coursesTitle: "Cours disponibles",
+    coursesSub: "Continue ton apprentissage avec tes cours",
+    start: "Commencer",
+    statsTitle: "Ma progression",
+    lessons: "Leçons complétées",
+    time: "Temps passé",
+    connections: "Jours de connexion",
+    selfEval: "Auto-évaluation",
+    footerText: "Plateforme éducative pour la langue des signes",
+    noProducts: "Aucun produit disponible",
+    coins_unit: "coins",
+    cycleCoins: "Cycle coins",
+    actions: "actions",
+    streak: "jours de suite",
+    nextGoal: "Prochain objectif",
+    niveau: "Niveau",
+    niveaux: ["Débutant", "Apprenti", "Intermédiaire", "Avancé", "Expert"],
+    bonjour: (h) =>
+      h < 12 ? "Bonjour" : h < 18 ? "Bon après-midi" : "Bonsoir",
+  },
+  en: {
+    tagline: "Learning Platform",
+    logout: "Logout",
+    coins: "Sourdi Coins",
+    marketTitle: "Marketplace",
+    marketSub: "Spend your coins to get rewards",
+    seeAll: "See all",
+    coursesTitle: "Available Courses",
+    coursesSub: "Continue learning with your lessons",
+    start: "Start",
+    statsTitle: "My Progress",
+    lessons: "Completed Lessons",
+    time: "Time Spent",
+    connections: "Login streak",
+    selfEval: "Self-Evaluation",
+    footerText: "Educational platform for sign language",
+    noProducts: "No products available",
+    coins_unit: "coins",
+    cycleCoins: "Coins cycle",
+    actions: "actions",
+    streak: "days in a row",
+    nextGoal: "Next goal",
+    niveau: "Level",
+    niveaux: ["Beginner", "Apprentice", "Intermediate", "Advanced", "Expert"],
+    bonjour: (h) =>
+      h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening",
+  },
+};
+
+const getNiveau = (solde) => {
+  if (solde >= 500) return 4;
+  if (solde >= 200) return 3;
+  if (solde >= 100) return 2;
+  if (solde >= 50) return 1;
+  return 0;
+};
+
+const getNextGoalCoins = (solde) => {
+  if (solde < 50) return 50;
+  if (solde < 100) return 100;
+  if (solde < 200) return 200;
+  if (solde < 500) return 500;
+  return null;
+};
+
+const formatTemps = (minutes) => {
+  const total = Number(minutes) || 0;
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+
+  if (h > 0 && m > 0) return `${h}h ${m}min`;
+  if (h > 0) return `${h}h`;
+  return `${m}min`;
+};
+
+const formatSecondes = (secondes) => {
+  const total = Number(secondes) || 0;
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+
+  return `${m.toString().padStart(2, "0")}:${s
+    .toString()
+    .padStart(2, "0")}`;
+};
+
+const getNotificationIcon = (type) => {
+  if (type === "message") return "💬";
+  if (type === "marketplace") return "🛒";
+  if (type === "calendrier") return "📅";
+  if (type === "quiz") return "📝";
+  return "🔔";
+};
+
+const ProgressCircle = ({ value, max, color, size = 64 }) => {
+  const r = (size - 8) / 2;
+  const circ = 2 * Math.PI * r;
+  const pct = max ? Math.min(1, value / max) : 0;
+  const dash = pct * circ;
+
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke="rgba(255,255,255,0.08)"
+        strokeWidth="6"
+      />
+
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth="6"
+        strokeDasharray={`${dash} ${circ}`}
+        strokeLinecap="round"
+        style={{
+          transition: "stroke-dasharray 0.8s cubic-bezier(0.34,1.2,0.64,1)",
+        }}
+      />
+    </svg>
+  );
+};
+
+export default function Accueil() {
   const { utilisateur, deconnexion } = useAuth();
   const navigate = useNavigate();
-  const [profil, setProfil] = useState(null);
-  const [kpi, setKpi] = useState({
-    lessonsCompletes: 0,
-    autoEvaluation: 0,
-  });
-  const [message, setMessage] = useState("");
 
-  const charger = async () => {
+  const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
+  const [dark, setDark] = useState(
+    localStorage.getItem("sourdi_dark") === "true"
+  );
+
+  const [profil, setProfil] = useState(null);
+  const [produits, setProduits] = useState([]);
+  const [solde, setSolde] = useState(0);
+  const [streak, setStreak] = useState(0);
+
+  const [tempsCycleCoins, setTempsCycleCoins] = useState(
+    getNumberStorage(KEY_CYCLE_SECONDS)
+  );
+  const [actionsCycle, setActionsCycle] = useState(
+    getNumberStorage(KEY_ACTIONS)
+  );
+
+  const [coursAccueil, setCoursAccueil] = useState([]);
+  const [coinsStats, setCoinsStats] = useState(null);
+
+  const [notifications, setNotifications] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifNonLues, setNotifNonLues] = useState(0);
+  const [notifFiltre, setNotifFiltre] = useState("tout");
+
+  const timerRef = useRef(null);
+  const rewardRunningRef = useRef(false);
+  const notifRef = useRef(null);
+
+  const t = T[lang];
+  const heure = new Date().getHours();
+
+  const accesBloque =
+    utilisateur?.statutAcces === "en_attente" ||
+    utilisateur?.statutAcces === "refuse";
+
+  const syncCountersFromStorage = () => {
+    setTempsCycleCoins(getNumberStorage(KEY_CYCLE_SECONDS));
+    setActionsCycle(getNumberStorage(KEY_ACTIONS));
+  };
+
+  const enregistrerActiviteCoins = (nombre = 1) => {
+    const current = getNumberStorage(KEY_ACTIONS);
+    const next = current + nombre;
+
+    setNumberStorage(KEY_ACTIONS, next);
+    setActionsCycle(next);
+
+    window.dispatchEvent(new Event("coins-actions-updated"));
+  };
+
+  const resetActionsCoins = () => {
+    setNumberStorage(KEY_ACTIONS, 0);
+    setActionsCycle(0);
+
+    window.dispatchEvent(new Event("coins-actions-updated"));
+  };
+
+  const chargerSolde = async () => {
+    const res = await axios.get(`${API_ELEVE}/coins/solde`);
+    setSolde(res.data?.solde || 0);
+    return res.data?.solde || 0;
+  };
+
+  const chargerProfil = async () => {
+    const res = await axios.get(`${API_ELEVE}/profil`);
+    setProfil(res.data);
+    return res.data;
+  };
+
+  const chargerCoursEtCoins = async () => {
     try {
-      const res = await axios.get("http://localhost:5003/api/eleve/profil");
-      setProfil(res.data);
-    } catch (err) {
-      console.error(err);
+      const [coursRes, statsRes] = await Promise.all([
+        axios.get(`${API_EX}/cours`),
+        axios.get(`${API_COINS}/stats`),
+      ]);
+
+      setCoursAccueil((coursRes.data || []).slice(0, 4));
+      setCoinsStats(statsRes.data || null);
+      setStreak(statsRes.data?.streak || 0);
+    } catch (e) {
+      console.error(e);
     }
   };
 
-  const mettreAJourKPI = async (e) => {
-    e.preventDefault();
+  const chargerDonneesAccueil = async () => {
     try {
-      // Mettre à jour les KPI
-      await axios.patch("http://localhost:5003/api/eleve/coins/kpi", kpi);
+      const [profilRes, produitsRes] = await Promise.all([
+        chargerProfil(),
+        axios.get(`${API_ELEVE}/marketplace`),
+        chargerSolde(),
+      ]);
 
-      // Récompense auto-évaluation (+15 coins)
-      if (kpi.autoEvaluation > 0) {
-        await axios.post("http://localhost:5005/api/coins/auto-evaluation", {
-          note: kpi.autoEvaluation,
-        });
+      setProfil(profilRes);
+      setProduits((produitsRes.data || []).slice(0, 3));
+      await chargerCoursEtCoins();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const chargerNotifications = async () => {
+    try {
+      const [notifRes, countRes] = await Promise.all([
+        axios.get("http://localhost:5009/api/notifications"),
+        axios.get("http://localhost:5009/api/notifications/non-lues"),
+      ]);
+
+      setNotifications(notifRes.data || []);
+      setNotifNonLues(countRes.data.total || 0);
+    } catch (erreur) {
+      console.error(erreur);
+    }
+  };
+
+  const verifierRecompenseTemps = async () => {
+    if (rewardRunningRef.current) return;
+
+    rewardRunningRef.current = true;
+
+    const actions = getNumberStorage(KEY_ACTIONS);
+
+    try {
+      const res = await axios.post(`${API_COINS}/temps`, {
+        minutes: 30,
+        actions,
+      });
+
+      if (res.data?.recompense) {
+        window.dispatchEvent(new Event("coins-updated"));
+
+        await Promise.all([
+          chargerSolde(),
+          chargerProfil(),
+          chargerCoursEtCoins(),
+        ]);
+      }
+    } catch (erreur) {
+      console.error(erreur);
+    } finally {
+      resetActionsCoins();
+      rewardRunningRef.current = false;
+    }
+  };
+
+  const avancerCompteurGlobal = () => {
+    const now = Date.now();
+    const lastTick = Number(localStorage.getItem(KEY_LAST_TICK) || now);
+
+    let elapsedSeconds = Math.floor((now - lastTick) / 1000);
+
+    if (elapsedSeconds < 1) return;
+
+    if (elapsedSeconds > 10) elapsedSeconds = 1;
+
+    let nextCycle = getNumberStorage(KEY_CYCLE_SECONDS) + elapsedSeconds;
+
+    if (nextCycle >= CYCLE_SECONDS) {
+      nextCycle = 0;
+      verifierRecompenseTemps();
+    }
+
+    setNumberStorage(KEY_CYCLE_SECONDS, nextCycle);
+    localStorage.setItem(KEY_LAST_TICK, String(now));
+
+    setTempsCycleCoins(nextCycle);
+    setActionsCycle(getNumberStorage(KEY_ACTIONS));
+  };
+
+  const ouvrirNotification = async (notification) => {
+    try {
+      enregistrerActiviteCoins();
+
+      if (!notification.lu) {
+        await axios.patch(
+          `http://localhost:5009/api/notifications/${notification._id}/lue`
+        );
       }
 
-      setMessage("KPI mis à jour ! Coins gagnés.");
-      setTimeout(() => setMessage(""), 3000);
-      charger();
-    } catch (err) {
-      console.error(err);
-      setMessage("Erreur lors de la mise à jour.");
+      setNotifOpen(false);
+      await chargerNotifications();
+
+      if (notification.lien === "#message-box") {
+        window.dispatchEvent(new Event("ouvrir-message-box"));
+      } else if (notification.lien) {
+        navigate(notification.lien);
+      }
+    } catch (erreur) {
+      console.error(erreur);
+    }
+  };
+
+  const toutMarquerLu = async () => {
+    try {
+      enregistrerActiviteCoins();
+      await axios.patch("http://localhost:5009/api/notifications/tout-lu");
+      await chargerNotifications();
+    } catch (erreur) {
+      console.error(erreur);
+    }
+  };
+
+  const supprimerNotification = async (e, id) => {
+    e.stopPropagation();
+
+    try {
+      enregistrerActiviteCoins();
+      await axios.delete(`http://localhost:5009/api/notifications/${id}`);
+      await chargerNotifications();
+    } catch (erreur) {
+      console.error(erreur);
     }
   };
 
   useEffect(() => {
-    charger();
+    localStorage.setItem("sourdi_lang", lang);
+  }, [lang]);
+
+  useEffect(() => {
+    localStorage.setItem("sourdi_dark", dark);
+  }, [dark]);
+
+  useEffect(() => {
+    if (!localStorage.getItem(KEY_LAST_TICK)) {
+      localStorage.setItem(KEY_LAST_TICK, String(Date.now()));
+    }
+
+    chargerDonneesAccueil();
+    syncCountersFromStorage();
   }, []);
 
-  return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800&display=swap');
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; }
-        .dashboard-bg {
-          min-height: 100vh; padding: 32px 24px 50px;
-          background: linear-gradient(145deg, #FFF8E1 0%, #FCE4EC 45%, #E8EAF6 100%);
-          font-family: 'Nunito', sans-serif; position: relative; overflow: hidden;
-        }
-        .dashboard-bg::before, .dashboard-bg::after {
-          content: ''; position: absolute; border-radius: 50%; opacity: 0.18;
-          animation: floatBlob 7s ease-in-out infinite; z-index: 0;
-        }
-        .dashboard-bg::before { width: 320px; height: 320px; background: #FF80AB; top: -90px; left: -90px; }
-        .dashboard-bg::after { width: 240px; height: 240px; background: #82B1FF; bottom: -70px; right: -70px; animation-delay: 3s; }
-        @keyframes floatBlob { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-20px) scale(1.04); } }
-        @keyframes popIn { from { opacity: 0; transform: translateY(25px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        @keyframes twinkle { 0%, 100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.2); } }
-        .stars { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
-        .star { position: absolute; font-size: 22px; animation: twinkle 3s ease-in-out infinite; }
-        .dashboard-content { max-width: 1200px; margin: 0 auto; position: relative; z-index: 2; }
-        .dashboard-header {
-          background: rgba(255,255,255,0.92); backdrop-filter: blur(10px);
-          border: 3px solid rgba(240,220,255,0.85); border-radius: 30px; padding: 24px 28px;
-          box-shadow: 0 24px 64px rgba(180,120,220,0.16), 0 2px 8px rgba(0,0,0,0.06);
-          display: flex; justify-content: space-between; align-items: center;
-          gap: 20px; flex-wrap: wrap; margin-bottom: 28px; animation: popIn 0.55s ease;
-        }
-        .title-wrap h1 {
-          margin: 0; font-family: 'Fredoka One', cursive; font-size: 2.2rem; letter-spacing: 2px;
-          background: linear-gradient(90deg, #AB47BC, #EF5350, #FF7043);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        }
-        .header-right { display: flex; align-items: center; flex-wrap: wrap; }
-        .user-section {
-          display: flex; align-items: center; gap: 14px;
-          background: rgba(255,255,255,0.85); padding: 10px 14px;
-          border-radius: 22px; border: 2px solid #EDE7F6;
-          box-shadow: 0 8px 20px rgba(171,71,188,0.08);
-        }
-        .user-badge {
-          display: flex; align-items: center; gap: 8px;
-          background: linear-gradient(135deg, #F3E5F5, #E8EAF6);
-          color: #5E548E; border: 2px solid #E1BEE7;
-          padding: 12px 18px; border-radius: 18px; font-weight: 800;
-        }
-        .logout-btn {
-          border: none; border-radius: 18px; padding: 12px 18px;
-          cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 800;
-          color: white; background: linear-gradient(135deg, #EC407A, #EF5350);
-          box-shadow: 0 8px 20px rgba(239,83,80,0.28); transition: 0.2s ease;
-        }
-        .logout-btn:hover { transform: translateY(-2px) scale(1.02); filter: brightness(1.05); }
-        .dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-bottom: 26px; }
-        .card {
-          background: rgba(255,255,255,0.93); backdrop-filter: blur(10px);
-          border-radius: 28px; padding: 26px;
-          border: 3px solid rgba(240,220,255,0.8);
-          box-shadow: 0 18px 44px rgba(180,120,220,0.12), 0 2px 8px rgba(0,0,0,0.05);
-          animation: popIn 0.6s ease;
-        }
-        .card h3 { margin: 0 0 14px; color: #7B4BAA; font-size: 1.2rem; font-weight: 800; }
-        .coins-box { display: flex; align-items: center; gap: 16px; }
-        .coin-icon {
-          width: 74px; height: 74px; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center; font-size: 2rem;
-          background: radial-gradient(circle at 30% 30%, #FFF59D, #FFD54F, #FFB300);
-          box-shadow: 0 10px 26px rgba(255,193,7,0.35);
-        }
-        .coin-value { font-size: 2.2rem; font-weight: 900; color: #5E35B1; margin: 0; }
-        .coin-label { margin: 4px 0 0; color: #A1887F; font-weight: 700; font-size: 0.92rem; }
-        .kpi-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
-        .kpi-item { background: linear-gradient(135deg, #FAF7FF, #FDF2F8); border: 2px solid #EEE3F8; border-radius: 18px; padding: 14px; }
-        .kpi-item span { display: block; }
-        .kpi-label { color: #9C7DB6; font-size: 0.82rem; font-weight: 800; margin-bottom: 6px; }
-        .kpi-value { color: #5E35B1; font-size: 1.2rem; font-weight: 900; }
-        .kpi-auto { font-size: 0.72rem; color: #B0A0C0; font-weight: 700; margin-top: 4px; }
-        .form-card {
-          background: rgba(255,255,255,0.94); backdrop-filter: blur(10px);
-          border-radius: 30px; padding: 28px;
-          border: 3px solid rgba(240,220,255,0.85);
-          box-shadow: 0 18px 44px rgba(180,120,220,0.12), 0 2px 8px rgba(0,0,0,0.05);
-          margin-bottom: 26px; animation: popIn 0.7s ease;
-        }
-        .form-card h3 { margin: 0 0 4px; color: #7B4BAA; font-size: 1.35rem; font-weight: 800; }
-        .form-card p { margin: 0 0 18px; color: #B0A0C0; font-size: 0.82rem; font-weight: 700; }
-        .kpi-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .field-group { display: flex; flex-direction: column; }
-        .field-label { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #AB47BC; margin-bottom: 7px; }
-        .field-hint { font-size: 0.7rem; font-weight: 700; color: #CE93D8; margin-top: 5px; }
-        .input {
-          width: 100%; padding: 14px 16px; border: 2.5px solid #EDE7F6;
-          border-radius: 16px; font-size: 0.98rem; font-family: 'Nunito', sans-serif;
-          font-weight: 700; color: #37474F; background: #FAFAFA; outline: none;
-          transition: border-color 0.22s, box-shadow 0.22s;
-        }
-        .input:focus { border-color: #AB47BC; background: #FDFAFF; box-shadow: 0 0 0 4px rgba(171,71,188,0.12); }
-        .input::placeholder { color: #CE93D8; font-weight: 700; }
-        .submit-btn {
-          grid-column: span 2; border: none; border-radius: 18px; padding: 16px;
-          font-family: 'Fredoka One', cursive; font-size: 1.05rem; letter-spacing: 1px;
-          cursor: pointer; color: white;
-          background: linear-gradient(135deg, #AB47BC 0%, #EF5350 100%);
-          box-shadow: 0 10px 24px rgba(171,71,188,0.35); transition: 0.2s ease;
-        }
-        .submit-btn:hover { transform: translateY(-3px) scale(1.02); filter: brightness(1.05); }
-        .success-msg {
-          grid-column: span 2; text-align: center;
-          background: #F1FFF5; border: 2px solid #C8E6C9;
-          color: #2E7D32; border-radius: 14px; padding: 12px;
-          font-weight: 800; font-size: 0.88rem; animation: popIn 0.3s ease;
-        }
-        .info-banner {
-          background: linear-gradient(135deg, rgba(171,71,188,0.08), rgba(239,83,80,0.06));
-          border: 2px solid rgba(171,71,188,0.2); border-radius: 18px;
-          padding: 14px 18px; margin-bottom: 26px;
-          display: flex; align-items: center; gap: 12px;
-          font-size: 0.82rem; font-weight: 700; color: #7B4BAA;
-        }
-        .market-link {
-          display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-          padding: 16px 26px; border-radius: 18px; text-decoration: none; color: white;
-          font-weight: 900; font-size: 1rem;
-          background: linear-gradient(135deg, #43A047, #26C6DA);
-          box-shadow: 0 10px 24px rgba(38,198,218,0.24); transition: 0.2s ease;
-        }
-        .market-link:hover { transform: translateY(-3px) scale(1.02); filter: brightness(1.05); }
-        @media (max-width: 900px) {
-          .dashboard-grid, .kpi-form, .kpi-list { grid-template-columns: 1fr; }
-          .submit-btn { grid-column: span 1; }
-          .success-msg { grid-column: span 1; }
-        }
-      `}</style>
+  useEffect(() => {
+    const refresh = () => {
+      chargerSolde().catch(() => {});
+      chargerProfil().catch(() => {});
+      chargerCoursEtCoins();
+      syncCountersFromStorage();
+    };
 
-      <div className="dashboard-bg">
-        <div className="stars">
-          <span className="star" style={{ top: "8%", left: "8%", animationDelay: "0s" }}>⭐</span>
-          <span className="star" style={{ top: "12%", right: "10%", animationDelay: "1s" }}>✨</span>
-          <span className="star" style={{ top: "40%", left: "4%", animationDelay: "2.2s" }}>🌟</span>
-          <span className="star" style={{ bottom: "20%", right: "6%", animationDelay: "0.6s" }}>⭐</span>
-          <span className="star" style={{ bottom: "12%", left: "10%", animationDelay: "2.8s" }}>✨</span>
-        </div>
+    window.addEventListener("focus", refresh);
+    window.addEventListener("coins-updated", refresh);
+    window.addEventListener("coins-actions-updated", syncCountersFromStorage);
+    window.addEventListener("storage", syncCountersFromStorage);
 
-        <div className="dashboard-content">
-          <div className="dashboard-header">
-            <div className="title-wrap"><h1>SOURDI — Élève</h1></div>
-            <div className="header-right">
-              <div className="user-section">
-                <div className="user-badge">
-                  {utilisateur?.user_first_name} {utilisateur?.user_last_name}
-                </div>
-                <button className="logout-btn" onClick={() => { deconnexion(); navigate("/login"); }}>
-                  Déconnexion
-                </button>
-              </div>
-            </div>
-          </div>
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("coins-updated", refresh);
+      window.removeEventListener(
+        "coins-actions-updated",
+        syncCountersFromStorage
+      );
+      window.removeEventListener("storage", syncCountersFromStorage);
+    };
+  }, []);
 
-          {/* Info banner */}
-          <div className="info-banner">
-            Les connexions quotidiennes et le temps passé sont comptés automatiquement. Mets à jour tes leçons et ton auto-évaluation manuellement.
-          </div>
+  useEffect(() => {
+    chargerNotifications();
 
-          <div className="dashboard-grid">
-            <div className="card">
-              <h3>Mes Sourdi Coins</h3>
-              <div className="coins-box">
-                <div className="coin-icon">🪙</div>
-                <div>
-                  <p className="coin-value">{profil?.solde ?? 0} coins</p>
-                  <p className="coin-label">Continue à apprendre pour en gagner plus !</p>
-                </div>
-              </div>
-            </div>
+    const interval = setInterval(chargerNotifications, 10000);
 
-            <div className="card">
-              <h3>Mes KPI</h3>
-              <div className="kpi-list">
-                <div className="kpi-item">
-                  <span className="kpi-label">Leçons complétées</span>
-                  <span className="kpi-value">{profil?.kpi?.lessonsCompletes ?? 0}</span>
-                </div>
-                <div className="kpi-item">
-                  <span className="kpi-label">Temps passé</span>
-                  <span className="kpi-value">{profil?.kpi?.tempsPasseEnMinutes ?? 0} min</span>
-                  <span className="kpi-auto">Automatique</span>
-                </div>
-                <div className="kpi-item">
-                  <span className="kpi-label">Connexions</span>
-                  <span className="kpi-value">{profil?.kpi?.nombreConnexions ?? 0}</span>
-                  <span className="kpi-auto">Automatique</span>
-                </div>
-                <div className="kpi-item">
-                  <span className="kpi-label">Auto-évaluation</span>
-                  <span className="kpi-value">{profil?.kpi?.autoEvaluation ?? 0}/10</span>
-                </div>
-              </div>
-            </div>
-          </div>
+    return () => clearInterval(interval);
+  }, []);
 
-          <div className="form-card">
-            <h3>Mettre à jour mes KPI</h3>
-            <p>Leçons complétées et auto-évaluation uniquement — le reste est automatique</p>
-            <form onSubmit={mettreAJourKPI} className="kpi-form">
-              <div className="field-group">
-                <label className="field-label">Leçons complétées</label>
-                <input className="input" type="number" min="0" placeholder="Ex: 5"
-                  value={kpi.lessonsCompletes}
-                  onChange={(e) => setKpi({ ...kpi, lessonsCompletes: e.target.value })} />
-                <span className="field-hint">+20 coins par leçon</span>
-              </div>
-              <div className="field-group">
-                <label className="field-label">Auto-évaluation (0-10)</label>
-                <input className="input" type="number" min="0" max="10" placeholder="Ex: 8"
-                  value={kpi.autoEvaluation}
-                  onChange={(e) => setKpi({ ...kpi, autoEvaluation: e.target.value })} />
-                <span className="field-hint">+15 coins à la soumission</span>
-              </div>
-              {message && <div className="success-msg">{message}</div>}
-              <button className="submit-btn" type="submit">Mettre à jour</button>
-            </form>
-          </div>
+  useEffect(() => {
+    const fermer = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    };
 
-          <Link to="/eleve/marketplace" className="market-link">
-            Aller à la Marketplace
-          </Link>
-        </div>
-      </div>
-    </>
+    document.addEventListener("mousedown", fermer);
+
+    return () => document.removeEventListener("mousedown", fermer);
+  }, []);
+
+  useEffect(() => {
+    timerRef.current = setInterval(avancerCompteurGlobal, 1000);
+
+    return () => clearInterval(timerRef.current);
+  }, []);
+
+  const niveauIdx = getNiveau(solde);
+  const nextGoal = getNextGoalCoins(solde);
+  const niveauPct = nextGoal ? Math.round((solde / nextGoal) * 100) : 100;
+
+  const lessonsCompletes = Math.floor((coinsStats?.parType?.lecon || 0) / 20);
+  const tempsPasse = coinsStats?.minutesAccumulees || 0;
+  const totalConnexions = streak;
+  const autoEvaluation = Math.floor(
+    (coinsStats?.parType?.auto_evaluation || 0) / 15
   );
-};
 
-export default DashboardEleve;
+  const notificationsAffichees =
+    notifFiltre === "non-lu"
+      ? notifications.filter((n) => !n.lu)
+      : notifications;
+
+  const stats = [
+    {
+      key: "lessons",
+      label: t.lessons,
+      value: lessonsCompletes,
+      max: 20,
+      color: "#7C4DFF",
+      unit: "",
+    },
+    {
+      key: "time",
+      label: t.time,
+      value: tempsPasse,
+      max: 300,
+      color: "#E040FB",
+      unit: "",
+    },
+    {
+      key: "connections",
+      label: t.connections,
+      value: totalConnexions,
+      max: 30,
+      color: "#FF6D00",
+      unit: "",
+    },
+    {
+      key: "selfEval",
+      label: t.selfEval,
+      value: autoEvaluation,
+      max: 10,
+      color: "#00BCD4",
+      unit: "/10",
+    },
+  ];
+
+  return (
+    <div className={`acc-root ${dark ? "dark" : "light"}`}>
+      <div className="acc-blob acc-blob-1" />
+      <div className="acc-blob acc-blob-2" />
+
+      <div className={accesBloque ? "acc-blurred-content" : ""}>
+        <header className="acc-header">
+          <div className="acc-header-left">
+            <span className="acc-logo">SOURDI</span>
+            <span className="acc-tagline">{t.tagline}</span>
+          </div>
+
+          <div className="acc-header-center">
+            <button
+              className={`acc-lang-btn ${lang === "fr" ? "active" : ""}`}
+              onClick={() => {
+                enregistrerActiviteCoins();
+                setLang("fr");
+              }}
+              type="button"
+            >
+              FR
+            </button>
+
+            <button
+              className={`acc-lang-btn ${lang === "en" ? "active" : ""}`}
+              onClick={() => {
+                enregistrerActiviteCoins();
+                setLang("en");
+              }}
+              type="button"
+            >
+              EN
+            </button>
+
+            <div className="acc-h-sep" />
+
+            <button
+              className="acc-theme-btn"
+              onClick={() => {
+                enregistrerActiviteCoins();
+                setDark(!dark);
+              }}
+              type="button"
+            >
+              {dark ? "Clair" : "Sombre"}
+            </button>
+          </div>
+
+          <div className="acc-header-right">
+            {streak > 1 && (
+              <div className="acc-streak-badge">
+                {streak} {t.streak}
+              </div>
+            )}
+
+            <div className="acc-coins-badge">
+              <span className="acc-coins-val">{solde}</span>
+              <span className="acc-coins-label">{t.coins}</span>
+            </div>
+
+            <div className="acc-header-actions">
+              <Link
+                to="/eleve/panier"
+                className="acc-cart-link"
+                onClick={() => enregistrerActiviteCoins()}
+              >
+                Panier
+              </Link>
+
+              <Link
+                to="/eleve/calendrier"
+                className="acc-calendar-link"
+                onClick={() => enregistrerActiviteCoins()}
+              >
+                Calendrier
+              </Link>
+            </div>
+
+            <div className="fb-notif-wrapper" ref={notifRef}>
+              <button
+                className={`fb-notif-btn ${notifOpen ? "active" : ""}`}
+                type="button"
+                onClick={() => {
+                  enregistrerActiviteCoins();
+                  setNotifOpen(!notifOpen);
+                }}
+              >
+                🔔
+                {notifNonLues > 0 && (
+                  <span className="fb-notif-count">
+                    {notifNonLues > 9 ? "9+" : notifNonLues}
+                  </span>
+                )}
+              </button>
+
+              {notifOpen && (
+                <div className="fb-notif-panel">
+                  <div className="fb-notif-head">
+                    <h2>Notifications</h2>
+
+                    <button type="button" onClick={toutMarquerLu}>
+                      Tout lire
+                    </button>
+                  </div>
+
+                  <div className="fb-notif-tabs">
+                    <button
+                      type="button"
+                      className={notifFiltre === "tout" ? "active" : ""}
+                      onClick={() => {
+                        enregistrerActiviteCoins();
+                        setNotifFiltre("tout");
+                      }}
+                    >
+                      Tout
+                    </button>
+
+                    <button
+                      type="button"
+                      className={notifFiltre === "non-lu" ? "active" : ""}
+                      onClick={() => {
+                        enregistrerActiviteCoins();
+                        setNotifFiltre("non-lu");
+                      }}
+                    >
+                      Non lu
+                    </button>
+                  </div>
+
+                  <div className="fb-notif-list">
+                    {notificationsAffichees.length > 0 ? (
+                      notificationsAffichees.map((n) => (
+                        <div
+                          key={n._id}
+                          className={`fb-notif-item ${!n.lu ? "unread" : ""} ${
+                            n.type === "marketplace"
+                              ? "marketplace-notif"
+                              : n.type === "quiz"
+                              ? "quiz-notif"
+                              : ""
+                          }`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => ouvrirNotification(n)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") ouvrirNotification(n);
+                          }}
+                        >
+                          <div className={`fb-notif-icon ${n.type}`}>
+                            {getNotificationIcon(n.type)}
+                          </div>
+
+                          <div className="fb-notif-content">
+                            <p>
+                              <strong>{n.titre}</strong>
+                            </p>
+
+                            <p className="fb-notif-message">{n.message}</p>
+
+                            <span>
+                              {new Date(n.createdAt).toLocaleString("fr-FR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                day: "2-digit",
+                                month: "short",
+                              })}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="fb-notif-delete"
+                            onClick={(e) => supprimerNotification(e, n._id)}
+                          >
+                            ×
+                          </button>
+
+                          {!n.lu && <span className="fb-notif-dot" />}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="fb-notif-empty">
+                        {notifFiltre === "non-lu"
+                          ? "Aucune notification non lue"
+                          : "Aucune notification"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <Link
+              to="/eleve/profile"
+              className="acc-user-badge acc-user-link"
+              onClick={() => enregistrerActiviteCoins()}
+            >
+              <span className="acc-user-avatar">
+                {profil?.avatar || utilisateur?.avatar ? (
+                  <img
+                    src={getAvatarUrl(profil?.avatar || utilisateur?.avatar)}
+                    alt="Avatar"
+                  />
+                ) : (
+                  (utilisateur?.user_first_name || "?")[0].toUpperCase()
+                )}
+              </span>
+
+              <span className="acc-user-name">
+                {utilisateur?.user_first_name} {utilisateur?.user_last_name}
+              </span>
+            </Link>
+
+            <button
+              className="acc-logout-btn"
+              type="button"
+              onClick={() => {
+                deconnexion();
+                navigate("/login");
+              }}
+            >
+              {t.logout}
+            </button>
+          </div>
+        </header>
+
+        <div className="acc-welcome-bar">
+          <div className="acc-welcome-left">
+            <span className="acc-welcome-greet">
+              {t.bonjour(heure)}, {utilisateur?.user_first_name} —
+            </span>
+
+            <span className="acc-welcome-niveau">
+              {t.niveau} : <strong>{t.niveaux[niveauIdx]}</strong>
+            </span>
+          </div>
+
+          {nextGoal && (
+            <div className="acc-level-bar">
+              <div className="acc-level-bar-track">
+                <div
+                  className="acc-level-bar-fill"
+                  style={{ width: `${niveauPct}%` }}
+                />
+              </div>
+
+              <span className="acc-level-bar-label">
+                {solde} / {nextGoal} coins
+              </span>
+            </div>
+          )}
+
+          <div className="acc-session-badge">
+            {t.cycleCoins} : {formatSecondes(tempsCycleCoins)} / 30:00 ·{" "}
+            {actionsCycle} {t.actions}
+          </div>
+        </div>
+
+        <main className="acc-main">
+          <section className="acc-panel">
+            <div className="acc-panel-head">
+              <h2 className="acc-panel-title">{t.marketTitle}</h2>
+              <p className="acc-panel-sub">{t.marketSub}</p>
+            </div>
+
+            <div className="acc-panel-body">
+              {produits.length > 0 ? (
+                produits.map((p) => (
+                  <div key={p._id} className="acc-mp-item">
+                    <div className="acc-mp-thumb">
+                      {p.photo ? (
+                        <img
+                          src={`http://localhost:5002${p.photo}`}
+                          alt={p.nom}
+                        />
+                      ) : (
+                        <div className="acc-mp-placeholder" />
+                      )}
+                    </div>
+
+                    <div className="acc-mp-info">
+                      <span className="acc-mp-name">{p.nom}</span>
+                      <span className="acc-mp-price">
+                        <strong>{p.prixEnCoins}</strong> {t.coins_unit}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="acc-empty">{t.noProducts}</p>
+              )}
+            </div>
+
+            <div className="acc-panel-footer">
+              <Link
+                to="/eleve/marketplace"
+                className="acc-see-all"
+                onClick={() => enregistrerActiviteCoins()}
+              >
+                {t.seeAll}
+              </Link>
+            </div>
+          </section>
+
+          <section className="acc-panel">
+            <div className="acc-panel-head">
+              <h2 className="acc-panel-title">{t.coursesTitle}</h2>
+              <p className="acc-panel-sub">{t.coursesSub}</p>
+            </div>
+
+            <div className="acc-courses-list">
+              {coursAccueil.length > 0 ? (
+                coursAccueil.map((c) => (
+                  <div key={c._id} className="acc-course-item">
+                    <div
+                      className="acc-course-stripe"
+                      style={{ background: "#7C4DFF" }}
+                    />
+
+                    <div className="acc-course-info">
+                      <span className="acc-course-title">{c.titre}</span>
+                      <span className="acc-course-desc">
+                        {c.description || c.matiere}
+                      </span>
+
+                      <div className="acc-course-meta">
+                        <span
+                          className="acc-course-tag"
+                          style={{
+                            color: "#7C4DFF",
+                            background: "rgba(124,77,255,0.10)",
+                            border: "1px solid rgba(124,77,255,0.25)",
+                          }}
+                        >
+                          Niveau {c.niveau}
+                        </span>
+
+                        <span className="acc-course-dur">
+                          +{c.coinsCompletion || 20} coins
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      className="acc-course-btn"
+                      style={{ background: "#7C4DFF" }}
+                      onClick={() => {
+                        enregistrerActiviteCoins(2);
+                        navigate("/eleve/exercices");
+                      }}
+                      type="button"
+                    >
+                      {t.start}
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="acc-empty">Aucun cours disponible</p>
+              )}
+            </div>
+          </section>
+
+          <aside className="acc-dashboard">
+            <div className="acc-dashboard-head">
+              <h2 className="acc-panel-title">{t.statsTitle}</h2>
+            </div>
+
+            {stats.map((s) => {
+              const pct = s.max
+                ? Math.min(100, Math.round((s.value / s.max) * 100))
+                : 0;
+
+              return (
+                <div key={s.key} className="acc-stat-row">
+                  <div className="acc-stat-circle">
+                    <ProgressCircle
+                      value={s.value}
+                      max={s.max}
+                      color={s.color}
+                      size={56}
+                    />
+
+                    <span
+                      className="acc-stat-circle-val"
+                      style={{ color: s.color }}
+                    >
+                      {pct}%
+                    </span>
+                  </div>
+
+                  <div className="acc-stat-info">
+                    <span className="acc-stat-label">{s.label}</span>
+
+                    <span className="acc-stat-value">
+                      {s.key === "time" ? formatTemps(s.value) : s.value}
+                      <span className="acc-stat-unit">
+                        {s.key === "time" ? "" : s.unit}
+                      </span>
+                    </span>
+
+                    <div className="acc-stat-bar">
+                      <div
+                        className="acc-stat-bar-fill"
+                        style={{ width: `${pct}%`, background: s.color }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {nextGoal && (
+              <div className="acc-next-goal">
+                <span className="acc-next-goal-label">{t.nextGoal}</span>
+
+                <span className="acc-next-goal-val">
+                  {nextGoal - solde} coins restants
+                </span>
+
+                <div className="acc-next-goal-bar">
+                  <div
+                    className="acc-next-goal-fill"
+                    style={{ width: `${niveauPct}%` }}
+                  />
+                </div>
+
+                <span className="acc-next-goal-niveau">
+                  {t.niveaux[niveauIdx + 1] || t.niveaux[4]}
+                </span>
+              </div>
+            )}
+          </aside>
+        </main>
+
+        <footer className="acc-footer">
+          <span className="acc-footer-logo">SOURDI</span>
+          <span className="acc-footer-text">{t.footerText} · © 2025</span>
+        </footer>
+      </div>
+
+      {accesBloque && (
+        <div className="acc-access-overlay">
+          <div className="acc-access-card">
+            <div className="acc-access-icon">🔒</div>
+
+            <h2>
+              {utilisateur?.statutAcces === "refuse"
+                ? "Demande refusée"
+                : "Accès en attente"}
+            </h2>
+
+            <p>
+              {utilisateur?.statutAcces === "refuse"
+                ? "Votre demande d'accès a été refusée par l'administrateur."
+                : "Votre compte a été validé par email mais doit encore être accepté par un administrateur."}
+            </p>
+
+            <div className="acc-access-info">
+              Vous pouvez toujours utiliser la messagerie pour contacter
+              l'administration.
+            </div>
+
+            <button
+              className="acc-access-logout"
+              type="button"
+              onClick={() => {
+                deconnexion();
+                navigate("/login");
+              }}
+            >
+              Déconnexion
+            </button>
+          </div>
+        </div>
+      )}
+
+      <EleveMessageBox />
+
+      {!accesBloque && <SourdiHelperChat student={utilisateur} />}
+    </div>
+  );
+}

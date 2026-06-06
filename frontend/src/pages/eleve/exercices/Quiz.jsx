@@ -6,6 +6,18 @@ import "./exercices.css";
 const API_EX = "http://localhost:5004/api/exercices";
 const API_COINS = "http://localhost:5005/api/coins";
 
+const CYCLE_SECONDS = 30 * 60;
+const KEY_CYCLE_SECONDS = "sourdi_cycle_seconds";
+const KEY_SESSION_SECONDS = "sourdi_session_seconds";
+const KEY_ACTIONS = "sourdi_actions_cycle";
+const KEY_LAST_TICK = "sourdi_last_tick";
+
+const getNumberStorage = (key) => Number(localStorage.getItem(key) || 0);
+
+const setNumberStorage = (key, value) => {
+  localStorage.setItem(key, String(value));
+};
+
 const T = {
   fr: {
     question: "Question",
@@ -13,6 +25,8 @@ const T = {
     terminer: "Terminer",
     retour: "← Quitter",
     temps: "Temps",
+    cycleCoins: "Cycle coins",
+    actions: "actions",
     chargement: "Chargement...",
     vide: "Quiz introuvable",
   },
@@ -22,6 +36,8 @@ const T = {
     terminer: "Finish",
     retour: "← Quit",
     temps: "Time",
+    cycleCoins: "Coins cycle",
+    actions: "actions",
     chargement: "Loading...",
     vide: "Quiz not found",
   },
@@ -40,14 +56,89 @@ export default function Quiz() {
   const [reponses, setReponses] = useState([]);
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
-  const [temps, setTemps] = useState(0);
+  const [tempsQuiz, setTempsQuiz] = useState(0);
+  const [tempsCycleCoins, setTempsCycleCoins] = useState(
+    getNumberStorage(KEY_CYCLE_SECONDS)
+  );
+  const [actionsCycle, setActionsCycle] = useState(
+    getNumberStorage(KEY_ACTIONS)
+  );
   const [loading, setLoading] = useState(true);
 
   const timerRef = useRef(null);
-  const coinsTimerRef = useRef(null);
+  const rewardRunningRef = useRef(false);
 
   const t = T[lang];
   const { coursId, quizId, coursTitre, quizTitre } = state || {};
+
+  const formatTemps = (s) =>
+    `${Math.floor(s / 60)
+      .toString()
+      .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+
+  const enregistrerActivite = (nombre = 1) => {
+    const currentActions = getNumberStorage(KEY_ACTIONS);
+    const nextActions = currentActions + nombre;
+
+    setNumberStorage(KEY_ACTIONS, nextActions);
+    setActionsCycle(nextActions);
+  };
+
+  const resetActions = () => {
+    setNumberStorage(KEY_ACTIONS, 0);
+    setActionsCycle(0);
+  };
+
+  const verifierRecompenseTemps = async () => {
+    if (rewardRunningRef.current) return;
+
+    rewardRunningRef.current = true;
+
+    const actions = getNumberStorage(KEY_ACTIONS);
+
+    try {
+      const res = await axios.post(`${API_COINS}/temps`, {
+        minutes: 30,
+        actions,
+      });
+
+      if (res.data?.recompense) {
+        window.dispatchEvent(new Event("coins-updated"));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      resetActions();
+      rewardRunningRef.current = false;
+    }
+  };
+
+  const avancerCompteurGlobal = () => {
+    const now = Date.now();
+    const lastTick = Number(localStorage.getItem(KEY_LAST_TICK) || now);
+
+    let elapsedSeconds = Math.floor((now - lastTick) / 1000);
+
+    if (elapsedSeconds < 1) return;
+
+    if (elapsedSeconds > 10) elapsedSeconds = 1;
+
+    const nextSession = getNumberStorage(KEY_SESSION_SECONDS) + elapsedSeconds;
+    let nextCycle = getNumberStorage(KEY_CYCLE_SECONDS) + elapsedSeconds;
+
+    setNumberStorage(KEY_SESSION_SECONDS, nextSession);
+
+    if (nextCycle >= CYCLE_SECONDS) {
+      nextCycle = 0;
+      verifierRecompenseTemps();
+    }
+
+    setNumberStorage(KEY_CYCLE_SECONDS, nextCycle);
+    localStorage.setItem(KEY_LAST_TICK, String(now));
+
+    setTempsCycleCoins(nextCycle);
+    setActionsCycle(getNumberStorage(KEY_ACTIONS));
+  };
 
   useEffect(() => {
     if (!coursId || !quizId) {
@@ -74,30 +165,33 @@ export default function Quiz() {
       setLoading(false);
     };
 
+    if (!localStorage.getItem(KEY_LAST_TICK)) {
+      localStorage.setItem(KEY_LAST_TICK, String(Date.now()));
+    }
+
     load();
 
     timerRef.current = setInterval(() => {
-      setTemps((x) => x + 1);
+      setTempsQuiz((x) => x + 1);
+      avancerCompteurGlobal();
     }, 1000);
-
-    coinsTimerRef.current = setInterval(() => {
-      axios.post(`${API_COINS}/temps`, { minutes: 1 }).catch(() => {});
-    }, 60000);
 
     return () => {
       clearInterval(timerRef.current);
-      clearInterval(coinsTimerRef.current);
     };
   }, [coursId, quizId, navigate]);
 
   const choisir = (idx) => {
     if (answered) return;
 
+    enregistrerActivite(1);
     setSelected(idx);
     setAnswered(true);
   };
 
   const suivant = () => {
+    enregistrerActivite(1);
+
     const nouvellesReponses = [
       ...reponses,
       {
@@ -111,6 +205,7 @@ export default function Quiz() {
     setAnswered(false);
 
     if (current + 1 >= questions.length) {
+      enregistrerActivite(3);
       clearInterval(timerRef.current);
 
       navigate("/eleve/exercices/resultat", {
@@ -120,7 +215,7 @@ export default function Quiz() {
           coursTitre,
           quizTitre: quiz?.titre || quizTitre,
           reponses: nouvellesReponses,
-          tempsEnSecondes: temps,
+          tempsEnSecondes: tempsQuiz,
         },
       });
     } else {
@@ -143,11 +238,6 @@ export default function Quiz() {
 
     return "";
   };
-
-  const formatTemps = (s) =>
-    `${Math.floor(s / 60)
-      .toString()
-      .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
   if (loading) {
     return (
@@ -178,12 +268,20 @@ export default function Quiz() {
         <button
           className="ex-back-btn"
           onClick={() => navigate("/eleve/exercices")}
+          type="button"
         >
           {t.retour}
         </button>
+
         <span className="ex-logo">SOURDI</span>
+
         <span className="ex-timer">
-          {t.temps} : {formatTemps(temps)}
+          {t.temps} : {formatTemps(tempsQuiz)}
+        </span>
+
+        <span className="ex-timer">
+          {t.cycleCoins} : {formatTemps(tempsCycleCoins)} / 30:00 ·{" "}
+          {actionsCycle} {t.actions}
         </span>
       </header>
 
@@ -212,6 +310,7 @@ export default function Quiz() {
               className={`ex-option-btn ${getOptionClass(idx)}`}
               onClick={() => choisir(idx)}
               disabled={answered}
+              type="button"
             >
               <span className="ex-option-letter">
                 {["A", "B", "C", "D"][idx]}
@@ -222,7 +321,7 @@ export default function Quiz() {
         </div>
 
         {selected !== null && (
-          <button className="ex-next-btn" onClick={suivant}>
+          <button className="ex-next-btn" onClick={suivant} type="button">
             {current + 1 >= questions.length ? t.terminer : t.suivant}
           </button>
         )}

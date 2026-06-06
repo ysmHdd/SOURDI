@@ -174,7 +174,6 @@ const Inscription = () => {
       customizeAvatar: "Personnaliser l'avatar",
       gender: "Genre",
       avatarStyle: "Style d'avatar",
-      avatarSeed: "Nom / code avatar",
       randomAvatar: "Avatar aléatoire",
       saveAvatar: "Valider l'avatar",
       button: "Créer mon compte",
@@ -215,7 +214,6 @@ const Inscription = () => {
       customizeAvatar: "Customize avatar",
       gender: "Gender",
       avatarStyle: "Avatar style",
-      avatarSeed: "Avatar name / code",
       randomAvatar: "Random avatar",
       saveAvatar: "Save avatar",
       button: "Create my account",
@@ -322,6 +320,7 @@ const Inscription = () => {
         gender: avatar.gender,
         style: avatar.style,
         seed: avatar.seed,
+        url: avatarUrl,
       },
     };
 

@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { Link } from "react-router-dom";
 import axios from "../../api/axios";
+
+import EleveHeader from "../../components/layout/EleveHeader";
+import EleveSidebar from "../../components/layout/EleveSidebar";
+import EleveFooter from "../../components/layout/EleveFooter";
+
 import "./accueil.css";
 import "./panier.css";
 
@@ -9,10 +13,13 @@ const API_ELEVE = "http://localhost:5003";
 const API_ADMIN = "http://localhost:5002";
 
 const Panier = () => {
-  const navigate = useNavigate();
-  const { utilisateur, deconnexion } = useAuth();
+  const [dark, setDark] = useState(
+    localStorage.getItem("sourdi_dark") === "true"
+  );
 
-  const [dark, setDark] = useState(localStorage.getItem("sourdi_dark") === "true");
+  const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [profil, setProfil] = useState(null);
   const [panier, setPanier] = useState(null);
   const [commandes, setCommandes] = useState([]);
@@ -27,6 +34,8 @@ const Panier = () => {
     codePostal: "",
     note: "",
   });
+
+  const enregistrerActiviteCoins = () => {};
 
   const charger = async () => {
     try {
@@ -59,6 +68,10 @@ const Panier = () => {
     localStorage.setItem("sourdi_dark", dark);
   }, [dark]);
 
+  useEffect(() => {
+    localStorage.setItem("sourdi_lang", lang);
+  }, [lang]);
+
   const modifierQuantite = async (idProduit, quantite) => {
     try {
       setErreur("");
@@ -71,7 +84,9 @@ const Panier = () => {
 
       charger();
     } catch (err) {
-      setErreur(err.response?.data?.message || "Erreur lors de la modification.");
+      setErreur(
+        err.response?.data?.message || "Erreur lors de la modification."
+      );
     }
   };
 
@@ -87,7 +102,9 @@ const Panier = () => {
       setMessage("Produit supprimé du panier.");
       charger();
     } catch (err) {
-      setErreur(err.response?.data?.message || "Erreur lors de la suppression.");
+      setErreur(
+        err.response?.data?.message || "Erreur lors de la suppression."
+      );
     }
   };
 
@@ -117,7 +134,9 @@ const Panier = () => {
         { adresseLivraison }
       );
 
-      setMessage(`${res.data.message} — Solde restant: ${res.data.soldeRestant} coins`);
+      setMessage(
+        `${res.data.message} — Solde restant: ${res.data.soldeRestant} coins`
+      );
       charger();
     } catch (err) {
       setErreur(err.response?.data?.message || "Erreur lors de la validation.");
@@ -175,284 +194,307 @@ const Panier = () => {
       <div className="acc-blob acc-blob-1" />
       <div className="acc-blob acc-blob-2" />
 
-      <header className="acc-header">
-        <div className="acc-header-left">
-          <span className="acc-logo">SOURDI</span>
-          <span className="acc-tagline">Panier</span>
-        </div>
+      <EleveHeader
+        lang={lang}
+        setLang={setLang}
+        dark={dark}
+        setDark={setDark}
+        enregistrerActiviteCoins={enregistrerActiviteCoins}
+      />
 
-        <div className="acc-header-center">
-          <button className="acc-theme-btn" onClick={() => setDark(!dark)} type="button">
-            {dark ? "Clair" : "Sombre"}
-          </button>
-        </div>
+      <div className="acc-layout">
+        <EleveSidebar
+          open={sidebarOpen}
+          setOpen={setSidebarOpen}
+          enregistrerActiviteCoins={enregistrerActiviteCoins}
+        />
 
-        <div className="acc-header-right">
-          <Link to="/eleve" className="acc-cart-link">Accueil</Link>
-          <Link to="/eleve/marketplace" className="acc-cart-link">Marketplace</Link>
-
-          <Link to="/eleve/profile" className="acc-user-badge acc-user-link">
-            <span className="acc-user-avatar">
-              {profil?.avatar?.url ? (
-                <img src={profil.avatar.url} alt="Avatar" />
-              ) : (
-                (utilisateur?.user_first_name || "?")[0].toUpperCase()
-              )}
-            </span>
-            <span className="acc-user-name">
-              {utilisateur?.user_first_name} {utilisateur?.user_last_name}
-            </span>
-          </Link>
-
-          <button
-            className="acc-logout-btn"
-            type="button"
-            onClick={() => {
-              deconnexion();
-              navigate("/login");
-            }}
-          >
-            Déconnexion
-          </button>
-        </div>
-      </header>
-
-      <main className="panier-page">
-        <div className="panier-head">
-          <h1>Mon panier</h1>
-          <p>Modifie ton panier, valide ta commande et consulte tes commandes.</p>
-        </div>
-
-        {message && <div className="panier-success">{message}</div>}
-        {erreur && <div className="panier-error">{erreur}</div>}
-
-        <div className="panier-grid">
-          <section className="panier-card">
-            <div className="panier-card-head">
-              <h2>Produits</h2>
-              {produits.length > 0 && (
-                <button type="button" className="panier-clear-btn" onClick={viderPanier}>
-                  Vider le panier
-                </button>
-              )}
+        <div className={`acc-page-content ${sidebarOpen ? "sidebar-open" : ""}`}>
+          <main className="panier-page">
+            <div className="panier-head">
+              <h1>Mon panier</h1>
+              <p>
+                Modifie ton panier, valide ta commande et consulte tes commandes.
+              </p>
             </div>
 
-            {produits.length > 0 ? (
-              <div className="panier-list">
-                {produits.map((item) => {
-                  const p = item.produit;
-                  if (!p) return null;
+            {message && <div className="panier-success">{message}</div>}
+            {erreur && <div className="panier-error">{erreur}</div>}
 
-                  return (
-                    <div key={p._id} className="panier-item">
-                      {p.photo ? (
-                        <img src={`${API_ADMIN}${p.photo}`} alt={p.nom} />
-                      ) : (
-                        <div className="panier-placeholder" />
-                      )}
+            <div className="panier-grid">
+              <section className="panier-card">
+                <div className="panier-card-head">
+                  <h2>Produits</h2>
 
-                      <div className="panier-item-info">
-                        <h3>{p.nom}</h3>
-                        <p>{p.description}</p>
-                        <strong>{p.prixEnCoins} coins</strong>
-                      </div>
+                  {produits.length > 0 && (
+                    <button
+                      type="button"
+                      className="panier-clear-btn"
+                      onClick={viderPanier}
+                    >
+                      Vider le panier
+                    </button>
+                  )}
+                </div>
 
-                      <div className="panier-actions">
-                        <input
-                          type="number"
-                          min="1"
-                          max={p.stock}
-                          value={item.quantite}
-                          onChange={(e) => modifierQuantite(p._id, Number(e.target.value))}
-                        />
+                {produits.length > 0 ? (
+                  <div className="panier-list">
+                    {produits.map((item) => {
+                      const p = item.produit;
+                      if (!p) return null;
 
-                        <button type="button" onClick={() => supprimerProduit(p._id)}>
-                          Supprimer
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="panier-empty">
-                Ton panier est vide.
-                <Link to="/eleve/marketplace"> Voir la marketplace</Link>
-              </div>
-            )}
-          </section>
+                      return (
+                        <div key={p._id} className="panier-item">
+                          {p.photo ? (
+                            <img src={`${API_ADMIN}${p.photo}`} alt={p.nom} />
+                          ) : (
+                            <div className="panier-placeholder" />
+                          )}
 
-          <section className="panier-card">
-            <div className="panier-card-head">
-              <h2>Validation</h2>
-              <span className="panier-total">{total} coins</span>
-            </div>
+                          <div className="panier-item-info">
+                            <h3>{p.nom}</h3>
+                            <p>{p.description}</p>
+                            <strong>{p.prixEnCoins} coins</strong>
+                          </div>
 
-            <div className="panier-client">
-              <div>
-                <span>Nom</span>
-                <strong>{profil?.user_first_name} {profil?.user_last_name}</strong>
-              </div>
+                          <div className="panier-actions">
+                            <input
+                              type="number"
+                              min="1"
+                              max={p.stock}
+                              value={item.quantite}
+                              onChange={(e) =>
+                                modifierQuantite(p._id, Number(e.target.value))
+                              }
+                            />
 
-              <div>
-                <span>Email</span>
-                <strong>{profil?.user_email}</strong>
-              </div>
-
-              <div>
-                <span>Téléphone</span>
-                <strong>{profil?.user_phone}</strong>
-              </div>
-            </div>
-
-            <form className="panier-form" onSubmit={validerCommande}>
-              <div>
-                <label>Adresse</label>
-                <input
-                  type="text"
-                  value={adresseLivraison.adresse}
-                  onChange={(e) =>
-                    setAdresseLivraison({ ...adresseLivraison, adresse: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div>
-                <label>Gouvernorat</label>
-                <input
-                  type="text"
-                  value={adresseLivraison.gouvernorat}
-                  onChange={(e) =>
-                    setAdresseLivraison({ ...adresseLivraison, gouvernorat: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div>
-                <label>Délégation</label>
-                <input
-                  type="text"
-                  value={adresseLivraison.delegation}
-                  onChange={(e) =>
-                    setAdresseLivraison({ ...adresseLivraison, delegation: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div>
-                <label>Code postal</label>
-                <input
-                  type="text"
-                  required
-                  value={adresseLivraison.codePostal}
-                  onChange={(e) =>
-                    setAdresseLivraison({ ...adresseLivraison, codePostal: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="full">
-                <label>Note</label>
-                <textarea
-                  value={adresseLivraison.note}
-                  onChange={(e) =>
-                    setAdresseLivraison({ ...adresseLivraison, note: e.target.value })
-                  }
-                />
-              </div>
-
-              <button type="submit" disabled={produits.length === 0}>
-                Valider la commande
-              </button>
-            </form>
-          </section>
-        </div>
-
-        <section className="panier-card commandes-card">
-          <div className="panier-card-head">
-            <h2>Mes commandes</h2>
-            <span className="panier-total">{commandes.length} commande(s)</span>
-          </div>
-
-          {commandes.length > 0 ? (
-            <div className="commandes-list">
-              {commandes.map((commande) => {
-                const produit = commande.produit;
-                const estAnnulee = commande.statut === "annulee";
-                const estLivree = commande.statut === "livree";
-
-                return (
-                  <div
-                    key={commande._id}
-                    className={`commande-item ${estAnnulee ? "annulee" : ""} ${
-                      estLivree ? "livree" : ""
-                    }`}
-                  >
-                    <div className="commande-photo">
-                      {produit?.photo ? (
-                        <img src={`${API_ADMIN}${produit.photo}`} alt={produit.nom} />
-                      ) : (
-                        <div className="panier-placeholder" />
-                      )}
-                    </div>
-
-                    <div className="commande-info">
-                      <h3>{produit?.nom || "Produit supprimé"}</h3>
-                      <p>Quantité : {commande.quantite}</p>
-                      <p>Total : {commande.montantEnCoins} coins</p>
-                      <p>
-                        Date :{" "}
-                        {commande.createdAt
-                          ? new Date(commande.createdAt).toLocaleDateString("fr-FR")
-                          : "-"}
-                      </p>
-
-                      {estAnnulee && (
-                        <div className="commande-annulation">
-                          <strong>Commande annulée</strong>
+                            <button
+                              type="button"
+                              onClick={() => supprimerProduit(p._id)}
+                            >
+                              Supprimer
+                            </button>
+                          </div>
                         </div>
-                      )}
-
-                      {estLivree && (
-                        <div className="commande-livraison">
-                          <strong>Commande livrée</strong>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="commande-actions">
-                      <span className={`commande-statut ${getStatutClass(commande.statut)}`}>
-                        {getStatutLabel(commande.statut)}
-                      </span>
-
-                      {!estAnnulee && !estLivree && (
-                        <button type="button" onClick={() => annulerCommande(commande._id)}>
-                          Annuler
-                        </button>
-                      )}
-
-                      {(estAnnulee || estLivree) && (
-                        <button
-                          type="button"
-                          className="commande-delete-btn"
-                          onClick={() => supprimerCommande(commande._id)}
-                        >
-                          Supprimer
-                        </button>
-                      )}
-                    </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                ) : (
+                  <div className="panier-empty">
+                    Ton panier est vide.
+                    <Link to="/eleve/marketplace"> Voir la marketplace</Link>
+                  </div>
+                )}
+              </section>
+
+              <section className="panier-card">
+                <div className="panier-card-head">
+                  <h2>Validation</h2>
+                  <span className="panier-total">{total} coins</span>
+                </div>
+
+                <div className="panier-client">
+                  <div>
+                    <span>Nom</span>
+                    <strong>
+                      {profil?.user_first_name} {profil?.user_last_name}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Email</span>
+                    <strong>{profil?.user_email}</strong>
+                  </div>
+
+                  <div>
+                    <span>Téléphone</span>
+                    <strong>{profil?.user_phone}</strong>
+                  </div>
+                </div>
+
+                <form className="panier-form" onSubmit={validerCommande}>
+                  <div>
+                    <label>Adresse</label>
+                    <input
+                      type="text"
+                      value={adresseLivraison.adresse}
+                      onChange={(e) =>
+                        setAdresseLivraison({
+                          ...adresseLivraison,
+                          adresse: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label>Gouvernorat</label>
+                    <input
+                      type="text"
+                      value={adresseLivraison.gouvernorat}
+                      onChange={(e) =>
+                        setAdresseLivraison({
+                          ...adresseLivraison,
+                          gouvernorat: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label>Délégation</label>
+                    <input
+                      type="text"
+                      value={adresseLivraison.delegation}
+                      onChange={(e) =>
+                        setAdresseLivraison({
+                          ...adresseLivraison,
+                          delegation: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label>Code postal</label>
+                    <input
+                      type="text"
+                      required
+                      value={adresseLivraison.codePostal}
+                      onChange={(e) =>
+                        setAdresseLivraison({
+                          ...adresseLivraison,
+                          codePostal: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="full">
+                    <label>Note</label>
+                    <textarea
+                      value={adresseLivraison.note}
+                      onChange={(e) =>
+                        setAdresseLivraison({
+                          ...adresseLivraison,
+                          note: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <button type="submit" disabled={produits.length === 0}>
+                    Valider la commande
+                  </button>
+                </form>
+              </section>
             </div>
-          ) : (
-            <div className="panier-empty">Tu n'as pas encore de commandes.</div>
-          )}
-        </section>
-      </main>
+
+            <section className="panier-card commandes-card">
+              <div className="panier-card-head">
+                <h2>Mes commandes</h2>
+                <span className="panier-total">
+                  {commandes.length} commande(s)
+                </span>
+              </div>
+
+              {commandes.length > 0 ? (
+                <div className="commandes-list">
+                  {commandes.map((commande) => {
+                    const produit = commande.produit;
+                    const estAnnulee = commande.statut === "annulee";
+                    const estLivree = commande.statut === "livree";
+
+                    return (
+                      <div
+                        key={commande._id}
+                        className={`commande-item ${
+                          estAnnulee ? "annulee" : ""
+                        } ${estLivree ? "livree" : ""}`}
+                      >
+                        <div className="commande-photo">
+                          {produit?.photo ? (
+                            <img
+                              src={`${API_ADMIN}${produit.photo}`}
+                              alt={produit.nom}
+                            />
+                          ) : (
+                            <div className="panier-placeholder" />
+                          )}
+                        </div>
+
+                        <div className="commande-info">
+                          <h3>{produit?.nom || "Produit supprimé"}</h3>
+                          <p>Quantité : {commande.quantite}</p>
+                          <p>Total : {commande.montantEnCoins} coins</p>
+                          <p>
+                            Date :{" "}
+                            {commande.createdAt
+                              ? new Date(commande.createdAt).toLocaleDateString(
+                                  "fr-FR"
+                                )
+                              : "-"}
+                          </p>
+
+                          {estAnnulee && (
+                            <div className="commande-annulation">
+                              <strong>Commande annulée</strong>
+                            </div>
+                          )}
+
+                          {estLivree && (
+                            <div className="commande-livraison">
+                              <strong>Commande livrée</strong>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="commande-actions">
+                          <span
+                            className={`commande-statut ${getStatutClass(
+                              commande.statut
+                            )}`}
+                          >
+                            {getStatutLabel(commande.statut)}
+                          </span>
+
+                          {!estAnnulee && !estLivree && (
+                            <button
+                              type="button"
+                              onClick={() => annulerCommande(commande._id)}
+                            >
+                              Annuler
+                            </button>
+                          )}
+
+                          {(estAnnulee || estLivree) && (
+                            <button
+                              type="button"
+                              className="commande-delete-btn"
+                              onClick={() => supprimerCommande(commande._id)}
+                            >
+                              Supprimer
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="panier-empty">
+                  Tu n'as pas encore de commandes.
+                </div>
+              )}
+            </section>
+          </main>
+
+          <EleveFooter />
+        </div>
+      </div>
     </div>
   );
 };

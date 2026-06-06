@@ -4,85 +4,137 @@
   max-width: 1300px;
   width: 100%;
   margin: 0 auto;
-  padding: 32px 28px;
+  padding: 34px 28px;
 }
 
 .market-page-head {
-  background: var(--surface);
+  background: linear-gradient(135deg, var(--surface), rgba(124, 77, 255, 0.08));
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: 26px;
   box-shadow: var(--shadow);
-  padding: 24px;
-  margin-bottom: 22px;
+  padding: 28px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.market-page-head::after {
+  content: "";
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  right: -50px;
+  top: -50px;
+  background: radial-gradient(circle, rgba(224, 64, 251, 0.22), transparent 70%);
+  border-radius: 50%;
 }
 
 .market-page-head h1 {
   margin: 0;
-  font-family: 'Fredoka One', cursive;
-  font-size: 2rem;
-  background: linear-gradient(120deg, #7C4DFF, #E040FB);
+  font-family: "Fredoka One", cursive;
+  font-size: 2.25rem;
+  background: linear-gradient(120deg, #7c4dff, #e040fb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .market-page-head p {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   color: var(--text-faint);
   font-weight: 800;
 }
 
 .market-message {
   padding: 14px 18px;
-  border-radius: 14px;
+  border-radius: 16px;
   margin-bottom: 20px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  color: #7C4DFF;
+  background: rgba(124, 77, 255, 0.1);
+  border: 1px solid rgba(124, 77, 255, 0.22);
+  color: #7c4dff;
   font-weight: 900;
   text-align: center;
 }
 
+.market-filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.market-filter-input {
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 16px;
+  border: 1px solid rgba(124, 77, 255, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  color: #4a4458;
+  font-size: 0.94rem;
+  font-weight: 800;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.dark .market-filter-input {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+.market-filter-input:focus {
+  border-color: #7c4dff;
+  box-shadow: 0 0 0 4px rgba(124, 77, 255, 0.12);
+}
+
 .market-products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+  gap: 22px;
 }
 
 .market-product-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: 26px;
   box-shadow: var(--shadow);
-  padding: 20px;
-  transition: 0.18s;
+  padding: 16px;
+  transition: 0.2s ease;
+  overflow: hidden;
 }
 
 .market-product-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--border-strong);
+  transform: translateY(-6px);
+  border-color: rgba(124, 77, 255, 0.35);
+  box-shadow: 0 18px 42px rgba(124, 77, 255, 0.16);
 }
 
 .market-product-image,
 .market-product-placeholder {
   width: 100%;
-  height: 170px;
-  border-radius: 18px;
+  height: 180px;
+  border-radius: 20px;
   object-fit: cover;
-  background: linear-gradient(135deg, rgba(124,77,255,0.12), rgba(224,64,251,0.10));
-  margin-bottom: 15px;
+  background: linear-gradient(135deg, rgba(124, 77, 255, 0.14), rgba(224, 64, 251, 0.12));
+  margin-bottom: 16px;
 }
 
 .market-product-card h3 {
   margin: 0 0 8px;
   color: var(--text);
   font-weight: 900;
+  font-size: 1.08rem;
 }
 
 .market-product-card p {
   margin: 0 0 14px;
   color: var(--text-muted);
   font-weight: 700;
-  min-height: 54px;
+  min-height: 48px;
+  line-height: 1.45;
 }
 
 .market-product-meta {
@@ -90,88 +142,165 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  color: var(--text);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .market-product-meta strong {
-  color: #7C4DFF;
+  color: #7c4dff;
+  font-size: 1.05rem;
+  font-weight: 900;
 }
 
 .market-product-meta span {
   color: var(--text-faint);
-  font-weight: 800;
+  font-weight: 900;
+  font-size: 0.82rem;
 }
 
 .market-category {
   display: inline-block;
-  padding: 6px 12px;
+  padding: 7px 13px;
   border-radius: 999px;
-  background: rgba(124,77,255,0.08);
-  color: #7C4DFF;
+  background: rgba(124, 77, 255, 0.1);
+  color: #7c4dff;
   font-size: 0.75rem;
   font-weight: 900;
   margin-bottom: 14px;
+  text-transform: capitalize;
 }
 
 .market-add-btn {
   width: 100%;
   border: none;
-  border-radius: 14px;
-  padding: 13px;
+  border-radius: 16px;
+  padding: 14px;
   cursor: pointer;
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   font-weight: 900;
   color: #fff;
-  background: linear-gradient(135deg, #7C4DFF, #E040FB);
-  transition: 0.18s;
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+  transition: 0.18s ease;
+  box-shadow: 0 10px 22px rgba(124, 77, 255, 0.25);
 }
 
 .market-add-btn:hover {
   transform: translateY(-2px);
-  filter: brightness(1.05);
+  filter: brightness(1.06);
 }
 
 .market-add-btn:disabled {
   background: #bdbdbd;
+  box-shadow: none;
   cursor: not-allowed;
+  transform: none;
 }
 
 .market-empty {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 22px;
+  border: 1px dashed rgba(124, 77, 255, 0.35);
+  border-radius: 24px;
   box-shadow: var(--shadow);
-  padding: 28px;
+  padding: 34px;
   text-align: center;
   color: var(--text-muted);
   font-weight: 900;
 }
-.market-filters {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 22px;
-}
-
-.market-filter-input {
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(124, 77, 255, 0.18);
-  background: rgba(255, 255, 255, 0.92);
-  color: #4a4458;
-  font-size: 0.94rem;
-  font-weight: 800;
-  outline: none;
-}
-
-.market-filter-input:focus {
-  border-color: #7c4dff;
-  box-shadow: 0 0 0 4px rgba(124, 77, 255, 0.1);
-}
 
 @media (max-width: 800px) {
+  .market-page {
+    padding: 24px 16px;
+  }
+
+  .market-page-head h1 {
+    font-size: 1.8rem;
+  }
+
   .market-filters {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── PRODUCT MODAL ── */
+.market-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.market-modal {
+  width: 90%;
+  max-width: 650px;
+  background: var(--surface);
+  border-radius: 28px;
+  padding: 24px;
+  position: relative;
+  animation: modalPop 0.2s ease;
+}
+
+.market-modal-image {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 20px;
+  margin-bottom: 18px;
+  background: rgba(124, 77, 255, 0.08);
+}
+
+.market-modal h2 {
+  margin: 0 0 12px;
+  color: var(--text);
+}
+
+.market-modal p {
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+
+.market-modal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.market-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 20px;
+  background: rgba(124, 77, 255, 0.1);
+  color: #7c4dff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.market-product-card {
+  cursor: pointer;
 }

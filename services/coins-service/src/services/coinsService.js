@@ -5,16 +5,14 @@ const SessionTemps = require("../models/SessionTemps");
 
 const ELEVE_URL = process.env.ELEVE_SERVICE_URL;
 
-// Règles de gains
 const REGLES = {
   quiz: (score, total) => score * 10,
   lecon: () => 20,
   connexion: (streak) => (streak >= 7 ? 20 : streak >= 3 ? 10 : 5),
   auto_evaluation: () => 15,
-  temps: () => 10, // toutes les 30 min
+  temps: () => 10,
 };
 
-// Créditer les coins dans eleve-service
 const crediterEleve = async (eleveId, montant, token) => {
   await axios.patch(
     `${ELEVE_URL}/api/eleve/coins/crediter`,
@@ -23,7 +21,6 @@ const crediterEleve = async (eleveId, montant, token) => {
   );
 };
 
-// Sauvegarder la transaction
 const sauvegarderTransaction = async (
   eleveId,
   type,
@@ -40,7 +37,6 @@ const sauvegarderTransaction = async (
   });
 };
 
-// ── QUIZ ──────────────────────────────────────────────
 const recompenseQuiz = async (
   eleveId,
   { score, total, matiere, coursId, quizId },
@@ -83,7 +79,6 @@ const recompenseQuiz = async (
   };
 };
 
-// ── LEÇON ─────────────────────────────────────────────
 const recompenseLecon = async (eleveId, { matiere, titre, coursId }, token) => {
   if (coursId) {
     const dejaRecompense = await Transaction.findOne({
@@ -118,7 +113,6 @@ const recompenseLecon = async (eleveId, { matiere, titre, coursId }, token) => {
   };
 };
 
-// ── CONNEXION QUOTIDIENNE ─────────────────────────────
 const recompenseConnexion = async (eleveId, token) => {
   const maintenant = new Date();
 
@@ -177,7 +171,6 @@ const recompenseConnexion = async (eleveId, token) => {
   };
 };
 
-// ── AUTO-ÉVALUATION ───────────────────────────────────
 const recompenseAutoEvaluation = async (eleveId, { note }, token) => {
   const montant = REGLES.auto_evaluation();
 
@@ -194,39 +187,53 @@ const recompenseAutoEvaluation = async (eleveId, { note }, token) => {
   return { montant };
 };
 
-// ── TEMPS PASSÉ ───────────────────────────────────────
-const recompenseTemps = async (eleveId, { minutes }, token) => {
+const recompenseTemps = async (eleveId, { minutes, actions }, token) => {
   const minutesAjoutees = Number(minutes) || 0;
+  const actionsEtude = Number(actions) || 0;
 
-  if (minutesAjoutees <= 0 || minutesAjoutees > 30) {
+  if (minutesAjoutees !== 30) {
     return {
       montant: 0,
-      message: "Minutes invalides",
+      message: "Le temps doit être exactement 30 minutes",
+      recompense: false,
     };
+  }
+
+  if (actionsEtude < 3) {
+    return {
+      montant: 0,
+      message: "Pas assez d'activité pendant les 30 minutes",
+      recompense: false,
+      actions: actionsEtude,
+    };
+  }
+
+  const derniereTransactionTemps = await Transaction.findOne({
+    eleveId,
+    type: "temps",
+  }).sort({ createdAt: -1 });
+
+  if (derniereTransactionTemps) {
+    const maintenant = new Date();
+    const differenceMs = maintenant - derniereTransactionTemps.createdAt;
+    const differenceMinutes = Math.floor(differenceMs / 60000);
+
+    if (differenceMinutes < 30) {
+      return {
+        montant: 0,
+        message: `Attendez encore ${30 - differenceMinutes} minutes`,
+        recompense: false,
+      };
+    }
   }
 
   const session = await SessionTemps.findOneAndUpdate(
     { eleveId },
-    { $inc: { minutesAccumulees: minutesAjoutees } },
+    { $inc: { minutesAccumulees: 30 } },
     { upsert: true, new: true }
   );
 
-  const palierActuel = Math.floor(session.minutesAccumulees / 30);
-  const paliersNonRecompenses =
-    palierActuel - session.dernierPalierRecompense;
-
-  if (paliersNonRecompenses <= 0) {
-    return {
-      montant: 0,
-      minutesAccumulees: session.minutesAccumulees,
-      prochainPalierDans: 30 - (session.minutesAccumulees % 30),
-    };
-  }
-
-  const montant = paliersNonRecompenses * REGLES.temps();
-
-  session.dernierPalierRecompense = palierActuel;
-  await session.save();
+  const montant = REGLES.temps();
 
   await crediterEleve(eleveId, montant, token);
 
@@ -234,28 +241,27 @@ const recompenseTemps = async (eleveId, { minutes }, token) => {
     eleveId,
     "temps",
     montant,
-    `${session.minutesAccumulees} minutes passées sur la plateforme`,
+    "30 minutes actives passées sur la plateforme",
     {
       minutesAccumulees: session.minutesAccumulees,
-      paliers: paliersNonRecompenses,
+      actions: actionsEtude,
     }
   );
 
   return {
     montant,
     minutesAccumulees: session.minutesAccumulees,
-    paliersRecompenses: paliersNonRecompenses,
+    recompense: true,
+    actions: actionsEtude,
   };
 };
 
-// ── HISTORIQUE ────────────────────────────────────────
 const getHistorique = async (eleveId) => {
   return await Transaction.find({ eleveId })
     .sort({ createdAt: -1 })
     .limit(50);
 };
 
-// ── STATS ─────────────────────────────────────────────
 const getStats = async (eleveId) => {
   const transactions = await Transaction.find({ eleveId });
 

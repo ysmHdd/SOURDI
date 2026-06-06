@@ -273,21 +273,9 @@ const InscriptionView = ({
                           onClick={() => handleAvatarChange("style", style.value)}
                         >
                           <img src={getPreviewAvatarUrl(style.value)} alt={style.label} />
-                          <span>{style.label}</span>
                         </button>
                       ))}
                     </div>
-                  </div>
-
-                  <div className="avatar-row">
-                    <label className="field-label">{t[lang].avatarSeed}</label>
-                    <input
-                      className="avatar-seed-input"
-                      type="text"
-                      value={avatar.seed}
-                      onChange={(e) => handleAvatarChange("seed", e.target.value)}
-                      placeholder="avatar-name"
-                    />
                   </div>
 
                   <div className="avatar-row">

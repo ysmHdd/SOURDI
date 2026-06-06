@@ -215,9 +215,23 @@
 }
 
 .ex-matiere-icon {
-  font-size: 2rem;
+  width: 72px;
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 18px;
+
+  font-size: 2.5rem;
   line-height: 1;
-  font-family: "Fredoka One", cursive;
+
+  border-radius: 18px;
+
+  background: rgba(124, 77, 255, 0.08);
+
+  color: #7c4dff;
 }
 
 .ex-matiere-name {
@@ -822,4 +836,324 @@
 .ex-option-btn.correct .ex-option-text,
 .ex-option-btn.wrong .ex-option-text {
   color: inherit;
+}
+.ex-root.light {
+  --bg1: #f4f2ff;
+  --bg2: #fdf0f8;
+  --bg3: #f4f2ff;
+  --card: rgba(255, 255, 255, 0.95);
+  --card-border: rgba(124, 77, 255, 0.12);
+  --shadow: 0 8px 32px rgba(90, 60, 160, 0.1);
+  --text: #1a1535;
+  --muted: #6b5e9a;
+  --faint: #b0a8cc;
+  --border: rgba(124, 77, 255, 0.12);
+  --header: rgba(255, 255, 255, 0.96);
+  --track: rgba(124, 77, 255, 0.12);
+}
+
+.ex-root.dark {
+  --bg1: #0d0b18;
+  --bg2: #130f24;
+  --bg3: #0d0b18;
+  --card: rgba(28, 22, 50, 0.95);
+  --card-border: rgba(124, 77, 255, 0.15);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --text: #e8e2ff;
+  --muted: #8b7ec0;
+  --faint: #4a4070;
+  --border: rgba(124, 77, 255, 0.15);
+  --header: rgba(13, 11, 24, 0.97);
+  --track: rgba(255, 255, 255, 0.08);
+}
+
+.ex-root {
+  background: linear-gradient(145deg, var(--bg1) 0%, var(--bg2) 100%);
+}
+
+.blob-1 {
+  background: radial-gradient(circle, rgba(124, 77, 255, 0.18), transparent 70%);
+  filter: blur(80px);
+}
+
+.blob-2 {
+  background: radial-gradient(circle, rgba(224, 64, 251, 0.14), transparent 70%);
+  filter: blur(80px);
+}
+
+.ex-header {
+  background: var(--header);
+  border-bottom: 1px solid var(--border);
+  height: 62px;
+}
+
+.ex-logo,
+.ex-page-title h1,
+.ex-resultat-titre {
+  background: linear-gradient(120deg, #7c4dff, #e040fb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ex-back-btn {
+  border: 1px solid rgba(124, 77, 255, 0.22);
+  color: var(--muted);
+  border-radius: 8px;
+}
+
+.ex-back-btn:hover {
+  background: rgba(124, 77, 255, 0.08);
+  color: #7c4dff;
+}
+
+.ex-timer {
+  color: #7c4dff;
+}
+
+.ex-matiere-card,
+.ex-cours-card,
+.ex-panel,
+.ex-question-card,
+.ex-resultat-card,
+.ex-empty {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.ex-matiere-card:hover,
+.ex-matiere-card.active {
+  border-color: rgba(124, 77, 255, 0.35);
+  box-shadow: 0 20px 48px rgba(90, 60, 160, 0.14);
+}
+
+.ex-matiere-card.active {
+  background: rgba(124, 77, 255, 0.08);
+}
+
+.ex-cours-badge {
+  background: rgba(124, 77, 255, 0.1);
+  color: #7c4dff;
+}
+
+.ex-small-btn.done,
+.ex-quiz-row button,
+.ex-auto-form button,
+.ex-progress-fill,
+.ex-option-letter,
+.ex-next-btn,
+.ex-replay-btn {
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+}
+
+.ex-small-btn.pdf {
+  background: linear-gradient(135deg, #7c4dff, #00bcd4);
+}
+
+.ex-option-btn {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.ex-option-btn:hover,
+.ex-option-btn.chosen {
+  border-color: #7c4dff;
+  background: rgba(124, 77, 255, 0.08);
+}
+
+.ex-auto-form input,
+.ex-auto-form textarea {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.ex-message {
+  background: rgba(124, 77, 255, 0.08);
+  border: 1px solid rgba(124, 77, 255, 0.18);
+}
+
+.ex-home-btn {
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.ex-quiz-main {
+  flex: 1;
+  max-width: 920px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 44px 24px 70px;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.ex-quiz-title {
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 26px;
+  padding: 26px;
+  box-shadow: var(--shadow);
+}
+
+.ex-quiz-title h2 {
+  margin: 0 0 8px;
+  font-family: "Fredoka One", cursive;
+  font-size: 2rem;
+  background: linear-gradient(120deg, #7c4dff, #e040fb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ex-quiz-title p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.ex-progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.ex-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7c4dff, #e040fb);
+  transition: width 0.4s ease;
+}
+
+.ex-progress-label {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.ex-question-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 28px;
+  padding: 34px;
+  box-shadow: var(--shadow);
+}
+
+.ex-question-text {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.7;
+  font-weight: 900;
+  color: var(--text);
+  text-align: center;
+}
+
+.ex-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.ex-option-btn {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  padding: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  box-shadow: var(--shadow);
+  transition: 0.22s ease;
+}
+
+.ex-option-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  border-color: #7c4dff;
+  background: rgba(124, 77, 255, 0.08);
+}
+
+.ex-option-letter {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Fredoka One", cursive;
+}
+
+.ex-option-text {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.ex-option-btn.chosen {
+  border-color: #7c4dff;
+  background: rgba(124, 77, 255, 0.1);
+}
+
+.ex-option-btn.correct {
+  background: rgba(34, 197, 94, 0.14);
+  border-color: #22c55e;
+}
+
+.ex-option-btn.correct .ex-option-letter {
+  background: #22c55e;
+}
+
+.ex-option-btn.wrong {
+  background: rgba(239, 83, 80, 0.14);
+  border-color: #ef5350;
+}
+
+.ex-option-btn.wrong .ex-option-letter {
+  background: #ef5350;
+}
+
+.ex-next-btn {
+  align-self: center;
+  min-width: 240px;
+  border: none;
+  border-radius: 18px;
+  padding: 16px 28px;
+  background: linear-gradient(135deg, #7c4dff, #e040fb);
+  color: white;
+  font-family: "Fredoka One", cursive;
+  font-size: 1rem;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(124, 77, 255, 0.28);
+  transition: 0.22s ease;
+}
+
+.ex-next-btn:hover {
+  transform: translateY(-3px);
+}
+
+@media (max-width: 720px) {
+  .ex-options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ex-quiz-main {
+    padding: 24px 16px 50px;
+  }
+
+  .ex-question-text {
+    font-size: 1.1rem;
+  }
 }

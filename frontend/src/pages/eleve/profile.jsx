@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import axios from "../../api/axios";
+
+import EleveHeader from "../../components/layout/EleveHeader";
+import EleveSidebar from "../../components/layout/EleveSidebar";
+import EleveFooter from "../../components/layout/EleveFooter";
+
+import "./accueil.css";
 import "./profile.css";
 
 const avatarStylesByGender = {
@@ -98,10 +103,15 @@ const getAvatarParams = (gender, style) => {
 };
 
 const Profile = () => {
-  const { utilisateur, deconnexion, updateUtilisateur } = useAuth();
-  const navigate = useNavigate();
+  const { utilisateur, updateUtilisateur } = useAuth();
 
-  const [dark, setDark] = useState(localStorage.getItem("sourdi_dark") === "true");
+  const [dark, setDark] = useState(
+    localStorage.getItem("sourdi_dark") === "true"
+  );
+
+  const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [profil, setProfil] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -120,6 +130,8 @@ const Profile = () => {
     style: "girl-long",
     seed: `female-${Math.floor(Math.random() * 999999)}`,
   });
+
+  const enregistrerActiviteCoins = () => {};
 
   const avatarUrl = useMemo(() => {
     const cleanSeed = avatar.seed?.trim() || `${avatar.gender}-student`;
@@ -170,6 +182,10 @@ const Profile = () => {
   }, [dark]);
 
   useEffect(() => {
+    localStorage.setItem("sourdi_lang", lang);
+  }, [lang]);
+
+  useEffect(() => {
     chargerProfil();
   }, []);
 
@@ -190,7 +206,9 @@ const Profile = () => {
       setAvatar({
         ...avatar,
         style: value,
-        seed: `${avatar.gender}-${Math.random().toString(36).substring(2, 10)}`,
+        seed: `${avatar.gender}-${Math.random()
+          .toString(36)
+          .substring(2, 10)}`,
       });
       return;
     }
@@ -212,14 +230,17 @@ const Profile = () => {
       setErreur("");
       setMessage("");
 
-      const res = await axios.patch("http://localhost:5003/api/eleve/profil/avatar", {
-        avatar: {
-          gender: avatar.gender,
-          style: avatar.style,
-          seed: avatar.seed,
-          url: avatarUrl,
-        },
-      });
+      const res = await axios.patch(
+        "http://localhost:5003/api/eleve/profil/avatar",
+        {
+          avatar: {
+            gender: avatar.gender,
+            style: avatar.style,
+            seed: avatar.seed,
+            url: avatarUrl,
+          },
+        }
+      );
 
       setProfil(res.data);
 
@@ -238,7 +259,10 @@ const Profile = () => {
       setAvatarModalOpen(false);
       setMessage("Avatar modifié avec succès.");
     } catch (err) {
-      setErreur(err.response?.data?.message || "Erreur lors de la modification de l'avatar.");
+      setErreur(
+        err.response?.data?.message ||
+          "Erreur lors de la modification de l'avatar."
+      );
     }
   };
 
@@ -266,187 +290,198 @@ const Profile = () => {
 
       setMessage("Mot de passe modifié avec succès.");
     } catch (err) {
-      setErreur(err.response?.data?.message || "Erreur lors de la modification du mot de passe.");
+      setErreur(
+        err.response?.data?.message ||
+          "Erreur lors de la modification du mot de passe."
+      );
     }
   };
 
   if (loading) {
     return (
-      <div className={`profile-root ${dark ? "dark" : "light"}`}>
+      <div className={`acc-root profile-root ${dark ? "dark" : "light"}`}>
         <div className="profile-loading">Chargement du profil...</div>
       </div>
     );
   }
 
   return (
-    <div className={`profile-root ${dark ? "dark" : "light"}`}>
-      <div className="profile-blob profile-blob-1" />
-      <div className="profile-blob profile-blob-2" />
+    <div className={`acc-root profile-root ${dark ? "dark" : "light"}`}>
+      <div className="acc-blob acc-blob-1" />
+      <div className="acc-blob acc-blob-2" />
 
-      <header className="profile-header">
-        <div className="profile-header-left">
-          <Link to="/eleve" className="profile-logo">SOURDI</Link>
-          <span className="profile-tagline">Profil élève</span>
-        </div>
+      <EleveHeader
+        lang={lang}
+        setLang={setLang}
+        dark={dark}
+        setDark={setDark}
+        enregistrerActiviteCoins={enregistrerActiviteCoins}
+      />
 
-        <div className="profile-header-right">
-          <button className="profile-theme-btn" type="button" onClick={() => setDark(!dark)}>
-            {dark ? "Clair" : "Sombre"}
-          </button>
+      <div className="acc-layout">
+        <EleveSidebar
+          open={sidebarOpen}
+          setOpen={setSidebarOpen}
+          enregistrerActiviteCoins={enregistrerActiviteCoins}
+        />
 
-          <Link to="/eleve" className="profile-back-btn">
-            Accueil
-          </Link>
-
-          <button
-            className="profile-logout-btn"
-            type="button"
-            onClick={() => {
-              deconnexion();
-              navigate("/login");
-            }}
-          >
-            Déconnexion
-          </button>
-        </div>
-      </header>
-
-      <main className="profile-main">
-        <section className="profile-hero-card">
-          <div className="profile-avatar-big">
-            <img src={avatarUrl} alt="Avatar élève" />
-          </div>
-
-          <div className="profile-hero-info">
-            <span className="profile-small-label">Compte élève</span>
-            <h1>{profil?.user_first_name} {profil?.user_last_name}</h1>
-            <p>{profil?.user_email}</p>
-          </div>
-
-          <button
-            className="profile-main-btn"
-            type="button"
-            onClick={() => setAvatarModalOpen(true)}
-          >
-            Modifier l'avatar
-          </button>
-        </section>
-
-        {message && <div className="profile-success">{message}</div>}
-        {erreur && <div className="profile-error">{erreur}</div>}
-
-        <section className="profile-grid">
-          <div className="profile-card">
-            <div className="profile-card-head">
-              <h2>Coordonnées de l'élève</h2>
-              <p>Informations personnelles et scolaires</p>
-            </div>
-
-            <div className="profile-info-list">
-              <div className="profile-info-item">
-                <span>Prénom</span>
-                <strong>{profil?.user_first_name || "-"}</strong>
+        <div className={`acc-page-content ${sidebarOpen ? "sidebar-open" : ""}`}>
+          <main className="profile-main">
+            <section className="profile-hero-card">
+              <div className="profile-avatar-big">
+                <img src={avatarUrl} alt="Avatar élève" />
               </div>
 
-              <div className="profile-info-item">
-                <span>Nom</span>
-                <strong>{profil?.user_last_name || "-"}</strong>
+              <div className="profile-hero-info">
+                <span className="profile-small-label">Compte élève</span>
+                <h1>
+                  {profil?.user_first_name} {profil?.user_last_name}
+                </h1>
+                <p>{profil?.user_email}</p>
               </div>
 
-              <div className="profile-info-item">
-                <span>Email</span>
-                <strong>{profil?.user_email || "-"}</strong>
-              </div>
-
-              <div className="profile-info-item">
-                <span>Téléphone</span>
-                <strong>{profil?.user_phone || "-"}</strong>
-              </div>
-
-              <div className="profile-info-item">
-                <span>Niveau</span>
-                <strong>{profil?.params?.grade || "-"}</strong>
-              </div>
-
-              <div className="profile-info-item">
-                <span>Gouvernorat</span>
-                <strong>{profil?.params?.gouvernorat || "-"}</strong>
-              </div>
-
-              <div className="profile-info-item">
-                <span>Délégation</span>
-                <strong>{profil?.params?.delegation || "-"}</strong>
-              </div>
-
-              <div className="profile-info-item">
-                <span>Région</span>
-                <strong>{profil?.params?.region || "-"}</strong>
-              </div>
-
-              <div className="profile-info-item full">
-                <span>École</span>
-                <strong>{profil?.params?.school_name || "-"}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div className="profile-card">
-            <div className="profile-card-head">
-              <h2>Modifier le mot de passe</h2>
-              <p>Entre ton ancien mot de passe puis le nouveau</p>
-            </div>
-
-            <form className="profile-password-form" onSubmit={modifierMotDePasse}>
-              <div>
-                <label>Ancien mot de passe</label>
-                <input
-                  type="password"
-                  value={passwordForm.ancienMotDePasse}
-                  onChange={(e) =>
-                    setPasswordForm({ ...passwordForm, ancienMotDePasse: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div>
-                <label>Nouveau mot de passe</label>
-                <input
-                  type="password"
-                  value={passwordForm.nouveauMotDePasse}
-                  onChange={(e) =>
-                    setPasswordForm({ ...passwordForm, nouveauMotDePasse: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div>
-                <label>Confirmer le nouveau mot de passe</label>
-                <input
-                  type="password"
-                  value={passwordForm.confirmerMotDePasse}
-                  onChange={(e) =>
-                    setPasswordForm({ ...passwordForm, confirmerMotDePasse: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <button className="profile-main-btn" type="submit">
-                Enregistrer le mot de passe
+              <button
+                className="profile-main-btn"
+                type="button"
+                onClick={() => setAvatarModalOpen(true)}
+              >
+                Modifier l'avatar
               </button>
-            </form>
-          </div>
-        </section>
-      </main>
+            </section>
+
+            {message && <div className="profile-success">{message}</div>}
+            {erreur && <div className="profile-error">{erreur}</div>}
+
+            <section className="profile-grid">
+              <div className="profile-card">
+                <div className="profile-card-head">
+                  <h2>Coordonnées de l'élève</h2>
+                  <p>Informations personnelles et scolaires</p>
+                </div>
+
+                <div className="profile-info-list">
+                  <div className="profile-info-item">
+                    <span>Prénom</span>
+                    <strong>{profil?.user_first_name || "-"}</strong>
+                  </div>
+
+                  <div className="profile-info-item">
+                    <span>Nom</span>
+                    <strong>{profil?.user_last_name || "-"}</strong>
+                  </div>
+
+                  <div className="profile-info-item">
+                    <span>Email</span>
+                    <strong>{profil?.user_email || "-"}</strong>
+                  </div>
+
+                  <div className="profile-info-item">
+                    <span>Téléphone</span>
+                    <strong>{profil?.user_phone || "-"}</strong>
+                  </div>
+
+                  <div className="profile-info-item">
+                    <span>Niveau</span>
+                    <strong>{profil?.params?.grade || "-"}</strong>
+                  </div>
+
+                  <div className="profile-info-item">
+                    <span>Gouvernorat</span>
+                    <strong>{profil?.params?.gouvernorat || "-"}</strong>
+                  </div>
+
+                  <div className="profile-info-item">
+                    <span>Délégation</span>
+                    <strong>{profil?.params?.delegation || "-"}</strong>
+                  </div>
+
+                  <div className="profile-info-item">
+                    <span>Région</span>
+                    <strong>{profil?.params?.region || "-"}</strong>
+                  </div>
+
+                  <div className="profile-info-item full">
+                    <span>École</span>
+                    <strong>{profil?.params?.school_name || "-"}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="profile-card">
+                <div className="profile-card-head">
+                  <h2>Modifier le mot de passe</h2>
+                  <p>Entre ton ancien mot de passe puis le nouveau</p>
+                </div>
+
+                <form
+                  className="profile-password-form"
+                  onSubmit={modifierMotDePasse}
+                >
+                  <div>
+                    <label>Ancien mot de passe</label>
+                    <input
+                      type="password"
+                      value={passwordForm.ancienMotDePasse}
+                      onChange={(e) =>
+                        setPasswordForm({
+                          ...passwordForm,
+                          ancienMotDePasse: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label>Nouveau mot de passe</label>
+                    <input
+                      type="password"
+                      value={passwordForm.nouveauMotDePasse}
+                      onChange={(e) =>
+                        setPasswordForm({
+                          ...passwordForm,
+                          nouveauMotDePasse: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label>Confirmer le nouveau mot de passe</label>
+                    <input
+                      type="password"
+                      value={passwordForm.confirmerMotDePasse}
+                      onChange={(e) =>
+                        setPasswordForm({
+                          ...passwordForm,
+                          confirmerMotDePasse: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <button className="profile-main-btn" type="submit">
+                    Enregistrer le mot de passe
+                  </button>
+                </form>
+              </div>
+            </section>
+          </main>
+
+          <EleveFooter />
+        </div>
+      </div>
 
       {avatarModalOpen && (
         <div className="profile-avatar-modal-overlay">
           <div className="profile-avatar-modal">
             <div className="profile-avatar-modal-header">
               <h3>Personnaliser l'avatar</h3>
-              <button type="button" onClick={() => setAvatarModalOpen(false)}>×</button>
+              <button type="button" onClick={() => setAvatarModalOpen(false)}>
+                ×
+              </button>
             </div>
 
             <div className="profile-avatar-builder">
@@ -457,6 +492,7 @@ const Profile = () => {
               <div className="profile-avatar-controls">
                 <div className="profile-avatar-row">
                   <label>Genre</label>
+
                   <div className="profile-avatar-options">
                     {[
                       { value: "female", label: "Girl" },
@@ -476,6 +512,7 @@ const Profile = () => {
 
                 <div className="profile-avatar-row">
                   <label>Style d'avatar</label>
+
                   <div className="profile-avatar-style-grid">
                     {avatarStylesByGender[avatar.gender].map((style) => (
                       <button
@@ -483,31 +520,33 @@ const Profile = () => {
                         type="button"
                         className={avatar.style === style.value ? "active" : ""}
                         onClick={() => handleAvatarChange("style", style.value)}
+                        aria-label={style.label}
+                        title={style.label}
                       >
-                        <img src={getPreviewAvatarUrl(style.value)} alt={style.label} />
-                        <span>{style.label}</span>
+                        <img
+                          src={getPreviewAvatarUrl(style.value)}
+                          alt={style.label}
+                        />
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="profile-avatar-row">
-                  <label>Nom / code avatar</label>
-                  <input
-                    type="text"
-                    value={avatar.seed}
-                    onChange={(e) => handleAvatarChange("seed", e.target.value)}
-                    placeholder="avatar-name"
-                  />
-                </div>
-
-                <button className="profile-secondary-btn" type="button" onClick={generateRandomAvatar}>
+                <button
+                  className="profile-secondary-btn"
+                  type="button"
+                  onClick={generateRandomAvatar}
+                >
                   Avatar aléatoire
                 </button>
               </div>
             </div>
 
-            <button className="profile-save-avatar-btn" type="button" onClick={enregistrerAvatar}>
+            <button
+              className="profile-save-avatar-btn"
+              type="button"
+              onClick={enregistrerAvatar}
+            >
               Enregistrer l'avatar
             </button>
           </div>
