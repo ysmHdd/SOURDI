@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axios from "../../../api/axios";
 
 import EleveHeader from "../../../components/layout/EleveHeader";
@@ -11,65 +12,6 @@ import "./exercices.css";
 
 const API_EX = "http://localhost:5004/api/exercices";
 const API_COINS = "http://localhost:5005/api/coins";
-
-const T = {
-  fr: {
-    titre: "Cours & Quiz",
-    sousTitre: "Choisis une matière, lis ton cours PDF puis fais le quiz",
-    niveau: "Ton niveau",
-    cours: "Cours disponibles",
-    voirPdf: "Voir PDF",
-    completer: "Cours terminé",
-    quiz: "Quiz",
-    commencer: "Commencer",
-    historique: "Historique des quiz",
-    autoEval: "Auto-évaluation",
-    envoyer: "Envoyer",
-    note: "Note /100",
-    supprimer: "Supprimer",
-    aucunCours: "Aucun cours pour cette matière.",
-    aucunQuiz: "Aucun quiz pour ce cours.",
-    terminerQuizAvantCours:
-      "Termine tous les quiz avant de compléter le cours",
-    matieres: {
-      maths: "Mathématiques",
-      francais: "Français",
-      anglais: "Anglais",
-      arabe: "Arabe",
-      sciences: "Sciences",
-      histoire: "Histoire",
-      education_islamique: "Éducation islamique",
-    },
-  },
-  en: {
-    titre: "Lessons & Quizzes",
-    sousTitre: "Choose a subject, read the PDF lesson, then take the quiz",
-    niveau: "Your level",
-    cours: "Available lessons",
-    voirPdf: "Open PDF",
-    completer: "Complete lesson",
-    quiz: "Quiz",
-    commencer: "Start",
-    historique: "Quiz history",
-    autoEval: "Self-evaluation",
-    envoyer: "Send",
-    note: "Score /100",
-    supprimer: "Delete",
-    aucunCours: "No lessons for this subject.",
-    aucunQuiz: "No quiz for this lesson.",
-    terminerQuizAvantCours:
-      "Finish all quizzes before completing the lesson",
-    matieres: {
-      maths: "Mathematics",
-      francais: "French",
-      anglais: "English",
-      arabe: "Arabic",
-      sciences: "Science",
-      histoire: "History",
-      education_islamique: "Islamic education",
-    },
-  },
-};
 
 const MATIERE_CONFIG = {
   maths: { color: "#7C4DFF", icon: "∑" },
@@ -114,11 +56,12 @@ const getNiveauFromToken = () => {
 
 export default function Selection() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
-  const [dark, setDark] = useState(
-    localStorage.getItem("sourdi_dark") === "true"
-  );
+  const [dark, setDark] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [matieres, setMatieres] = useState([]);
@@ -131,7 +74,6 @@ export default function Selection() {
   const [message, setMessage] = useState("");
   const [loadingCours, setLoadingCours] = useState(false);
 
-  const t = T[lang] || T.fr;
   const niveau = getNiveauFromToken();
 
   const enregistrerActiviteCoins = () => {};
@@ -229,7 +171,7 @@ export default function Selection() {
 
   const completerCours = async (coursId) => {
     if (!coursQuizTermines(coursId)) {
-      afficherMessage(t.terminerQuizAvantCours);
+      afficherMessage(t("exercices.terminerQuizAvantCours"));
       return;
     }
 
@@ -267,7 +209,7 @@ export default function Selection() {
   }, [lang]);
 
   useEffect(() => {
-    localStorage.setItem("sourdi_dark", dark);
+    localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
 
   useEffect(() => {
@@ -308,10 +250,10 @@ export default function Selection() {
         <div className={`acc-page-content ${sidebarOpen ? "sidebar-open" : ""}`}>
           <main className="ex-main">
             <section className="ex-page-title">
-              <h1>{t.titre}</h1>
-              <p>{t.sousTitre}</p>
+              <h1>{t("exercices.titre")}</h1>
+              <p>{t("exercices.sousTitre")}</p>
               <span className="ex-niveau">
-                {t.niveau} : <strong>{niveau}</strong>
+                {t("exercices.niveau")} : <strong>{niveau}</strong>
               </span>
             </section>
 
@@ -336,7 +278,7 @@ export default function Selection() {
                   >
                     <span className="ex-matiere-icon">{cfg.icon}</span>
                     <span className="ex-matiere-name">
-                      {t.matieres[m] || m}
+                      {t(`exercices.matieres.${m}`) || m}
                     </span>
                   </button>
                 );
@@ -344,12 +286,12 @@ export default function Selection() {
             </section>
 
             <section className="ex-section">
-              <h2>{t.cours}</h2>
+              <h2>{t("exercices.cours")}</h2>
 
               {loadingCours ? (
                 <div className="ex-loading">Chargement...</div>
               ) : cours.length === 0 ? (
-                <div className="ex-empty">{t.aucunCours}</div>
+                <div className="ex-empty">{t("exercices.aucunCours")}</div>
               ) : (
                 <div className="ex-cours-grid">
                   {cours.map((c) => {
@@ -359,7 +301,7 @@ export default function Selection() {
                       <article key={c._id} className="ex-cours-card">
                         <div className="ex-cours-top">
                           <span className="ex-cours-badge">
-                            {t.matieres[c.matiere] || c.matiere}
+                            {t(`exercices.matieres.${c.matiere}`) || c.matiere}
                           </span>
 
                           <span className="ex-cours-coins">
@@ -378,7 +320,7 @@ export default function Selection() {
                               target="_blank"
                               rel="noreferrer"
                             >
-                              {t.voirPdf}
+                              {t("exercices.voirPdf")}
                             </a>
                           )}
 
@@ -389,19 +331,19 @@ export default function Selection() {
                             disabled={!quizTermines}
                             onClick={() => completerCours(c._id)}
                             title={
-                              !quizTermines ? t.terminerQuizAvantCours : ""
+                              !quizTermines ? t("exercices.terminerQuizAvantCours") : ""
                             }
                             type="button"
                           >
-                            {t.completer}
+                            {t("exercices.completer")}
                           </button>
                         </div>
 
                         <div className="ex-quiz-list">
-                          <h4>{t.quiz}</h4>
+                          <h4>{t("exercices.quiz")}</h4>
 
                           {(quizParCours[c._id] || []).length === 0 ? (
-                            <p className="ex-mini-empty">{t.aucunQuiz}</p>
+                            <p className="ex-mini-empty">{t("exercices.aucunQuiz")}</p>
                           ) : (
                             (quizParCours[c._id] || []).map((q) => (
                               <div key={q._id} className="ex-quiz-row">
@@ -420,7 +362,7 @@ export default function Selection() {
                                     })
                                   }
                                 >
-                                  {t.commencer}
+                                  {t("exercices.commencer")}
                                 </button>
                               </div>
                             ))
@@ -435,10 +377,10 @@ export default function Selection() {
 
             <section className="ex-section ex-two-cols">
               <div className="ex-panel">
-                <h2>{t.autoEval}</h2>
+                <h2>{t("exercices.autoEval")}</h2>
 
                 <form onSubmit={faireAutoEvaluation} className="ex-auto-form">
-                  <label>{t.note}</label>
+                  <label>{t("exercices.note")}</label>
 
                   <input
                     type="number"
@@ -449,12 +391,12 @@ export default function Selection() {
                     required
                   />
 
-                  <button type="submit">{t.envoyer}</button>
+                  <button type="submit">{t("exercices.envoyer")}</button>
                 </form>
               </div>
 
               <div className="ex-panel">
-                <h2>{t.historique}</h2>
+                <h2>{t("exercices.historique")}</h2>
 
                 {historique.length === 0 ? (
                   <p className="ex-mini-empty">Aucun résultat.</p>
@@ -479,7 +421,7 @@ export default function Selection() {
                           className="ex-history-delete"
                           onClick={() => supprimerHistorique(h._id)}
                         >
-                          {t.supprimer}
+                          {t("exercices.supprimer")}
                         </button>
                       </div>
                     ))}

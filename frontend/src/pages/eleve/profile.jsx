@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import axios from "../../api/axios";
 
@@ -104,12 +105,13 @@ const getAvatarParams = (gender, style) => {
 
 const Profile = () => {
   const { utilisateur, updateUtilisateur } = useAuth();
+  const { t } = useTranslation();
 
-  const [dark, setDark] = useState(
-    localStorage.getItem("sourdi_dark") === "true"
-  );
+  const [dark, setDark] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
 
-  const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
+  const [lang, setLang] = useState(localStorage.getItem("i18nextLng") || "fr");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [profil, setProfil] = useState(null);
@@ -171,18 +173,18 @@ const Profile = () => {
         });
       }
     } catch (err) {
-      setErreur("Impossible de charger le profil.");
+      setErreur(t("profil.profilErreur"));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    localStorage.setItem("sourdi_dark", dark);
+    localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
 
   useEffect(() => {
-    localStorage.setItem("sourdi_lang", lang);
+    localStorage.setItem("i18nextLng", lang);
   }, [lang]);
 
   useEffect(() => {
@@ -257,7 +259,7 @@ const Profile = () => {
       }
 
       setAvatarModalOpen(false);
-      setMessage("Avatar modifié avec succès.");
+      setMessage(t("profil.avatarModifie"));
     } catch (err) {
       setErreur(
         err.response?.data?.message ||
@@ -272,7 +274,7 @@ const Profile = () => {
     setMessage("");
 
     if (passwordForm.nouveauMotDePasse !== passwordForm.confirmerMotDePasse) {
-      setErreur("Les nouveaux mots de passe ne correspondent pas.");
+      setErreur(t("profil.motDePasseErreur"));
       return;
     }
 
@@ -288,7 +290,7 @@ const Profile = () => {
         confirmerMotDePasse: "",
       });
 
-      setMessage("Mot de passe modifié avec succès.");
+      setMessage(t("profil.motDePasseModifie"));
     } catch (err) {
       setErreur(
         err.response?.data?.message ||
@@ -300,7 +302,7 @@ const Profile = () => {
   if (loading) {
     return (
       <div className={`acc-root profile-root ${dark ? "dark" : "light"}`}>
-        <div className="profile-loading">Chargement du profil...</div>
+        <div className="profile-loading">{t("profil.chargement")}</div>
       </div>
     );
   }
@@ -333,7 +335,7 @@ const Profile = () => {
               </div>
 
               <div className="profile-hero-info">
-                <span className="profile-small-label">Compte élève</span>
+                <span className="profile-small-label">{t("profil.compteEleve")}</span>
                 <h1>
                   {profil?.user_first_name} {profil?.user_last_name}
                 </h1>
@@ -345,7 +347,7 @@ const Profile = () => {
                 type="button"
                 onClick={() => setAvatarModalOpen(true)}
               >
-                Modifier l'avatar
+                {t("profil.modifierAvatar")}
               </button>
             </section>
 
@@ -355,18 +357,18 @@ const Profile = () => {
             <section className="profile-grid">
               <div className="profile-card">
                 <div className="profile-card-head">
-                  <h2>Coordonnées de l'élève</h2>
-                  <p>Informations personnelles et scolaires</p>
+                  <h2>{t("profil.coordonnees")}</h2>
+                  <p>{t("profil.coordonneesSousTitre")}</p>
                 </div>
 
                 <div className="profile-info-list">
                   <div className="profile-info-item">
-                    <span>Prénom</span>
+                    <span>{t("profil.prenom")}</span>
                     <strong>{profil?.user_first_name || "-"}</strong>
                   </div>
 
                   <div className="profile-info-item">
-                    <span>Nom</span>
+                    <span>{t("profil.nom")}</span>
                     <strong>{profil?.user_last_name || "-"}</strong>
                   </div>
 
@@ -376,32 +378,32 @@ const Profile = () => {
                   </div>
 
                   <div className="profile-info-item">
-                    <span>Téléphone</span>
+                    <span>{t("profil.telephone")}</span>
                     <strong>{profil?.user_phone || "-"}</strong>
                   </div>
 
                   <div className="profile-info-item">
-                    <span>Niveau</span>
+                    <span>{t("profil.niveau")}</span>
                     <strong>{profil?.params?.grade || "-"}</strong>
                   </div>
 
                   <div className="profile-info-item">
-                    <span>Gouvernorat</span>
+                    <span>{t("profil.gouvernorat")}</span>
                     <strong>{profil?.params?.gouvernorat || "-"}</strong>
                   </div>
 
                   <div className="profile-info-item">
-                    <span>Délégation</span>
+                    <span>{t("profil.delegation")}</span>
                     <strong>{profil?.params?.delegation || "-"}</strong>
                   </div>
 
                   <div className="profile-info-item">
-                    <span>Région</span>
+                    <span>{t("profil.region")}</span>
                     <strong>{profil?.params?.region || "-"}</strong>
                   </div>
 
                   <div className="profile-info-item full">
-                    <span>École</span>
+                    <span>{t("profil.ecole")}</span>
                     <strong>{profil?.params?.school_name || "-"}</strong>
                   </div>
                 </div>
@@ -409,8 +411,8 @@ const Profile = () => {
 
               <div className="profile-card">
                 <div className="profile-card-head">
-                  <h2>Modifier le mot de passe</h2>
-                  <p>Entre ton ancien mot de passe puis le nouveau</p>
+                  <h2>{t("profil.modifierMotDePasse")}</h2>
+                  <p>{t("profil.motDePasseSousTitre")}</p>
                 </div>
 
                 <form
@@ -418,7 +420,7 @@ const Profile = () => {
                   onSubmit={modifierMotDePasse}
                 >
                   <div>
-                    <label>Ancien mot de passe</label>
+                    <label>{t("profil.ancienMotDePasse")}</label>
                     <input
                       type="password"
                       value={passwordForm.ancienMotDePasse}
@@ -433,7 +435,7 @@ const Profile = () => {
                   </div>
 
                   <div>
-                    <label>Nouveau mot de passe</label>
+                    <label>{t("profil.nouveauMotDePasse")}</label>
                     <input
                       type="password"
                       value={passwordForm.nouveauMotDePasse}
@@ -448,7 +450,7 @@ const Profile = () => {
                   </div>
 
                   <div>
-                    <label>Confirmer le nouveau mot de passe</label>
+                    <label>{t("profil.confirmerMotDePasse")}</label>
                     <input
                       type="password"
                       value={passwordForm.confirmerMotDePasse}
@@ -463,7 +465,7 @@ const Profile = () => {
                   </div>
 
                   <button className="profile-main-btn" type="submit">
-                    Enregistrer le mot de passe
+                    {t("profil.enregistrerMotDePasse")}
                   </button>
                 </form>
               </div>
@@ -478,7 +480,7 @@ const Profile = () => {
         <div className="profile-avatar-modal-overlay">
           <div className="profile-avatar-modal">
             <div className="profile-avatar-modal-header">
-              <h3>Personnaliser l'avatar</h3>
+              <h3>{t("profil.personnaliserAvatar")}</h3>
               <button type="button" onClick={() => setAvatarModalOpen(false)}>
                 ×
               </button>
@@ -491,12 +493,12 @@ const Profile = () => {
 
               <div className="profile-avatar-controls">
                 <div className="profile-avatar-row">
-                  <label>Genre</label>
+                  <label>{t("profil.genre")}</label>
 
                   <div className="profile-avatar-options">
                     {[
-                      { value: "female", label: "Girl" },
-                      { value: "male", label: "Boy" },
+                      { value: "female", label: t("profil.girl") },
+                      { value: "male", label: t("profil.boy") },
                     ].map((option) => (
                       <button
                         key={option.value}
@@ -511,7 +513,7 @@ const Profile = () => {
                 </div>
 
                 <div className="profile-avatar-row">
-                  <label>Style d'avatar</label>
+                  <label>{t("profil.styleAvatar")}</label>
 
                   <div className="profile-avatar-style-grid">
                     {avatarStylesByGender[avatar.gender].map((style) => (
@@ -537,7 +539,7 @@ const Profile = () => {
                   type="button"
                   onClick={generateRandomAvatar}
                 >
-                  Avatar aléatoire
+                  {t("profil.avatarAleatoire")}
                 </button>
               </div>
             </div>
@@ -547,7 +549,7 @@ const Profile = () => {
               type="button"
               onClick={enregistrerAvatar}
             >
-              Enregistrer l'avatar
+              {t("profil.enregistrerAvatar")}
             </button>
           </div>
         </div>

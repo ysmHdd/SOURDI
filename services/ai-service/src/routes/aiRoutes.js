@@ -11,5 +11,9 @@ router.post(
   upload.single("file"),
   aiController.analyzeHomework
 );
+router.post("/generate-image", aiController.generateImage);
+router.post("/game/memory", aiController.generateMemoryGame);
+router.post("/game/hangman", aiController.generateHangmanGame);
+router.post("/game/speed", aiController.generateSpeedGame);
 
 module.exports = router;

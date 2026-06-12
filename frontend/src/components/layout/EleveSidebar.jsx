@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   FaHome,
   FaShoppingBag,
@@ -13,6 +14,7 @@ export default function EleveSidebar({
   setOpen,
   enregistrerActiviteCoins,
 }) {
+  const { t } = useTranslation();
 
   const handleClick = () => {
     if (enregistrerActiviteCoins) {
@@ -26,7 +28,7 @@ export default function EleveSidebar({
         className={`eleve-sidebar-toggle ${open ? "open" : ""}`}
         type="button"
         onClick={() => setOpen(!open)}
-        aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+        aria-label={open ? t("sidebar.fermerMenu") : t("sidebar.ouvrirMenu")}
       >
         {open ? "×" : "≡"}
       </button>
@@ -44,7 +46,7 @@ export default function EleveSidebar({
             <span className="eleve-sidebar-icon">
               <FaHome />
             </span>
-            <span>Accueil</span>
+            <span>{t("sidebar.accueil")}</span>
           </NavLink>
 
           <NavLink
@@ -57,7 +59,7 @@ export default function EleveSidebar({
             <span className="eleve-sidebar-icon">
               <FaShoppingBag />
             </span>
-            <span>Marketplace</span>
+            <span>{t("sidebar.marketplace")}</span>
           </NavLink>
 
           <NavLink
@@ -70,7 +72,7 @@ export default function EleveSidebar({
             <span className="eleve-sidebar-icon">
               <FaShoppingCart />
             </span>
-            <span>Panier</span>
+            <span>{t("sidebar.panier")}</span>
           </NavLink>
 
           <NavLink
@@ -83,7 +85,7 @@ export default function EleveSidebar({
             <span className="eleve-sidebar-icon">
               <FaBookOpen />
             </span>
-            <span>Exercices</span>
+            <span>{t("sidebar.exercices")}</span>
           </NavLink>
 
           <NavLink
@@ -96,7 +98,7 @@ export default function EleveSidebar({
             <span className="eleve-sidebar-icon">
               <FaCalendarAlt />
             </span>
-            <span>Calendrier</span>
+            <span>{t("sidebar.calendrier")}</span>
           </NavLink>
         </nav>
       </aside>

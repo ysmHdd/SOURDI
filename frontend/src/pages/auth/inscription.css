@@ -891,3 +891,35 @@
 .avatar-style-card span {
   font-size: 0.78rem;
 }
+.register-password-wrap {
+  position: relative;
+}
+
+.register-password-input {
+  padding-right: 48px;
+}
+
+.register-eye-btn {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #ab47bc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.register-bg[dir="rtl"] .register-password-input {
+  padding-right: 16px;
+  padding-left: 48px;
+}
+
+.register-bg[dir="rtl"] .register-eye-btn {
+  right: auto;
+  left: 13px;
+}

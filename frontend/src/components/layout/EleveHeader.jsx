@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import axios from "../../api/axios";
+import { useTranslation } from "react-i18next";
 import {
   FaBell,
   FaComments,
@@ -15,21 +16,6 @@ import "./eleveHeader.css";
 const API_ELEVE = "http://localhost:5003/api/eleve";
 const API_COINS = "http://localhost:5005/api/coins";
 const API_NOTIF = "http://localhost:5009/api/notifications";
-
-const T = {
-  fr: {
-    tagline: "Plateforme d'apprentissage",
-    logout: "Déconnexion",
-    coins: "Sourdi Coins",
-    streak: "jours de suite",
-  },
-  en: {
-    tagline: "Learning Platform",
-    logout: "Logout",
-    coins: "Sourdi Coins",
-    streak: "days in a row",
-  },
-};
 
 const getAvatarParams = (gender, style) => {
   const base = [
@@ -169,7 +155,21 @@ export default function EleveHeader({
   const [notifNonLues, setNotifNonLues] = useState(0);
   const [notifFiltre, setNotifFiltre] = useState("tout");
 
-  const texte = T[lang] || T.fr;
+  const { t, i18n } = useTranslation();
+
+  const changeLanguage = (newLang) => {
+    enregistrerActiviteCoins();
+
+    i18n.changeLanguage(newLang);
+    localStorage.setItem("i18nextLng", newLang);
+
+    document.documentElement.lang = newLang;
+    document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
+
+    if (setLang) {
+      setLang(newLang);
+    }
+  };
 
   const chargerHeader = async () => {
     try {
@@ -271,30 +271,32 @@ export default function EleveHeader({
     <header className="acc-header">
       <div className="acc-header-left">
         <span className="acc-logo">SOURDI</span>
-        <span className="acc-tagline">{texte.tagline}</span>
+        <span className="acc-tagline">{t("header.tagline")}</span>
       </div>
 
       <div className="acc-header-center">
         <button
-          className={`acc-lang-btn ${lang === "fr" ? "active" : ""}`}
-          onClick={() => {
-            enregistrerActiviteCoins();
-            setLang("fr");
-          }}
+          className={`acc-lang-btn ${i18n.language === "fr" ? "active" : ""}`}
+          onClick={() => changeLanguage("fr")}
           type="button"
         >
           FR
         </button>
 
         <button
-          className={`acc-lang-btn ${lang === "en" ? "active" : ""}`}
-          onClick={() => {
-            enregistrerActiviteCoins();
-            setLang("en");
-          }}
+          className={`acc-lang-btn ${i18n.language === "en" ? "active" : ""}`}
+          onClick={() => changeLanguage("en")}
           type="button"
         >
           EN
+        </button>
+
+        <button
+          className={`acc-lang-btn ${i18n.language === "ar" ? "active" : ""}`}
+          onClick={() => changeLanguage("ar")}
+          type="button"
+        >
+          AR
         </button>
 
         <div className="acc-h-sep" />
@@ -307,18 +309,18 @@ export default function EleveHeader({
           }}
           type="button"
         >
-          {dark ? "Clair" : "Sombre"}
+          {dark ? t("header.light") : t("header.dark")}
         </button>
       </div>
 
       <div className="acc-header-right">
         <div className="acc-streak-badge">
-          {streak || 0} {texte.streak}
+          {streak || 0} {t("header.streak")}
         </div>
 
         <div className="acc-coins-badge">
           <span className="acc-coins-val">{solde}</span>
-          <span className="acc-coins-label">{texte.coins}</span>
+          <span className="acc-coins-label">{t("header.coins")}</span>
         </div>
 
         <div className="fb-notif-wrapper" ref={notifRef}>
@@ -341,10 +343,10 @@ export default function EleveHeader({
           {notifOpen && (
             <div className="fb-notif-panel">
               <div className="fb-notif-head">
-                <h2>Notifications</h2>
+                <h2>{t("notifications.title")}</h2>
 
                 <button type="button" onClick={toutMarquerLu}>
-                  Tout lire
+                  {t("notifications.markAllRead")}
                 </button>
               </div>
 
@@ -354,7 +356,7 @@ export default function EleveHeader({
                   className={notifFiltre === "tout" ? "active" : ""}
                   onClick={() => setNotifFiltre("tout")}
                 >
-                  Tout
+                  {t("notifications.all")}
                 </button>
 
                 <button
@@ -362,7 +364,7 @@ export default function EleveHeader({
                   className={notifFiltre === "non-lu" ? "active" : ""}
                   onClick={() => setNotifFiltre("non-lu")}
                 >
-                  Non lu
+                  {t("notifications.unread")}
                 </button>
               </div>
 
@@ -414,8 +416,8 @@ export default function EleveHeader({
                 ) : (
                   <div className="fb-notif-empty">
                     {notifFiltre === "non-lu"
-                      ? "Aucune notification non lue"
-                      : "Aucune notification"}
+                      ? t("notifications.noUnread")
+                      : t("notifications.empty")}
                   </div>
                 )}
               </div>
@@ -452,7 +454,7 @@ export default function EleveHeader({
             navigate("/login");
           }}
         >
-          {texte.logout}
+          {t("header.logout")}
         </button>
       </div>
     </header>

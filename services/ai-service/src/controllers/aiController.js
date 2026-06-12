@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const pdfParseModule = require("pdf-parse");
 const { GoogleGenAI } = require("@google/genai");
 
@@ -250,8 +251,176 @@ const analyzeHomework = async (req, res) => {
     });
   }
 };
+const generateImage = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+
+    if (!prompt || !prompt.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Prompt image requis",
+      });
+    }
+
+    const result = await aiService.generateImage({ prompt });
+    const description = await aiService.generateImageDescription({ prompt });
+
+    const extension = result.mimeType === "image/jpeg" ? "jpg" : "png";
+    const fileName = `generated-${Date.now()}.${extension}`;
+    const filePath = path.join(__dirname, "../uploads", fileName);
+
+    fs.writeFileSync(filePath, Buffer.from(result.image, "base64"));
+
+    return res.status(200).json({
+      success: true,
+      imageUrl: `/uploads/${fileName}`,
+      description,
+      mimeType: result.mimeType,
+      source: "Gemini Image",
+    });
+  } catch (erreur) {
+    console.error("Erreur génération image :", erreur);
+
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la génération de l'image",
+      detail: erreur.message,
+    });
+  }
+};
+
+const saveBase64Image = (base64, mimeType = "image/png") => {
+  const extension = mimeType === "image/jpeg" ? "jpg" : "png";
+  const fileName = `game-${Date.now()}-${Math.round(Math.random() * 99999)}.${extension}`;
+  const filePath = path.join(__dirname, "../uploads", fileName);
+
+  fs.writeFileSync(filePath, Buffer.from(base64, "base64"));
+
+  return `/uploads/${fileName}`;
+};
+
+const generateMemoryGame = async (req, res) => {
+  try {
+    const { prompt, langue } = req.body;
+
+    if (!prompt || !prompt.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Prompt jeu requis",
+      });
+    }
+
+    const gameData = await aiService.generateGameData({
+      prompt,
+      type: "memory",
+      langue,
+    });
+
+    const generatedCards = [];
+
+    for (const card of gameData.cards || []) {
+      const imageResult = await aiService.generateImage({
+        prompt: card.imagePrompt,
+      });
+
+      const imageUrl = saveBase64Image(
+        imageResult.image,
+        imageResult.mimeType
+      );
+
+      generatedCards.push({
+        ...card,
+        imageUrl,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      game: {
+        ...gameData,
+        cards: generatedCards,
+      },
+    });
+  } catch (erreur) {
+    console.error("Erreur génération memory game :", erreur);
+
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la création du jeu Memory",
+      detail: erreur.message,
+    });
+  }
+};
+
+const generateHangmanGame = async (req, res) => {
+  try {
+    const { prompt, langue } = req.body;
+
+    if (!prompt || !prompt.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Prompt jeu requis",
+      });
+    }
+
+    const gameData = await aiService.generateGameData({
+      prompt,
+      type: "hangman",
+      langue,
+    });
+
+    return res.status(200).json({
+      success: true,
+      game: gameData,
+    });
+  } catch (erreur) {
+    console.error("Erreur génération hangman game :", erreur);
+
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la création du jeu du pendu",
+      detail: erreur.message,
+    });
+  }
+};
+
+const generateSpeedGame = async (req, res) => {
+  try {
+    const { prompt, langue } = req.body;
+
+    if (!prompt || !prompt.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Prompt jeu requis",
+      });
+    }
+
+    const gameData = await aiService.generateGameData({
+      prompt,
+      type: "speed",
+      langue,
+    });
+
+    return res.status(200).json({
+      success: true,
+      game: gameData,
+    });
+  } catch (erreur) {
+    console.error("Erreur génération speed game :", erreur);
+
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la création du Speed Challenge",
+      detail: erreur.message,
+    });
+  }
+};
 
 module.exports = {
   chatWithAssistant,
   analyzeHomework,
+  generateImage,
+  generateMemoryGame,
+  generateHangmanGame,
+  generateSpeedGame,
 };

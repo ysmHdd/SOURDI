@@ -1,7 +1,8 @@
 .calendrier-page {
   padding: 28px;
   min-height: 100vh;
-  background: #f8fafc;
+  background: transparent;
+  color: var(--text);
 }
 
 .calendrier-header {
@@ -13,14 +14,14 @@
 
 .calendrier-header h1 {
   margin: 0;
-  color: #1e293b;
+  color: var(--text);
   font-size: 28px;
   font-weight: 800;
 }
 
 .calendrier-header p {
   margin: 6px 0 0;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 15px;
 }
 
@@ -40,72 +41,121 @@
 }
 
 .calendrier-card {
-  background: white;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 22px;
   padding: 20px;
-  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow);
 }
 
+/* FULLCALENDAR */
 .fc {
   font-family: inherit;
+  color: var(--text);
 }
 
 .fc .fc-toolbar-title {
-  color: #1e293b;
+  color: var(--text);
   font-size: 22px;
   font-weight: 800;
 }
 
 .fc .fc-button {
-  background: #ede9fe;
-  color: #6d28d9;
-  border: none;
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 8px 12px;
   font-weight: 700;
 }
 
 .fc .fc-button:hover {
-  background: #ddd6fe;
-  color: #5b21b6;
+  background: rgba(124, 58, 237, 0.2);
+  color: #6d28d9;
 }
 
 .fc .fc-button-primary:not(:disabled).fc-button-active {
   background: #7c3aed;
   color: white;
+  border-color: #7c3aed;
+}
+
+.fc .fc-button-primary:disabled {
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  border-color: var(--border);
+  opacity: 0.8;
+}
+
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid-section > *,
+.fc .fc-theme-standard td,
+.fc .fc-theme-standard th {
+  border-color: var(--border);
+}
+
+.fc .fc-col-header-cell {
+  background: var(--surface-alt);
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: var(--text);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.fc .fc-daygrid-day {
+  cursor: pointer;
+  background: var(--surface);
+}
+
+.fc .fc-daygrid-day-number {
+  color: var(--text-muted);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.fc .fc-day-today {
+  background: rgba(124, 58, 237, 0.1) !important;
 }
 
 .fc-event {
-  background: #7c3aed;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
   border: none;
   padding: 4px 6px;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
+  color: white;
 }
 
-.fc-daygrid-day {
-  cursor: pointer;
+.fc-event-title,
+.fc-event-time {
+  color: white;
 }
 
+/* MODAL */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15, 23, 42, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 999;
   padding: 20px;
+  backdrop-filter: blur(6px);
 }
 
 .modal-calendrier {
-  background: white;
+  background: var(--surface);
+  color: var(--text);
   width: 100%;
   max-width: 460px;
   border-radius: 22px;
   padding: 22px;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
 }
 
 .modal-header {
@@ -117,14 +167,14 @@
 
 .modal-header h2 {
   margin: 0;
-  color: #1e293b;
+  color: var(--text);
   font-size: 22px;
 }
 
 .modal-header button {
   border: none;
-  background: #f1f5f9;
-  color: #334155;
+  background: var(--surface-alt);
+  color: var(--text);
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -139,22 +189,28 @@
 }
 
 .form-calendrier label {
-  color: #334155;
+  color: var(--text-muted);
   font-size: 14px;
   font-weight: 700;
 }
 
 .form-calendrier input {
-  border: 1px solid #e2e8f0;
+  background: var(--surface-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px;
   outline: none;
   font-size: 15px;
 }
 
+.form-calendrier input::placeholder {
+  color: var(--text-faint);
+}
+
 .form-calendrier input:focus {
   border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.16);
 }
 
 .modal-actions {
@@ -174,14 +230,23 @@
   font-weight: 700;
 }
 
+.btn-enregistrer:hover {
+  background: #6d28d9;
+}
+
 .btn-supprimer {
-  background: #fee2e2;
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
   border: none;
   padding: 11px 18px;
   border-radius: 12px;
   cursor: pointer;
   font-weight: 700;
+}
+
+.btn-supprimer:hover {
+  background: #ef4444;
+  color: white;
 }
 
 @media (max-width: 768px) {
@@ -203,4 +268,24 @@
     flex-direction: column;
     gap: 10px;
   }
+}
+
+/* ── RTL OVERRIDE: keep calendar grid LTR in Arabic mode ── */
+.fc {
+  direction: ltr;
+}
+
+.fc-event,
+.fc-event-main,
+.fc-event-title,
+.fc-event-time {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: plaintext;
+}
+
+.fc-timegrid-event .fc-event-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

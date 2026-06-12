@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -19,23 +20,17 @@ import EleveFooter from "../../components/layout/EleveFooter";
 
 import "./calendrier.css";
 
-const T = {
-  tagline: "Plateforme d'apprentissage",
-  logout: "Déconnexion",
-  coins: "Sourdi Coins",
-  streak: "jours de suite",
-};
-
 const Calendrier = () => {
   const { utilisateur, deconnexion } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const notifRef = useRef(null);
 
-  const [dark, setDark] = useState(
-    localStorage.getItem("sourdi_dark") === "true"
-  );
-  const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
+  const [dark, setDark] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
+  const [lang, setLang] = useState(localStorage.getItem("i18nextLng") || "fr");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [seances, setSeances] = useState([]);
@@ -66,11 +61,11 @@ const Calendrier = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("sourdi_dark", dark);
+    localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
 
   useEffect(() => {
-    localStorage.setItem("sourdi_lang", lang);
+    localStorage.setItem("i18nextLng", lang);
   }, [lang]);
 
   const events = seances.map((seance) => ({
@@ -82,14 +77,27 @@ const Calendrier = () => {
   }));
 
   const ouvrirAjout = (info) => {
+    const clickedDate = info.date;
+
+    const date = clickedDate.toISOString().slice(0, 10);
+
+    const heureDebut = clickedDate.toTimeString().slice(0, 5);
+
+    const endDate = new Date(clickedDate);
+    endDate.setHours(endDate.getHours() + 1);
+
+    const heureFin = endDate.toTimeString().slice(0, 5);
+
     setModeEdition(false);
     setIdSeance(null);
+
     setFormulaire({
       matiere: "",
-      date: info.dateStr,
-      heureDebut: "",
-      heureFin: "",
+      date,
+      heureDebut,
+      heureFin,
     });
+
     setModalOuvert(true);
   };
 
@@ -128,7 +136,7 @@ const Calendrier = () => {
       chargerSeances();
     } catch (erreur) {
       console.error(erreur);
-      alert("Erreur lors de l'enregistrement");
+      alert(t("calendrier.erreurEnregistrement"));
     }
   };
 
@@ -139,14 +147,13 @@ const Calendrier = () => {
       chargerSeances();
     } catch (erreur) {
       console.error(erreur);
-      alert("Erreur lors de la suppression");
+      alert(t("calendrier.erreurSuppression"));
     }
   };
 
   return (
     <div className={`acc-root ${dark ? "dark" : "light"}`}>
       <EleveHeader
-        t={T}
         lang={lang}
         setLang={setLang}
         dark={dark}
@@ -190,6 +197,7 @@ const Calendrier = () => {
               <FullCalendar
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                 initialView="dayGridMonth"
+                direction="ltr"
                 headerToolbar={{
                   left: "prev,next today",
                   center: "title",
@@ -199,12 +207,12 @@ const Calendrier = () => {
                 dateClick={ouvrirAjout}
                 eventClick={ouvrirEdition}
                 height="auto"
-                locale="fr"
+                locale={lang}
                 buttonText={{
-                  today: "Aujourd'hui",
-                  month: "Mois",
-                  week: "Semaine",
-                  day: "Jour",
+                  today: t("calendrier.aujourdhui"),
+                  month: t("calendrier.mois"),
+                  week: t("calendrier.semaine"),
+                  day: t("calendrier.jour"),
                 }}
               />
             </div>
@@ -218,47 +226,50 @@ const Calendrier = () => {
         <div className="modal-overlay">
           <div className="modal-calendrier">
             <div className="modal-header">
-              <h2>{modeEdition ? "Modifier la séance" : "Ajouter une séance"}</h2>
+              <h2>{modeEdition ? t("calendrier.modifierSeance") : t("calendrier.ajouterSeance")}</h2>
               <button onClick={() => setModalOuvert(false)} type="button">
                 ×
               </button>
             </div>
 
             <form onSubmit={enregistrerSeance} className="form-calendrier">
-              <label>Matière</label>
+              <label>{t("calendrier.matiere")}</label>
               <input
                 type="text"
                 name="matiere"
                 value={formulaire.matiere}
                 onChange={changerFormulaire}
-                placeholder="Ex: Math, Français..."
+                placeholder={t("calendrier.placeholderMatiere")}
                 required
               />
 
-              <label>Date</label>
+              <label>{t("calendrier.date")}</label>
               <input
                 type="date"
                 name="date"
                 value={formulaire.date}
                 onChange={changerFormulaire}
+                dir="ltr"
                 required
               />
 
-              <label>Heure début</label>
+              <label>{t("calendrier.heureDebut")}</label>
               <input
                 type="time"
                 name="heureDebut"
                 value={formulaire.heureDebut}
                 onChange={changerFormulaire}
+                dir="ltr"
                 required
               />
 
-              <label>Heure fin</label>
+              <label>{t("calendrier.heureFin")}</label>
               <input
                 type="time"
                 name="heureFin"
                 value={formulaire.heureFin}
                 onChange={changerFormulaire}
+                dir="ltr"
                 required
               />
 
@@ -269,12 +280,12 @@ const Calendrier = () => {
                     className="btn-supprimer"
                     onClick={supprimerSeance}
                   >
-                    Supprimer
+                    {t("calendrier.supprimer")}
                   </button>
                 )}
 
                 <button type="submit" className="btn-enregistrer">
-                  {modeEdition ? "Modifier" : "Ajouter"}
+                  {modeEdition ? t("calendrier.modifier") : t("calendrier.ajouter")}
                 </button>
               </div>
             </form>

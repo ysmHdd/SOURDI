@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axios from "../../api/axios";
 
 import EleveHeader from "../../components/layout/EleveHeader";
@@ -13,11 +14,12 @@ const API_ELEVE = "http://localhost:5003";
 const API_ADMIN = "http://localhost:5002";
 
 const Panier = () => {
-  const [dark, setDark] = useState(
-    localStorage.getItem("sourdi_dark") === "true"
-  );
+  const [dark, setDark] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
 
-  const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
+  const [lang, setLang] = useState(localStorage.getItem("i18nextLng") || "fr");
+  const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [profil, setProfil] = useState(null);
@@ -56,7 +58,7 @@ const Panier = () => {
         delegation: profilRes.data?.params?.delegation || "",
       }));
     } catch (err) {
-      setErreur("Erreur lors du chargement.");
+      setErreur(t("panier.chargementErreur"));
     }
   };
 
@@ -65,11 +67,11 @@ const Panier = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("sourdi_dark", dark);
+    localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
 
   useEffect(() => {
-    localStorage.setItem("sourdi_lang", lang);
+    localStorage.setItem("i18nextLng", lang);
   }, [lang]);
 
   const modifierQuantite = async (idProduit, quantite) => {
@@ -85,7 +87,7 @@ const Panier = () => {
       charger();
     } catch (err) {
       setErreur(
-        err.response?.data?.message || "Erreur lors de la modification."
+        err.response?.data?.message || t("panier.modificationErreur")
       );
     }
   };
@@ -99,11 +101,11 @@ const Panier = () => {
         `${API_ELEVE}/api/eleve/marketplace/panier/supprimer/${idProduit}`
       );
 
-      setMessage("Produit supprimé du panier.");
+      setMessage(t("panier.produitSupprimeMsg"));
       charger();
     } catch (err) {
       setErreur(
-        err.response?.data?.message || "Erreur lors de la suppression."
+        err.response?.data?.message || t("panier.suppressionErreur")
       );
     }
   };
@@ -115,10 +117,10 @@ const Panier = () => {
 
       await axios.delete(`${API_ELEVE}/api/eleve/marketplace/panier/vider`);
 
-      setMessage("Panier vidé.");
+      setMessage(t("panier.panierVideMsg"));
       charger();
     } catch (err) {
-      setErreur(err.response?.data?.message || "Erreur lors du vidage du panier.");
+      setErreur(err.response?.data?.message || t("panier.vidageErreur"));
     }
   };
 
@@ -139,7 +141,7 @@ const Panier = () => {
       );
       charger();
     } catch (err) {
-      setErreur(err.response?.data?.message || "Erreur lors de la validation.");
+      setErreur(err.response?.data?.message || t("panier.validationErreur"));
     }
   };
 
@@ -152,10 +154,10 @@ const Panier = () => {
         `${API_ELEVE}/api/eleve/marketplace/commandes/${idTransaction}/annuler`
       );
 
-      setMessage("Commande annulée.");
+      setMessage(t("panier.commandeAnnuleeMsg"));
       charger();
     } catch (err) {
-      setErreur(err.response?.data?.message || "Erreur lors de l'annulation.");
+      setErreur(err.response?.data?.message || t("panier.annulationErreur"));
     }
   };
 
@@ -168,17 +170,17 @@ const Panier = () => {
         `${API_ELEVE}/api/eleve/marketplace/commandes/${idTransaction}`
       );
 
-      setMessage("Commande supprimée.");
+      setMessage(t("panier.commandeSupprimeeMsg"));
       charger();
     } catch (err) {
-      setErreur(err.response?.data?.message || "Erreur lors de la suppression.");
+      setErreur(err.response?.data?.message || t("panier.suppressionErreur"));
     }
   };
 
   const getStatutLabel = (statut) => {
-    if (statut === "annulee") return "Annulée";
-    if (statut === "livree") return "Livrée";
-    return "Réussie";
+    if (statut === "annulee") return t("panier.annulee");
+    if (statut === "livree") return t("panier.livree");
+    return t("panier.reussie");
   };
 
   const getStatutClass = (statut) => {
@@ -212,10 +214,8 @@ const Panier = () => {
         <div className={`acc-page-content ${sidebarOpen ? "sidebar-open" : ""}`}>
           <main className="panier-page">
             <div className="panier-head">
-              <h1>Mon panier</h1>
-              <p>
-                Modifie ton panier, valide ta commande et consulte tes commandes.
-              </p>
+              <h1>{t("panier.titre")}</h1>
+              <p>{t("panier.sousTitre")}</p>
             </div>
 
             {message && <div className="panier-success">{message}</div>}
@@ -224,7 +224,7 @@ const Panier = () => {
             <div className="panier-grid">
               <section className="panier-card">
                 <div className="panier-card-head">
-                  <h2>Produits</h2>
+                  <h2>{t("panier.produits")}</h2>
 
                   {produits.length > 0 && (
                     <button
@@ -232,7 +232,7 @@ const Panier = () => {
                       className="panier-clear-btn"
                       onClick={viderPanier}
                     >
-                      Vider le panier
+                      {t("panier.viderPanier")}
                     </button>
                   )}
                 </div>
@@ -272,7 +272,7 @@ const Panier = () => {
                               type="button"
                               onClick={() => supprimerProduit(p._id)}
                             >
-                              Supprimer
+                              {t("panier.supprimer")}
                             </button>
                           </div>
                         </div>
@@ -281,21 +281,21 @@ const Panier = () => {
                   </div>
                 ) : (
                   <div className="panier-empty">
-                    Ton panier est vide.
-                    <Link to="/eleve/marketplace"> Voir la marketplace</Link>
+                    {t("panier.panierVide")}
+                    <Link to="/eleve/marketplace">{t("panier.voirMarketplace")}</Link>
                   </div>
                 )}
               </section>
 
               <section className="panier-card">
                 <div className="panier-card-head">
-                  <h2>Validation</h2>
+                  <h2>{t("panier.validation")}</h2>
                   <span className="panier-total">{total} coins</span>
                 </div>
 
                 <div className="panier-client">
                   <div>
-                    <span>Nom</span>
+                    <span>{t("panier.nom")}</span>
                     <strong>
                       {profil?.user_first_name} {profil?.user_last_name}
                     </strong>
@@ -307,14 +307,14 @@ const Panier = () => {
                   </div>
 
                   <div>
-                    <span>Téléphone</span>
+                    <span>{t("panier.telephone")}</span>
                     <strong>{profil?.user_phone}</strong>
                   </div>
                 </div>
 
                 <form className="panier-form" onSubmit={validerCommande}>
                   <div>
-                    <label>Adresse</label>
+                    <label>{t("panier.adresse")}</label>
                     <input
                       type="text"
                       value={adresseLivraison.adresse}
@@ -329,7 +329,7 @@ const Panier = () => {
                   </div>
 
                   <div>
-                    <label>Gouvernorat</label>
+                    <label>{t("panier.gouvernorat")}</label>
                     <input
                       type="text"
                       value={adresseLivraison.gouvernorat}
@@ -344,7 +344,7 @@ const Panier = () => {
                   </div>
 
                   <div>
-                    <label>Délégation</label>
+                    <label>{t("panier.delegation")}</label>
                     <input
                       type="text"
                       value={adresseLivraison.delegation}
@@ -359,7 +359,7 @@ const Panier = () => {
                   </div>
 
                   <div>
-                    <label>Code postal</label>
+                    <label>{t("panier.codePostal")}</label>
                     <input
                       type="text"
                       required
@@ -374,7 +374,7 @@ const Panier = () => {
                   </div>
 
                   <div className="full">
-                    <label>Note</label>
+                    <label>{t("panier.note")}</label>
                     <textarea
                       value={adresseLivraison.note}
                       onChange={(e) =>
@@ -387,7 +387,7 @@ const Panier = () => {
                   </div>
 
                   <button type="submit" disabled={produits.length === 0}>
-                    Valider la commande
+                    {t("panier.validerCommande")}
                   </button>
                 </form>
               </section>
@@ -395,9 +395,9 @@ const Panier = () => {
 
             <section className="panier-card commandes-card">
               <div className="panier-card-head">
-                <h2>Mes commandes</h2>
+                <h2>{t("panier.mesCommandes")}</h2>
                 <span className="panier-total">
-                  {commandes.length} commande(s)
+                  {commandes.length} {t("panier.commande")}
                 </span>
               </div>
 
@@ -427,11 +427,11 @@ const Panier = () => {
                         </div>
 
                         <div className="commande-info">
-                          <h3>{produit?.nom || "Produit supprimé"}</h3>
-                          <p>Quantité : {commande.quantite}</p>
-                          <p>Total : {commande.montantEnCoins} coins</p>
+                          <h3>{produit?.nom || t("panier.produitSupprime")}</h3>
+                          <p>{t("panier.quantite")} : {commande.quantite}</p>
+                          <p>{t("panier.total")} : {commande.montantEnCoins} coins</p>
                           <p>
-                            Date :{" "}
+                            {t("panier.date")} :{" "}
                             {commande.createdAt
                               ? new Date(commande.createdAt).toLocaleDateString(
                                   "fr-FR"
@@ -441,13 +441,13 @@ const Panier = () => {
 
                           {estAnnulee && (
                             <div className="commande-annulation">
-                              <strong>Commande annulée</strong>
+                              <strong>{t("panier.commandeAnnulee")}</strong>
                             </div>
                           )}
 
                           {estLivree && (
                             <div className="commande-livraison">
-                              <strong>Commande livrée</strong>
+                              <strong>{t("panier.commandeLivree")}</strong>
                             </div>
                           )}
                         </div>
@@ -466,7 +466,7 @@ const Panier = () => {
                               type="button"
                               onClick={() => annulerCommande(commande._id)}
                             >
-                              Annuler
+                              {t("panier.annuler")}
                             </button>
                           )}
 
@@ -476,7 +476,7 @@ const Panier = () => {
                               className="commande-delete-btn"
                               onClick={() => supprimerCommande(commande._id)}
                             >
-                              Supprimer
+                              {t("panier.supprimer")}
                             </button>
                           )}
                         </div>
@@ -486,7 +486,7 @@ const Panier = () => {
                 </div>
               ) : (
                 <div className="panier-empty">
-                  Tu n'as pas encore de commandes.
+                  {t("panier.pasCommandes")}
                 </div>
               )}
             </section>

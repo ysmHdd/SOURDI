@@ -1,19 +1,21 @@
+import { useTranslation } from "react-i18next";
 import "./eleveFooter.css";
 
 export default function EleveFooter() {
+  const { t } = useTranslation();
+
   return (
     <footer className="eleve-footer">
       <div className="eleve-footer-brand">
         <h3>SOURDI</h3>
-      
       </div>
 
       <div className="eleve-footer-center">
-        <span>Plateforme éducative pour les élèves du primaire</span>
+        <span>{t("footer.description")}</span>
       </div>
 
       <div className="eleve-footer-info">
-        <span>© 2026 SOURDI</span>
+        <span>{t("footer.copyright")}</span>
       </div>
     </footer>
   );

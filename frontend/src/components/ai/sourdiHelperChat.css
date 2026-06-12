@@ -426,3 +426,557 @@
   text-decoration: none;
   font-weight: 700;
 }
+.sourdi-generated-image {
+  width: 100%;
+  max-width: 280px;
+  margin-top: 12px;
+  border-radius: 18px;
+  display: block;
+  object-fit: cover;
+  box-shadow: 0 10px 28px rgba(91, 124, 250, 0.16);
+  cursor: zoom-in;
+}
+
+.sourdi-image-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.72);
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.sourdi-image-modal-content {
+  position: relative;
+  background: white;
+  border-radius: 24px;
+  padding: 18px;
+  max-width: 90vw;
+  max-height: 90vh;
+  box-shadow: 0 25px 90px rgba(0, 0, 0, 0.35);
+}
+
+.sourdi-image-modal-content img {
+  max-width: 82vw;
+  max-height: 72vh;
+  display: block;
+  border-radius: 18px;
+  object-fit: contain;
+}
+
+.sourdi-image-close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: #ef4444;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.sourdi-image-download {
+  display: block;
+  margin-top: 14px;
+  text-align: center;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #7c8cff, #8b5cf6);
+  color: white;
+  text-decoration: none;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  font-size: 15px;
+}
+
+.sourdi-listen-btn {
+  margin-top: 10px;
+  border: none;
+  border-radius: 14px;
+  padding: 8px 13px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.sourdi-listen-btn:hover {
+  background: #dde3ff;
+}
+
+/* ───────────── GAMES POPUP ───────────── */
+
+.sourdi-game-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(124, 140, 255, 0.35), transparent 35%),
+    radial-gradient(circle at 80% 10%, rgba(217, 70, 239, 0.28), transparent 32%),
+    rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.sourdi-game-modal-content {
+  position: relative;
+  width: min(760px, 94vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 30px;
+  border-radius: 34px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,255,0.96));
+  box-shadow:
+    0 30px 90px rgba(15, 23, 42, 0.38),
+    inset 0 0 0 1px rgba(124, 140, 255, 0.18);
+  animation: sourdiPop 0.25s ease;
+}
+
+@keyframes sourdiPop {
+  from {
+    transform: scale(0.94) translateY(12px);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.sourdi-game-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fb7185, #ef4444);
+  color: white;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(239, 68, 68, 0.28);
+}
+
+.sourdi-game-modal-content h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 1000;
+  color: #20285a;
+}
+
+.sourdi-game-modal-content h3 {
+  margin: 12px 0 8px;
+  font-size: 1.45rem;
+  font-weight: 1000;
+  color: #20285a;
+}
+
+.sourdi-game-modal-content p {
+  margin: 10px 0 16px;
+  color: #56607f;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.sourdi-game-menu {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.sourdi-game-menu button {
+  min-height: 110px;
+  border: none;
+  border-radius: 26px;
+  padding: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,0.35), transparent 45%),
+    linear-gradient(135deg, #7c8cff, #8b5cf6);
+  color: white;
+  font-size: 1rem;
+  font-weight: 1000;
+  cursor: pointer;
+  box-shadow: 0 18px 38px rgba(124, 140, 255, 0.32);
+  transition: 0.22s ease;
+}
+
+.sourdi-game-menu button:hover {
+  transform: translateY(-5px) scale(1.02);
+}
+
+.game-loading {
+  margin: 20px 0;
+  padding: 16px;
+  border-radius: 20px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-weight: 1000;
+  text-align: center;
+  box-shadow: inset 0 0 0 1px #dbe3ff;
+}
+
+.hangman-hint {
+  margin: 18px 0;
+  padding: 16px 18px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  color: #9a3412;
+  font-weight: 900;
+  border: 1px solid #fed7aa;
+}
+
+.hangman-word {
+  margin: 24px 0;
+  padding: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(124, 140, 255, 0.18), transparent 40%),
+    #eef2ff;
+  border-radius: 26px;
+  text-align: center;
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  font-weight: 1000;
+  letter-spacing: 10px;
+  color: #4f46e5;
+  box-shadow: inset 0 0 0 1px #dbe3ff;
+}
+
+.hangman-letters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.hangman-letters button {
+  border: none;
+  border-radius: 16px;
+  padding: 12px 8px;
+  background: white;
+  color: #4f46e5;
+  font-weight: 1000;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(91, 124, 250, 0.14);
+  transition: 0.18s ease;
+}
+
+.hangman-letters button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  background: #eef2ff;
+}
+
+.hangman-letters button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.memory-grid,
+.memory-grid.intelligent {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.memory-card {
+  height: 132px;
+  border: none;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,0.3), transparent 40%),
+    linear-gradient(135deg, #7c8cff, #8b5cf6);
+  color: white;
+  font-weight: 1000;
+  font-size: 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 16px 34px rgba(124, 140, 255, 0.28);
+  transition: 0.22s ease;
+  overflow: hidden;
+}
+
+.memory-card:hover {
+  transform: translateY(-5px) scale(1.02);
+}
+
+.memory-card.visible {
+  background: white;
+  color: #20285a;
+  box-shadow:
+    0 16px 34px rgba(91, 124, 250, 0.16),
+    inset 0 0 0 4px #7c8cff;
+}
+
+.memory-card.smart {
+  padding: 10px;
+}
+
+.memory-card.smart img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 18px;
+  display: block;
+}
+
+.memory-card.smart span {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 8px;
+  font-size: 1rem;
+  font-weight: 1000;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.game-success {
+  margin: 18px 0;
+  padding: 16px 18px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  color: #166534;
+  font-weight: 1000;
+  border: 1px solid #86efac;
+}
+
+.game-back-btn {
+  border: none;
+  border-radius: 22px;
+  padding: 15px 22px;
+  background: linear-gradient(135deg, #7c8cff, #8b5cf6);
+  color: white;
+  font-weight: 1000;
+  cursor: pointer;
+  box-shadow: 0 16px 34px rgba(124, 140, 255, 0.28);
+}
+
+.game-back-btn:hover {
+  transform: translateY(-3px);
+}
+
+/* ───────────── PUZZLE GAME ───────────── */
+
+.puzzle-levels {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+
+.puzzle-levels button {
+  border: none;
+  border-radius: 16px;
+  padding: 11px 16px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.puzzle-levels button:hover {
+  transform: translateY(-2px);
+  background: #dbe3ff;
+}
+
+.puzzle-grid {
+  width: min(460px, 86vw);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  gap: 4px;
+  margin: 20px auto;
+  padding: 8px;
+  border-radius: 24px;
+  background: #eef2ff;
+  box-shadow: inset 0 0 0 1px #dbe3ff;
+}
+
+.puzzle-piece {
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background-repeat: no-repeat;
+  box-shadow: 0 4px 10px rgba(91, 124, 250, 0.18);
+  transition: 0.15s;
+}
+
+.puzzle-piece:hover {
+  transform: scale(1.03);
+}
+
+.puzzle-piece.selected {
+  outline: 4px solid #f59e0b;
+  transform: scale(1.04);
+}
+
+/* ───────────── SPEED CHALLENGE ───────────── */
+
+.speed-topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.speed-topbar div {
+  flex: 1;
+  padding: 14px;
+  border-radius: 18px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-weight: 1000;
+  text-align: center;
+}
+
+.speed-question {
+  margin: 20px 0;
+  padding: 22px;
+  border-radius: 24px;
+  background: white;
+  color: #20285a;
+  font-size: 1.25rem;
+  font-weight: 1000;
+  box-shadow: 0 12px 28px rgba(91, 124, 250, 0.14);
+}
+
+.speed-choices {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.speed-choices button {
+  border: none;
+  border-radius: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #7c8cff, #8b5cf6);
+  color: white;
+  font-weight: 1000;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(124, 140, 255, 0.25);
+}
+
+.speed-choices button:hover {
+  transform: translateY(-3px);
+}
+
+.speed-result {
+  margin: 20px 0;
+  padding: 22px;
+  border-radius: 24px;
+  font-size: 1.4rem;
+  font-weight: 1000;
+  text-align: center;
+  border: 1px solid transparent;
+}
+
+/* 0–5 */
+.speed-result.bad {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+/* 6–8 */
+.speed-result.average {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+/* 9–12 */
+.speed-result.good {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  color: #166534;
+  border-color: #86efac;
+}
+
+@media (max-width: 700px) {
+  .sourdi-game-modal-content {
+    padding: 22px;
+    border-radius: 28px;
+  }
+
+  .sourdi-game-menu {
+    grid-template-columns: 1fr;
+  }
+
+  .memory-grid,
+  .memory-grid.intelligent {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .memory-card {
+    height: 120px;
+  }
+
+  .hangman-word {
+    letter-spacing: 6px;
+  }
+}
+
+/* ───────────── DARK MODE (acc-root variables) ───────────── */
+
+.sourdi-chatbox {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.sourdi-sidebar {
+  background: var(--surface-alt);
+  border-right: 1px solid var(--border);
+}
+
+.sourdi-main,
+.sourdi-messages {
+  background: var(--bg);
+}
+
+.new-chat-btn,
+.chat-history-item.active,
+.mini-avatar,
+.message-bubble.ai,
+.sourdi-input-area,
+.sourdi-image-modal-content,
+.speed-question,
+.sourdi-game-modal-content {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.chat-history-item,
+.sourdi-game-modal-content p {
+  color: var(--text-muted);
+}
+
+.sourdi-input-area {
+  border-top: 1px solid var(--border);
+}
+
+.sourdi-input-area input[type="text"] {
+  background: var(--surface-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.file-name,
+.sourdi-game-modal-content h2,
+.sourdi-game-modal-content h3,
+.speed-question {
+  color: var(--text);
+}

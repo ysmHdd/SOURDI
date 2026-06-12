@@ -655,3 +655,104 @@
 .eleve-chat-bubble {
   position: relative;
 }
+
+/* ── DARK/LIGHT MODE (uses acc-root CSS variables) ── */
+
+.eleve-chat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.eleve-chat-messages {
+  background: linear-gradient(145deg, var(--bg), var(--bg2));
+}
+
+.eleve-chat-empty {
+  color: var(--text-muted);
+}
+
+.eleve-chat-message.admin .eleve-chat-bubble {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.eleve-chat-form {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.eleve-chat-form textarea {
+  background: var(--surface-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.eleve-chat-form textarea::placeholder {
+  color: var(--text-faint);
+}
+
+.eleve-chat-file-btn {
+  background: var(--surface-alt);
+  color: #7c4dff;
+}
+
+.eleve-chat-file-count {
+  color: var(--text-muted);
+}
+
+.chat-file-preview {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+
+.chat-file-icon {
+  background: var(--surface);
+}
+
+.chat-file-info span {
+  color: var(--text);
+}
+
+.delete-modal,
+.report-modal,
+.report-success-modal {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.delete-modal h3,
+.report-modal h3,
+.report-success-modal h3 {
+  color: var(--text);
+}
+
+.delete-modal p,
+.report-modal p,
+.report-success-modal p {
+  color: var(--text-muted);
+}
+
+.delete-modal-cancel,
+.report-modal-cancel {
+  background: var(--surface-alt);
+  color: #7c4dff;
+}
+
+.report-modal select,
+.report-modal-textarea {
+  background: var(--surface-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.report-modal-textarea::placeholder {
+  color: var(--text-faint);
+}
+
+.eleve-report-icon-btn {
+  background: var(--surface);
+}

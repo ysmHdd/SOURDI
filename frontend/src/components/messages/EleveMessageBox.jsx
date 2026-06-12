@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   getConversationEleve,
   envoyerMessageEleve,
@@ -9,7 +10,7 @@ import "./EleveMessageBox.css";
 
 const FICHIER_BASE_URL = "http://localhost:5006";
 
-const FichierMessage = ({ fichier }) => {
+const FichierMessage = ({ fichier, t }) => {
   const url = `${FICHIER_BASE_URL}${fichier.url}`;
   const isImage = (fichier.typeMime || "").startsWith("image/");
 
@@ -50,7 +51,7 @@ const FichierMessage = ({ fichier }) => {
         <span>{fichier.nomOriginal || "Fichier"}</span>
 
         <button type="button" onClick={telechargerFichier}>
-          Télécharger
+          {t("messageBox.telecharger")}
         </button>
       </div>
     </div>
@@ -58,6 +59,7 @@ const FichierMessage = ({ fichier }) => {
 };
 
 const EleveMessageBox = () => {
+  const { t } = useTranslation();
   const [ouvert, setOuvert] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [contenu, setContenu] = useState("");
@@ -69,13 +71,26 @@ const EleveMessageBox = () => {
   const [typeHarcelement, setTypeHarcelement] = useState("bad_words");
   const [detailsSignalement, setDetailsSignalement] = useState("");
   const [signalementEnvoye, setSignalementEnvoye] = useState(false);
+  const [dateSuppressionLocale, setDateSuppressionLocale] = useState(null);
+  const dateSuppressionRef = useRef(null);
 
   const messagesRef = useRef(null);
+
+  const filtrerMessagesSupprimes = (conv) => {
+    if (!conv || !dateSuppressionRef.current) return conv;
+
+    return {
+      ...conv,
+      messages: (conv.messages || []).filter(
+        (m) => new Date(m.createdAt) > new Date(dateSuppressionRef.current)
+      ),
+    };
+  };
 
   const chargerConversation = async (marquerCommeLu = false) => {
     try {
       const res = await getConversationEleve(marquerCommeLu);
-      setConversation(res.data);
+      setConversation(filtrerMessagesSupprimes(res.data));
     } catch (erreur) {
       console.error(erreur);
     }
@@ -129,7 +144,7 @@ const EleveMessageBox = () => {
 
       const res = await envoyerMessageEleve(formData);
 
-      setConversation(res.data.conversation);
+      setConversation(filtrerMessagesSupprimes(res.data.conversation));
       setContenu("");
       setFichiers([]);
 
@@ -157,9 +172,17 @@ const EleveMessageBox = () => {
 
   const supprimerTousLesMessages = async () => {
     try {
-      const res = await supprimerMessagesEleve();
+      await supprimerMessagesEleve();
 
-      setConversation(res.data.conversation);
+      const now = new Date().toISOString();
+      setDateSuppressionLocale(now);
+      dateSuppressionRef.current = now;
+
+      setConversation((prev) => ({
+        ...prev,
+        messages: [],
+      }));
+
       setModalSuppression(false);
     } catch (erreur) {
       console.error(erreur);
@@ -215,12 +238,12 @@ const EleveMessageBox = () => {
         <div className="eleve-chat-box">
           <div className="eleve-chat-header">
             <div>
-              <h3>Support SOURDI</h3>
+              <h3>{t("messageBox.supportTitle")}</h3>
 
               <p>
                 {conversation?.statut === "termine"
-                  ? "Conversation terminée"
-                  : "Un admin te répondra bientôt"}
+                  ? t("messageBox.conversationTerminee")
+                  : t("messageBox.adminRepondra")}
               </p>
             </div>
 
@@ -243,7 +266,7 @@ const EleveMessageBox = () => {
 
           <div className="eleve-chat-messages" ref={messagesRef}>
             {messages.length === 0 ? (
-              <div className="eleve-chat-empty">Écris ton message ici.</div>
+              <div className="eleve-chat-empty">{t("messageBox.ecrisMessage")}</div>
             ) : (
               messages.map((message) => (
                 <div
@@ -258,7 +281,7 @@ const EleveMessageBox = () => {
                     {message.fichiers?.length > 0 && (
                       <div className="eleve-chat-files">
                         {message.fichiers.map((fichier, index) => (
-                          <FichierMessage key={index} fichier={fichier} />
+                          <FichierMessage key={index} fichier={fichier} t={t} />
                         ))}
                       </div>
                     )}
@@ -267,7 +290,7 @@ const EleveMessageBox = () => {
                       <button
                         type="button"
                         className="eleve-report-icon-btn"
-                        title="Signaler ce message"
+                        title={t("messageBox.signalerCeMessage")}
                         onClick={() => {
                           setMessageASignaler(message);
                           setModalSignalement(true);
@@ -296,7 +319,7 @@ const EleveMessageBox = () => {
               value={contenu}
               onChange={(e) => setContenu(e.target.value)}
               onKeyDown={gererToucheEntree}
-              placeholder="Écris ton message..."
+              placeholder={t("messageBox.placeholderMessage")}
               rows="2"
             />
 
@@ -315,12 +338,12 @@ const EleveMessageBox = () => {
 
               {fichiers.length > 0 && (
                 <span className="eleve-chat-file-count">
-                  {fichiers.length} fichier(s)
+                  {fichiers.length} {t("messageBox.fichiers")}
                 </span>
               )}
 
               <button type="submit" disabled={chargement}>
-                {chargement ? "..." : "Envoyer"}
+                {chargement ? "..." : t("messageBox.envoyer")}
               </button>
             </div>
           </form>
@@ -332,9 +355,9 @@ const EleveMessageBox = () => {
           <div className="delete-modal">
             <div className="delete-modal-icon">🗑</div>
 
-            <h3>Supprimer les messages ?</h3>
+            <h3>{t("messageBox.supprimerMessagesTitre")}</h3>
 
-            <p>Tous les messages seront supprimés de ton espace.</p>
+            <p>{t("messageBox.supprimerMessagesDesc")}</p>
 
             <div className="delete-modal-actions">
               <button
@@ -342,7 +365,7 @@ const EleveMessageBox = () => {
                 className="delete-modal-cancel"
                 onClick={() => setModalSuppression(false)}
               >
-                Annuler
+                {t("messageBox.annuler")}
               </button>
 
               <button
@@ -350,7 +373,7 @@ const EleveMessageBox = () => {
                 className="delete-modal-confirm"
                 onClick={supprimerTousLesMessages}
               >
-                Supprimer
+                {t("messageBox.supprimer")}
               </button>
             </div>
           </div>
@@ -362,9 +385,9 @@ const EleveMessageBox = () => {
           <div className="report-modal">
             <div className="report-modal-icon">⚠️</div>
 
-            <h3>Signaler ce message</h3>
+            <h3>{t("messageBox.signalerTitre")}</h3>
 
-            <p>Choisis le type de problème.</p>
+            <p>{t("messageBox.signalerDesc")}</p>
 
             <select
               value={typeHarcelement}
@@ -376,13 +399,13 @@ const EleveMessageBox = () => {
                 }
               }}
             >
-              <option value="bad_words">Mauvais mots</option>
-              <option value="harassment">Harcèlement</option>
-              <option value="sexual_harassment">Harcèlement sexuel</option>
-              <option value="bullying">Intimidation</option>
-              <option value="hate_speech">Discours haineux</option>
-              <option value="spam">Spam</option>
-              <option value="other">Autre</option>
+              <option value="bad_words">{t("messageBox.mauvaisMots")}</option>
+              <option value="harassment">{t("messageBox.harcelement")}</option>
+              <option value="sexual_harassment">{t("messageBox.harcelementSexuel")}</option>
+              <option value="bullying">{t("messageBox.intimidation")}</option>
+              <option value="hate_speech">{t("messageBox.discoursHaineux")}</option>
+              <option value="spam">{t("messageBox.spam")}</option>
+              <option value="other">{t("messageBox.autre")}</option>
             </select>
 
             {typeHarcelement === "other" && (
@@ -390,7 +413,7 @@ const EleveMessageBox = () => {
                 className="report-modal-textarea"
                 value={detailsSignalement}
                 onChange={(e) => setDetailsSignalement(e.target.value)}
-                placeholder="Explique le problème..."
+                placeholder={t("messageBox.placeholderProbleme")}
                 rows="3"
               />
             )}
@@ -404,7 +427,7 @@ const EleveMessageBox = () => {
                   setDetailsSignalement("");
                 }}
               >
-                Annuler
+                {t("messageBox.annuler")}
               </button>
 
               <button
@@ -412,7 +435,7 @@ const EleveMessageBox = () => {
                 className="report-modal-confirm"
                 onClick={envoyerSignalement}
               >
-                Envoyer
+                {t("messageBox.envoyerSignalement")}
               </button>
             </div>
           </div>
@@ -424,12 +447,12 @@ const EleveMessageBox = () => {
           <div className="report-success-modal">
             <div className="report-success-icon">✓</div>
 
-            <h3>Signalement envoyé</h3>
+            <h3>{t("messageBox.signalementEnvoye")}</h3>
 
-            <p>L'administration va examiner ce message.</p>
+            <p>{t("messageBox.signalementDescription")}</p>
 
             <button type="button" onClick={() => setSignalementEnvoye(false)}>
-              D'accord
+              {t("messageBox.daccord")}
             </button>
           </div>
         </div>

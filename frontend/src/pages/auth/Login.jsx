@@ -32,6 +32,15 @@ const Login = () => {
       signup: "Sign up",
       error: "Login error",
     },
+    ar: {
+      email: "بريدك الإلكتروني",
+      password: "كلمة المرور",
+      login: "هيا نبدأ!",
+      divider: "أو",
+      noAccount: "ليس لديك حساب؟",
+      signup: "إنشاء حساب",
+      error: "خطأ في تسجيل الدخول",
+    },
   };
 
   const toggleTheme = () => {
@@ -43,6 +52,8 @@ const Login = () => {
   const changeLang = (newLang) => {
     setLang(newLang);
     localStorage.setItem("lang", newLang);
+    document.documentElement.lang = newLang;
+    document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
   };
 
   const handleChange = (e) => {
@@ -106,6 +117,7 @@ const Login = () => {
           font-family: 'Nunito', sans-serif;
           position: relative;
           overflow: hidden;
+          direction: ${lang === "ar" ? "rtl" : "ltr"};
         }
 
         .login-bg::before,
@@ -162,7 +174,8 @@ const Login = () => {
         .theme-toggle {
           position: absolute;
           top: 18px;
-          right: 18px;
+          right: ${lang === "ar" ? "auto" : "18px"};
+          left: ${lang === "ar" ? "18px" : "auto"};
           border: none;
           background: rgba(171, 71, 188, 0.14);
           border-radius: 50%;
@@ -175,7 +188,8 @@ const Login = () => {
         .lang-switch {
           position: absolute;
           top: 18px;
-          left: 18px;
+          left: ${lang === "ar" ? "auto" : "18px"};
+          right: ${lang === "ar" ? "18px" : "auto"};
           display: flex;
           gap: 6px;
         }
@@ -439,6 +453,7 @@ const Login = () => {
           letter-spacing: 0.9px;
           color: #AB47BC;
           margin-bottom: 7px;
+          text-align: ${lang === "ar" ? "right" : "left"};
         }
 
         .field-wrap {
@@ -459,6 +474,7 @@ const Login = () => {
           transition: border-color 0.22s, box-shadow 0.22s, background 0.2s;
           outline: none;
           box-sizing: border-box;
+          direction: ${lang === "ar" ? "rtl" : "ltr"};
         }
 
         .login-input:focus {
@@ -492,7 +508,7 @@ const Login = () => {
           background: linear-gradient(135deg, #fff3e0, #ffebee);
           border: 2px solid rgba(239, 83, 80, 0.32);
           color: #b71c1c;
-          text-align: left;
+          text-align: ${lang === "ar" ? "right" : "left"};
           line-height: 1.5;
         }
 
@@ -561,7 +577,8 @@ const Login = () => {
 
         .password-toggle {
           position: absolute;
-          right: 14px;
+          right: ${lang === "ar" ? "auto" : "14px"};
+          left: ${lang === "ar" ? "14px" : "auto"};
           top: 50%;
           transform: translateY(-50%);
           border: none;
@@ -575,7 +592,8 @@ const Login = () => {
         }
 
         .password-input {
-          padding-right: 50px !important;
+          padding-right: ${lang === "ar" ? "16px" : "50px"} !important;
+          padding-left: ${lang === "ar" ? "50px" : "16px"} !important;
         }
       `}</style>
 
@@ -594,8 +612,13 @@ const Login = () => {
             <button className={`lang-btn ${lang === "fr" ? "active" : ""}`} onClick={() => changeLang("fr")} type="button">
               FR
             </button>
+
             <button className={`lang-btn ${lang === "en" ? "active" : ""}`} onClick={() => changeLang("en")} type="button">
               EN
+            </button>
+
+            <button className={`lang-btn ${lang === "ar" ? "active" : ""}`} onClick={() => changeLang("ar")} type="button">
+              AR
             </button>
           </div>
 
@@ -616,14 +639,17 @@ const Login = () => {
                 <div className="owl-cap" />
                 <div className="owl-tuft left" />
                 <div className="owl-tuft right" />
+
                 <div className="owl-eyes">
                   <div className="owl-eye-ring">
                     <div className="owl-eye-pupil" />
                   </div>
+
                   <div className="owl-eye-ring">
                     <div className="owl-eye-pupil" />
                   </div>
                 </div>
+
                 <div className="owl-beak" />
               </div>
             </div>
@@ -642,6 +668,7 @@ const Login = () => {
               <label className="field-label" htmlFor="email">
                 {t[lang].email}
               </label>
+
               <input
                 className="login-input"
                 type="email"

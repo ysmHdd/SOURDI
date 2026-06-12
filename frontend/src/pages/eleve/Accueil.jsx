@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import axios from "../../api/axios";
 import "./accueil.css";
@@ -121,71 +122,6 @@ const getAvatarUrl = (avatar) => {
   )}&${getAvatarParams(gender, style)}`;
 };
 
-const T = {
-  fr: {
-    tagline: "Plateforme d'apprentissage",
-    logout: "Déconnexion",
-    coins: "Sourdi Coins",
-    marketTitle: "Marketplace",
-    marketSub: "Dépense tes coins pour des récompenses",
-    seeAll: "Voir tout",
-    coursesTitle: "Cours disponibles",
-    coursesSub: "Continue ton apprentissage avec tes cours",
-    start: "Commencer",
-    statsTitle: "Ma progression",
-    lessons: "Leçons complétées",
-    time: "Temps passé",
-    connections: "Jours de connexion",
-    selfEval: "Auto-évaluation",
-    footerText: "Plateforme éducative pour la langue des signes",
-    noProducts: "Aucun produit disponible",
-    coins_unit: "coins",
-    cycleCoins: "Cycle coins",
-    actions: "actions",
-    streak: "jours de suite",
-    nextGoal: "Prochain objectif",
-    niveau: "Niveau",
-    niveaux: ["Débutant", "Apprenti", "Intermédiaire", "Avancé", "Expert"],
-    bonjour: (h) =>
-      h < 12 ? "Bonjour" : h < 18 ? "Bon après-midi" : "Bonsoir",
-  },
-  en: {
-    tagline: "Learning Platform",
-    logout: "Logout",
-    coins: "Sourdi Coins",
-    marketTitle: "Marketplace",
-    marketSub: "Spend your coins to get rewards",
-    seeAll: "See all",
-    coursesTitle: "Available Courses",
-    coursesSub: "Continue learning with your lessons",
-    start: "Start",
-    statsTitle: "My Progress",
-    lessons: "Completed Lessons",
-    time: "Time Spent",
-    connections: "Login streak",
-    selfEval: "Self-Evaluation",
-    footerText: "Educational platform for sign language",
-    noProducts: "No products available",
-    coins_unit: "coins",
-    cycleCoins: "Coins cycle",
-    actions: "actions",
-    streak: "days in a row",
-    nextGoal: "Next goal",
-    niveau: "Level",
-    niveaux: ["Beginner", "Apprentice", "Intermediate", "Advanced", "Expert"],
-    bonjour: (h) =>
-      h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening",
-  },
-};
-
-const getNiveau = (solde) => {
-  if (solde >= 500) return 4;
-  if (solde >= 200) return 3;
-  if (solde >= 100) return 2;
-  if (solde >= 50) return 1;
-  return 0;
-};
-
 const getNextGoalCoins = (solde) => {
   if (solde < 50) return 50;
   if (solde < 100) return 100;
@@ -226,11 +162,12 @@ const getNotificationIcon = (type) => {
 export default function Accueil() {
   const { utilisateur, deconnexion } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [lang, setLang] = useState(localStorage.getItem("sourdi_lang") || "fr");
-  const [dark, setDark] = useState(
-    localStorage.getItem("sourdi_dark") === "true"
-  );
+  const [dark, setDark] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
 
   const [profil, setProfil] = useState(null);
   const [produits, setProduits] = useState([]);
@@ -258,8 +195,13 @@ export default function Accueil() {
   const rewardRunningRef = useRef(false);
   const notifRef = useRef(null);
 
-  const t = T[lang];
   const heure = new Date().getHours();
+
+  const getBonjour = (h) => {
+    if (h < 12) return t("accueil.bonjour");
+    if (h < 18) return t("accueil.bonApresMidi");
+    return t("accueil.bonsoir");
+  };
 
   const accesBloque =
     utilisateur?.statutAcces === "en_attente" ||
@@ -448,7 +390,7 @@ export default function Accueil() {
   }, [lang]);
 
   useEffect(() => {
-    localStorage.setItem("sourdi_dark", dark);
+    localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
 
   useEffect(() => {
@@ -510,7 +452,6 @@ export default function Accueil() {
     return () => clearInterval(timerRef.current);
   }, []);
 
-  const niveauIdx = getNiveau(solde);
   const nextGoal = getNextGoalCoins(solde);
   const niveauPct = nextGoal ? Math.round((solde / nextGoal) * 100) : 100;
 
@@ -564,11 +505,7 @@ export default function Accueil() {
             <div className="acc-welcome-bar">
           <div className="acc-welcome-left">
             <span className="acc-welcome-greet">
-              {t.bonjour(heure)}, {utilisateur?.user_first_name} —
-            </span>
-
-            <span className="acc-welcome-niveau">
-              {t.niveau} : <strong>{t.niveaux[niveauIdx]}</strong>
+              {getBonjour(heure)}, {utilisateur?.user_first_name} —
             </span>
           </div>
 
@@ -588,16 +525,16 @@ export default function Accueil() {
           )}
 
           <div className="acc-session-badge">
-            {t.cycleCoins} : {formatSecondes(tempsCycleCoins)} / 30:00 ·{" "}
-            {actionsCycle} {t.actions}
+            {t("accueil.cycleCoins")} : {formatSecondes(tempsCycleCoins)} / 30:00 ·{" "}
+            {actionsCycle} {t("accueil.actions")}
           </div>
         </div>
 
         <main className="acc-main">
           <section className="acc-panel">
             <div className="acc-panel-head">
-              <h2 className="acc-panel-title">{t.marketTitle}</h2>
-              <p className="acc-panel-sub">{t.marketSub}</p>
+              <h2 className="acc-panel-title">{t("accueil.marketTitle")}</h2>
+              <p className="acc-panel-sub">{t("accueil.marketSub")}</p>
             </div>
 
             <div className="acc-panel-body">
@@ -615,13 +552,13 @@ export default function Accueil() {
                     <div className="acc-mp-info">
                       <span className="acc-mp-name">{p.nom}</span>
                       <span className="acc-mp-price">
-                        <strong>{p.prixEnCoins}</strong> {t.coins_unit}
+                        <strong>{p.prixEnCoins}</strong> {t("accueil.coinsUnit")}
                       </span>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="acc-empty">{t.noProducts}</p>
+                <p className="acc-empty">{t("accueil.noProducts")}</p>
               )}
             </div>
 
@@ -631,15 +568,15 @@ export default function Accueil() {
                 className="acc-see-all"
                 onClick={() => enregistrerActiviteCoins()}
               >
-                {t.seeAll}
+                {t("accueil.seeAll")}
               </Link>
             </div>
           </section>
 
           <section className="acc-panel">
             <div className="acc-panel-head">
-              <h2 className="acc-panel-title">{t.coursesTitle}</h2>
-              <p className="acc-panel-sub">{t.coursesSub}</p>
+              <h2 className="acc-panel-title">{t("accueil.coursesTitle")}</h2>
+              <p className="acc-panel-sub">{t("accueil.coursesSub")}</p>
             </div>
 
             <div className="acc-courses-list">
@@ -681,7 +618,7 @@ export default function Accueil() {
                       onClick={() => navigate("/eleve/exercices")}
                       type="button"
                     >
-                      {t.start}
+                      {t("accueil.start")}
                     </button>
                   </div>
                 ))

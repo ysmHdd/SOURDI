@@ -1,45 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axios from "../../../api/axios";
 import "./exercices.css";
 
 const API_EX = "http://localhost:5004/api/exercices";
 
-const T = {
-  fr: {
-    bravo: "Bravo !",
-    bienEssaye: "Bien essayé !",
-    score: "Ton score",
-    coinsGagnes: "Coins gagnés",
-    dejaComplete: "Déjà récompensé",
-    rejouer: "Rejouer",
-    retour: "Retour aux cours",
-    soumission: "Calcul du score...",
-  },
-  en: {
-    bravo: "Well done!",
-    bienEssaye: "Good try!",
-    score: "Your score",
-    coinsGagnes: "Coins earned",
-    dejaComplete: "Already rewarded",
-    rejouer: "Play again",
-    retour: "Back to lessons",
-    soumission: "Calculating score...",
-  },
-};
-
 export default function Resultat() {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const { t } = useTranslation();
 
   const dejaSoumisRef = useRef(false);
 
-  const [lang] = useState(localStorage.getItem("sourdi_lang") || "fr");
-  const [dark] = useState(localStorage.getItem("sourdi_dark") === "true");
+  const [dark] = useState(() => localStorage.getItem("theme") === "dark");
   const [resultat, setResultat] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const t = T[lang];
 
   const { coursId, quizId, coursTitre, quizTitre, reponses, tempsEnSecondes } =
     state || {};
@@ -74,7 +50,7 @@ export default function Resultat() {
   if (loading) {
     return (
       <div className={`ex-root ${dark ? "dark" : "light"}`}>
-        <div className="ex-loading-full">{t.soumission}</div>
+        <div className="ex-loading-full">{t("resultat.soumission")}</div>
       </div>
     );
   }
@@ -90,7 +66,7 @@ export default function Resultat() {
       <main className="ex-resultat-main">
         <div className="ex-resultat-card">
           <h1 className="ex-resultat-titre">
-            {estBon ? t.bravo : t.bienEssaye}
+            {estBon ? t("resultat.bravo") : t("resultat.bienEssaye")}
           </h1>
 
           <p className="ex-resultat-subtitle">
@@ -136,12 +112,12 @@ export default function Resultat() {
           <div className="ex-coins-result">
             <span className="ex-coins-dot" />
             <span>
-              +{resultat?.pointsGagnes || 0} {t.coinsGagnes}
+              +{resultat?.pointsGagnes || 0} {t("resultat.coinsGagnes")}
             </span>
           </div>
 
           {resultat?.dejaComplete && (
-            <div className="ex-warning">{t.dejaComplete}</div>
+            <div className="ex-warning">{t("resultat.dejaComplete")}</div>
           )}
 
           <div className="ex-resultat-btns">
@@ -153,14 +129,14 @@ export default function Resultat() {
                 })
               }
             >
-              {t.rejouer}
+              {t("resultat.rejouer")}
             </button>
 
             <button
               className="ex-home-btn"
               onClick={() => navigate("/eleve/exercices")}
             >
-              {t.retour}
+              {t("resultat.retour")}
             </button>
           </div>
         </div>

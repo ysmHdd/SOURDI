@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axios from "../../../api/axios";
 import "./exercices.css";
 
@@ -18,37 +19,12 @@ const setNumberStorage = (key, value) => {
   localStorage.setItem(key, String(value));
 };
 
-const T = {
-  fr: {
-    question: "Question",
-    suivant: "Suivant →",
-    terminer: "Terminer",
-    retour: "← Quitter",
-    temps: "Temps",
-    cycleCoins: "Cycle coins",
-    actions: "actions",
-    chargement: "Chargement...",
-    vide: "Quiz introuvable",
-  },
-  en: {
-    question: "Question",
-    suivant: "Next →",
-    terminer: "Finish",
-    retour: "← Quit",
-    temps: "Time",
-    cycleCoins: "Coins cycle",
-    actions: "actions",
-    chargement: "Loading...",
-    vide: "Quiz not found",
-  },
-};
-
 export default function Quiz() {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const { t } = useTranslation();
 
-  const [lang] = useState(localStorage.getItem("sourdi_lang") || "fr");
-  const [dark] = useState(localStorage.getItem("sourdi_dark") === "true");
+  const [dark] = useState(() => localStorage.getItem("theme") === "dark");
 
   const [questions, setQuestions] = useState([]);
   const [quiz, setQuiz] = useState(null);
@@ -68,7 +44,6 @@ export default function Quiz() {
   const timerRef = useRef(null);
   const rewardRunningRef = useRef(false);
 
-  const t = T[lang];
   const { coursId, quizId, coursTitre, quizTitre } = state || {};
 
   const formatTemps = (s) =>
@@ -242,7 +217,7 @@ export default function Quiz() {
   if (loading) {
     return (
       <div className={`ex-root ${dark ? "dark" : "light"}`}>
-        <div className="ex-loading-full">{t.chargement}</div>
+        <div className="ex-loading-full">{t("quiz.chargement")}</div>
       </div>
     );
   }
@@ -252,7 +227,7 @@ export default function Quiz() {
   if (!question) {
     return (
       <div className={`ex-root ${dark ? "dark" : "light"}`}>
-        <div className="ex-loading-full">{t.vide}</div>
+        <div className="ex-loading-full">{t("quiz.vide")}</div>
       </div>
     );
   }
@@ -270,18 +245,18 @@ export default function Quiz() {
           onClick={() => navigate("/eleve/exercices")}
           type="button"
         >
-          {t.retour}
+          {t("quiz.retour")}
         </button>
 
         <span className="ex-logo">SOURDI</span>
 
         <span className="ex-timer">
-          {t.temps} : {formatTemps(tempsQuiz)}
+          {t("quiz.temps")} : {formatTemps(tempsQuiz)}
         </span>
 
         <span className="ex-timer">
-          {t.cycleCoins} : {formatTemps(tempsCycleCoins)} / 30:00 ·{" "}
-          {actionsCycle} {t.actions}
+          {t("quiz.cycleCoins")} : {formatTemps(tempsCycleCoins)} / 30:00 ·{" "}
+          {actionsCycle} {t("quiz.actions")}
         </span>
       </header>
 
@@ -296,7 +271,7 @@ export default function Quiz() {
         </div>
 
         <p className="ex-progress-label">
-          {t.question} {current + 1} / {questions.length}
+          {t("quiz.question")} {current + 1} / {questions.length}
         </p>
 
         <div className="ex-question-card">
@@ -322,7 +297,7 @@ export default function Quiz() {
 
         {selected !== null && (
           <button className="ex-next-btn" onClick={suivant} type="button">
-            {current + 1 >= questions.length ? t.terminer : t.suivant}
+            {current + 1 >= questions.length ? t("quiz.terminer") : t("quiz.suivant")}
           </button>
         )}
       </main>

@@ -101,7 +101,10 @@ const Inscription = () => {
   const navigate = useNavigate();
 
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
-  const [lang, setLang] = useState(localStorage.getItem("lang") || "fr");
+  const [lang, setLang] = useState(localStorage.getItem("i18nextLng") || "fr");
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
 
   const [avatar, setAvatar] = useState({
@@ -188,6 +191,7 @@ const Inscription = () => {
         "Compte créé. Veuillez confirmer votre email avant de vous connecter.",
       error: "Erreur lors de l'inscription",
     },
+
     en: {
       title: "Create student account",
       firstName: "First name",
@@ -227,6 +231,47 @@ const Inscription = () => {
       success: "Account created. Please confirm your email before logging in.",
       error: "Registration error",
     },
+
+    ar: {
+      title: "إنشاء حساب تلميذ",
+      firstName: "الاسم",
+      lastName: "اللقب",
+      email: "البريد الإلكتروني",
+      password: "كلمة المرور",
+      confirmPassword: "تأكيد كلمة المرور",
+      dob: "تاريخ الميلاد",
+      phone: "الهاتف",
+      grade: "المستوى / القسم",
+      gouvernorat: "الولاية",
+      delegation: "المعتمدية",
+      region: "المنطقة",
+      school: "اسم المدرسة",
+      gradeOptions: [
+        { value: "1ere annee primaire", label: "السنة الأولى ابتدائي" },
+        { value: "2eme annee primaire", label: "السنة الثانية ابتدائي" },
+        { value: "3eme annee primaire", label: "السنة الثالثة ابتدائي" },
+        { value: "4eme annee primaire", label: "السنة الرابعة ابتدائي" },
+        { value: "5eme annee primaire", label: "السنة الخامسة ابتدائي" },
+        { value: "6eme annee primaire", label: "السنة السادسة ابتدائي" },
+      ],
+      chooseAvatar: "اختيار الصورة الرمزية",
+      customizeAvatar: "تخصيص الصورة الرمزية",
+      gender: "الجنس",
+      avatarStyle: "نمط الصورة الرمزية",
+      randomAvatar: "صورة عشوائية",
+      saveAvatar: "تأكيد الصورة الرمزية",
+      button: "إنشاء حسابي",
+      divider: "أو",
+      haveAccount: "لديك حساب بالفعل؟",
+      login: "تسجيل الدخول",
+      invalidEmail: "البريد الإلكتروني غير صالح.",
+      invalidPassword:
+        "كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل، حرف كبير، حرف صغير، رقم ورمز خاص.",
+      passwordMismatch: "كلمتا المرور غير متطابقتين.",
+      success:
+        "تم إنشاء الحساب. يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول.",
+      error: "حدث خطأ أثناء التسجيل",
+    },
   };
 
   const toggleTheme = () => {
@@ -237,7 +282,9 @@ const Inscription = () => {
 
   const changeLang = (newLang) => {
     setLang(newLang);
-    localStorage.setItem("lang", newLang);
+    localStorage.setItem("i18nextLng", newLang);
+    document.documentElement.lang = newLang;
+    document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
   };
 
   const handleChange = (e) => {
@@ -349,8 +396,12 @@ const Inscription = () => {
       avatarUrl={avatarUrl}
       avatarModalOpen={avatarModalOpen}
       avatarStylesByGender={avatarStylesByGender}
+      showPassword={showPassword}
+      showConfirmPassword={showConfirmPassword}
       getPreviewAvatarUrl={getPreviewAvatarUrl}
       setAvatarModalOpen={setAvatarModalOpen}
+      setShowPassword={setShowPassword}
+      setShowConfirmPassword={setShowConfirmPassword}
       handleChange={handleChange}
       handleSubmit={handleSubmit}
       toggleTheme={toggleTheme}

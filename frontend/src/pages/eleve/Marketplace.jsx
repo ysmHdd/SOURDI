@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import axios from "../../api/axios";
 import "./accueil.css";
@@ -15,17 +16,18 @@ const API_ADMIN = "http://localhost:5002";
 const Marketplace = () => {
   const navigate = useNavigate();
   const { utilisateur, deconnexion } = useAuth();
+  const { t } = useTranslation();
 
   const [produits, setProduits] = useState([]);
   const [profil, setProfil] = useState(null);
   const [solde, setSolde] = useState(0);
   const [message, setMessage] = useState("");
-  const [dark, setDark] = useState(
-    localStorage.getItem("sourdi_dark") === "true"
-  );
+  const [dark, setDark] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
 
   const [lang, setLang] = useState(
-    localStorage.getItem("sourdi_lang") || "fr"
+    localStorage.getItem("i18nextLng") || "fr"
   );
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -60,11 +62,11 @@ const Marketplace = () => {
         { quantite: 1 }
       );
 
-      setMessage("Produit ajouté au panier.");
+      setMessage(t("market.ajoute"));
       setTimeout(() => setMessage(""), 2500);
     } catch (err) {
       setMessage(
-        err.response?.data?.message || "Erreur lors de l'ajout au panier."
+        err.response?.data?.message || t("market.erreurAjout")
       );
     }
   };
@@ -74,7 +76,7 @@ const Marketplace = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("sourdi_dark", dark);
+    localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
 
   const produitsFiltres = produits.filter((p) => {
@@ -120,14 +122,14 @@ const Marketplace = () => {
         >
           <main className="market-page">
         <div className="market-page-head">
-          <h1>Marketplace SOURDI</h1>
-          <p>Ajoute des produits à ton panier puis valide ta commande.</p>
+          <h1>{t("market.titre")}</h1>
+          <p>{t("market.sousTitre")}</p>
         </div>
 
         <div className="market-filters">
           <input
             className="market-filter-input"
-            placeholder="Rechercher un produit..."
+            placeholder={t("market.rechercher")}
             value={recherche}
             onChange={(e) => setRecherche(e.target.value)}
           />
@@ -137,10 +139,10 @@ const Marketplace = () => {
             value={filtreCategorie}
             onChange={(e) => setFiltreCategorie(e.target.value)}
           >
-            <option value="tous">Toutes catégories</option>
-            <option value="cours">Cours</option>
-            <option value="livre">Livre</option>
-            <option value="autre">Autre</option>
+            <option value="tous">{t("market.toutesCategories")}</option>
+            <option value="cours">{t("market.cours")}</option>
+            <option value="livre">{t("market.livre")}</option>
+            <option value="autre">{t("market.autre")}</option>
           </select>
 
           <select
@@ -148,9 +150,9 @@ const Marketplace = () => {
             value={filtreStock}
             onChange={(e) => setFiltreStock(e.target.value)}
           >
-            <option value="tous">Tous les stocks</option>
-            <option value="disponible">Disponible</option>
-            <option value="rupture">Rupture de stock</option>
+            <option value="tous">{t("market.tousStocks")}</option>
+            <option value="disponible">{t("market.disponible")}</option>
+            <option value="rupture">{t("market.rupture")}</option>
           </select>
         </div>
 
@@ -190,13 +192,13 @@ const Marketplace = () => {
                   onClick={() => ajouterAuPanier(p._id)}
                   disabled={p.stock <= 0}
                 >
-                  Ajouter au panier
+                  {t("market.ajouterPanier")}
                 </button>
               </div>
             ))}
           </div>
         ) : (
-          <div className="market-empty">Aucun produit trouvé.</div>
+          <div className="market-empty">{t("market.aucunProduit")}</div>
         )}
       </main>
 
@@ -232,17 +234,17 @@ const Marketplace = () => {
 
                 <div className="market-modal-info">
                   <span>
-                    <strong>Catégorie :</strong>{" "}
+                    <strong>{t("market.categorie")} :</strong>{" "}
                     {produitSelectionne.categorie}
                   </span>
 
                   <span>
-                    <strong>Prix :</strong>{" "}
+                    <strong>{t("market.prix")} :</strong>{" "}
                     {produitSelectionne.prixEnCoins} Coins
                   </span>
 
                   <span>
-                    <strong>Stock :</strong>{" "}
+                    <strong>{t("market.stock")} :</strong>{" "}
                     {produitSelectionne.stock}
                   </span>
                 </div>
@@ -254,7 +256,7 @@ const Marketplace = () => {
                   }
                   disabled={produitSelectionne.stock <= 0}
                 >
-                  Ajouter au panier
+                  {t("market.ajouterPanier")}
                 </button>
               </div>
             </div>
